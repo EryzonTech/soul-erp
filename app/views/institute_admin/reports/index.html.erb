@@ -36,6 +36,7 @@
     .reports-card-gold:hover::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
     .reports-card-teal:hover::before { background: linear-gradient(90deg, #14b8a6, #0d9488); }
     .reports-card-purple:hover::before { background: linear-gradient(90deg, #a855f7, #7e22ce); }
+    .reports-card-indigo:hover::before { background: linear-gradient(90deg, #6366f1, #4f46e5); }
 
     .icon-wrapper {
       width: 60px;
@@ -56,6 +57,7 @@
     .icon-gold { background: #fffbeb; color: #d97706; }
     .icon-teal { background: #ccfbf1; color: #0d9488; }
     .icon-purple { background: #f3e8ff; color: #9333ea; }
+    .icon-indigo { background: #e0e7ff; color: #4f46e5; }
 
     .reports-card h4 {
       font-weight: 700;
@@ -94,6 +96,9 @@
     .btn-purple { background: #faf5ff; color: #7e22ce; border: 1px solid #d8b4fe; }
     .btn-purple:hover { background: #a855f7; color: #ffffff; border-color: #a855f7; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3); }
 
+    .btn-indigo { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+    .btn-indigo:hover { background: #6366f1; color: #ffffff; border-color: #6366f1; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+
     .active-report-card {
       background: #ffffff;
       border-radius: 20px;
@@ -128,13 +133,13 @@
   <!-- REPORT MODULE CARDS GRID -->
   <div class="row g-4">
     <!-- Certificates -->
-    <div class="col-12 col-md-6 col-lg-4">
+    <div class="col-12 col-md-6 col-xl-3">
       <div class="reports-card reports-card-gold">
         <div>
           <div class="icon-wrapper icon-gold">
             <i class="bi bi-award-fill"></i>
           </div>
-          <h4>Certificates & Credentials</h4>
+          <h4>Certificates</h4>
           <p>Generate, issue, and verify official completion certificates for institute participants.</p>
         </div>
         <%= link_to certificates_institute_admin_reports_path, class: "btn-report-action btn-gold" do %>
@@ -145,7 +150,7 @@
     </div>
 
     <!-- Assignment Reports -->
-    <div class="col-12 col-md-6 col-lg-4">
+    <div class="col-12 col-md-6 col-xl-3">
       <div class="reports-card reports-card-teal">
         <div>
           <div class="icon-wrapper icon-teal">
@@ -161,8 +166,25 @@
       </div>
     </div>
 
+    <!-- Consolidated Response Report -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="reports-card reports-card-indigo">
+        <div>
+          <div class="icon-wrapper icon-indigo">
+            <i class="bi bi-collection-fill"></i>
+          </div>
+          <h4>Consolidated Responses</h4>
+          <p>Multi-assignment response matrices, question breakdown, and Excel export pipeline.</p>
+        </div>
+        <%= link_to consolidated_response_report_institute_admin_reports_path, class: "btn-report-action btn-indigo" do %>
+          <span>Open Consolidated Report</span>
+          <i class="bi bi-arrow-right fs-6"></i>
+        <% end %>
+      </div>
+    </div>
+
     <!-- Feedback Insights -->
-    <div class="col-12 col-md-6 col-lg-4">
+    <div class="col-12 col-md-6 col-xl-3">
       <div class="reports-card reports-card-purple">
         <div>
           <div class="icon-wrapper icon-purple">

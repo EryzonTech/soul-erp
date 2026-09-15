@@ -857,9 +857,9 @@ body {
   background-color: #f8fafc !important;
   border: none !important;
   color: #64748b;
-  padding-left: 0.9rem;
+  padding-left: 0.75rem;
   padding-right: 0.25rem;
-  font-size: 1.05rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
 }
@@ -875,8 +875,16 @@ body {
   color: #1e293b;
   padding-top: 0.6rem;
   padding-bottom: 0.6rem;
-  padding-left: 0.6rem !important;
+  padding-left: 0.5rem !important;
   cursor: pointer;
+}
+
+.filled-toolbar .input-group .form-select {
+  padding-right: 1.85rem !important;
+  background-position: right 0.55rem center !important;
+  background-size: 12px 10px !important;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .filled-toolbar select option {
@@ -919,6 +927,18 @@ nav[aria-label="breadcrumb"] {
   background: transparent !important;
 }
 
+.breadcrumb-modern {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.breadcrumb-modern::-webkit-scrollbar {
+  display: none;
+}
+
 .breadcrumb .breadcrumb-item,
 .breadcrumb-modern .breadcrumb-item,
 .breadcrumb-custom .breadcrumb-item {
@@ -927,6 +947,7 @@ nav[aria-label="breadcrumb"] {
   color: #64748b;
   font-weight: 500;
   font-size: 0.875rem;
+  white-space: nowrap;
 }
 
 .breadcrumb .breadcrumb-item a,

@@ -37,6 +37,38 @@ class ReportExportJob < ApplicationJob
       file_data = controller.send(:generate_individual_assignment_pdf_with_ferrum)
       content_type = "application/pdf"
       filename = "individual_assignment_report_#{Date.current.strftime('%Y%m%d')}.pdf"
+    when "consolidated_response_excel"
+      controller.send(:fetch_consolidated_response_reports)
+      report_rows = controller.instance_variable_get(:@report_rows) || []
+      update_progress(export_token, "processing", 40, "Aggregated #{report_rows.size} consolidated records...")
+      update_progress(export_token, "processing", 75, "Generating Excel SpreadsheetML workbook...")
+      file_data = controller.send(:generate_consolidated_response_excel)
+      content_type = "application/vnd.ms-excel; charset=utf-8"
+      filename = "consolidated_response_report_#{Date.current.strftime('%Y%m%d')}.xls"
+    when "consolidated_response_csv"
+      controller.send(:fetch_consolidated_response_reports)
+      report_rows = controller.instance_variable_get(:@report_rows) || []
+      update_progress(export_token, "processing", 40, "Aggregated #{report_rows.size} consolidated records...")
+      update_progress(export_token, "processing", 75, "Formatting CSV spreadsheet output...")
+      file_data = controller.send(:generate_consolidated_response_csv)
+      content_type = "text/csv"
+      filename = "consolidated_response_report_#{Date.current.strftime('%Y%m%d')}.csv"
+    when "consolidated_matrix_excel"
+      controller.send(:fetch_consolidated_matrix_reports)
+      matrix_rows = controller.instance_variable_get(:@matrix_rows) || []
+      update_progress(export_token, "processing", 40, "Aggregated #{matrix_rows.size} matrix submission rows...")
+      update_progress(export_token, "processing", 75, "Generating Excel SpreadsheetML matrix workbook...")
+      file_data = controller.send(:generate_consolidated_matrix_excel)
+      content_type = "application/vnd.ms-excel; charset=utf-8"
+      filename = "consolidated_question_matrix_#{Date.current.strftime('%Y%m%d')}.xls"
+    when "consolidated_matrix_csv"
+      controller.send(:fetch_consolidated_matrix_reports)
+      matrix_rows = controller.instance_variable_get(:@matrix_rows) || []
+      update_progress(export_token, "processing", 40, "Aggregated #{matrix_rows.size} matrix submission rows...")
+      update_progress(export_token, "processing", 75, "Formatting CSV spreadsheet output...")
+      file_data = controller.send(:generate_consolidated_matrix_csv)
+      content_type = "text/csv"
+      filename = "consolidated_question_matrix_#{Date.current.strftime('%Y%m%d')}.csv"
     else # "individual_assignment_csv"
       controller.send(:fetch_individual_assignment_reports)
       report_rows = controller.instance_variable_get(:@report_rows) || []

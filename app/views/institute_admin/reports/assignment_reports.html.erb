@@ -428,14 +428,18 @@
   }
 
   function startAsyncExport(exportType) {
-    document.getElementById('asyncProgressBar').style.width = '5%';
+    const progressBar = document.getElementById('asyncProgressBar');
+    progressBar.style.width = '5%';
+    progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
     document.getElementById('asyncExportPercent').innerText = '5%';
-    document.getElementById('asyncExportStage').innerText = 'Enqueuing Background Job...';
-    document.getElementById('asyncExportMessage').innerText = 'Enqueuing background export request...';
+    document.getElementById('asyncExportStage').innerText = 'Preparing Export...';
+    document.getElementById('asyncExportMessage').innerText = 'Initializing report compilation...';
     document.getElementById('asyncDownloadBtn').classList.add('d-none');
     document.getElementById('asyncExportIcon').className = 'bi bi-cpu-fill fs-3';
 
-    document.getElementById('minimizedProgressBar').style.width = '5%';
+    const minBar = document.getElementById('minimizedProgressBar');
+    minBar.style.width = '5%';
+    minBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
     document.getElementById('minimizedPercent').innerText = '5%';
     document.getElementById('minimizedIcon').className = 'bi bi-cpu-fill fs-5';
 
@@ -445,6 +449,14 @@
     const formData = new FormData(form || undefined);
     formData.delete('_method');
     formData.append('export_type', exportType);
+
+    // Merge any active query parameters from the URL that may not be present in form
+    const urlParams = new URLSearchParams(window.location.search);
+    for (const [key, value] of urlParams.entries()) {
+      if (key !== 'page' && key !== 'format' && !formData.has(key)) {
+        formData.append(key, value);
+      }
+    }
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
@@ -461,14 +473,18 @@
       if (data.export_token) {
         pollExportStatus(data.export_token);
       } else {
-        document.getElementById('asyncExportStage').innerText = 'Error';
-        document.getElementById('asyncExportMessage').innerText = 'Failed to enqueue export job.';
+        document.getElementById('asyncExportStage').innerText = 'Export Failed';
+        document.getElementById('asyncExportMessage').innerText = 'Failed to start export job. Please try again.';
+        progressBar.className = 'progress-bar bg-danger';
+        minBar.className = 'progress-bar bg-danger';
       }
     })
     .catch(err => {
       console.error('Export enqueue error:', err);
-      document.getElementById('asyncExportStage').innerText = 'Error';
-      document.getElementById('asyncExportMessage').innerText = 'Network error while triggering export.';
+      document.getElementById('asyncExportStage').innerText = 'Export Failed';
+      document.getElementById('asyncExportMessage').innerText = 'Network error while triggering export. Please try again.';
+      progressBar.className = 'progress-bar bg-danger';
+      minBar.className = 'progress-bar bg-danger';
     });
   }
 
@@ -488,10 +504,10 @@
           document.getElementById('minimizedPercent').innerText = `${percent}%`;
 
           if (data.status === 'processing') {
-            document.getElementById('asyncExportStage').innerText = 'Background Processing...';
+            document.getElementById('asyncExportStage').innerText = 'Generating Report...';
           } else if (data.status === 'completed') {
             clearInterval(pollInterval);
-            document.getElementById('asyncExportStage').innerText = 'Export Ready!';
+            document.getElementById('asyncExportStage').innerText = 'Report Ready!';
             document.getElementById('asyncExportIcon').className = 'bi bi-check-circle-fill text-success fs-3';
             document.getElementById('minimizedIcon').className = 'bi bi-check-circle-fill text-success fs-5';
             
@@ -499,19 +515,28 @@
             downloadBtn.href = data.download_url;
             downloadBtn.classList.remove('d-none');
 
-            // Trigger direct download automatically
-            window.location.href = data.download_url;
+            // Trigger direct download without Turbo Drive interception
+            const dlLink = document.createElement('a');
+            dlLink.href = data.download_url;
+            dlLink.setAttribute('download', '');
+            dlLink.setAttribute('data-turbo', 'false');
+            document.body.appendChild(dlLink);
+            dlLink.click();
+            document.body.removeChild(dlLink);
 
             // Automatically dismiss both modal & widget after brief completion visual indicator
             setTimeout(() => {
               hideAsyncModal();
               dismissWidget();
-            }, 1200);
+            }, 1500);
           } else if (data.status === 'failed') {
             clearInterval(pollInterval);
-            document.getElementById('asyncExportStage').innerText = 'Failed';
+            document.getElementById('asyncExportStage').innerText = 'Export Failed';
+            document.getElementById('asyncExportMessage').innerText = data.message || 'Export failed. Please check filters and try again.';
             document.getElementById('asyncExportIcon').className = 'bi bi-exclamation-triangle-fill text-danger fs-3';
             document.getElementById('minimizedIcon').className = 'bi bi-exclamation-triangle-fill text-danger fs-5';
+            document.getElementById('asyncProgressBar').className = 'progress-bar bg-danger';
+            document.getElementById('minimizedProgressBar').className = 'progress-bar bg-danger';
           }
         })
         .catch(err => console.error('Error polling status:', err));

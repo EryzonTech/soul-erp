@@ -28,14 +28,62 @@ module InstituteAdmin
       end
     end
 
+    def consolidated_response_report
+      set_consolidated_report_filters
+
+      respond_to do |format|
+        format.html do
+          fetch_consolidated_response_reports_paginated
+        end
+        format.xls do
+          fetch_consolidated_response_reports
+          send_data generate_consolidated_response_excel,
+                    filename: "consolidated_response_report_#{Date.current.strftime('%Y%m%d')}.xls",
+                    type: "application/vnd.ms-excel; charset=utf-8",
+                    disposition: "attachment"
+        end
+        format.csv do
+          fetch_consolidated_response_reports
+          send_data generate_consolidated_response_csv,
+                    filename: "consolidated_response_report_#{Date.current.strftime('%Y%m%d')}.csv",
+                    type: "text/csv; charset=utf-8",
+                    disposition: "attachment"
+        end
+      end
+    end
+
+    def consolidated_matrix_report
+      set_consolidated_matrix_filters
+
+      respond_to do |format|
+        format.html do
+          fetch_consolidated_matrix_reports_paginated
+        end
+        format.xls do
+          fetch_consolidated_matrix_reports
+          send_data generate_consolidated_matrix_excel,
+                    filename: "consolidated_question_matrix_#{Date.current.strftime('%Y%m%d')}.xls",
+                    type: "application/vnd.ms-excel; charset=utf-8",
+                    disposition: "attachment"
+        end
+        format.csv do
+          fetch_consolidated_matrix_reports
+          send_data generate_consolidated_matrix_csv,
+                    filename: "consolidated_question_matrix_#{Date.current.strftime('%Y%m%d')}.csv",
+                    type: "text/csv; charset=utf-8",
+                    disposition: "attachment"
+        end
+      end
+    end
+
     def feedback_reports
       # Just show the feedback reports menu page
     end
 
     def section_feedback_reports
       @date_range = params[:date_range]
-      @start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : Date.current
-      @end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.current
+      @start_date = safe_parse_date(params[:start_date], Date.current)
+      @end_date = safe_parse_date(params[:end_date], Date.current)
       @section_id = params[:section_id]
       @training_program_id = params[:training_program_id]
 
@@ -69,8 +117,8 @@ module InstituteAdmin
 
     def individual_feedback_reports
       @date_range = params[:date_range]
-      @start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : Date.current
-      @end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.current
+      @start_date = safe_parse_date(params[:start_date], Date.current)
+      @end_date = safe_parse_date(params[:end_date], Date.current)
       @section_id = params[:section_id]
       @participant_id = params[:participant_id]
       @training_program_id = params[:training_program_id]
@@ -496,7 +544,7 @@ module InstituteAdmin
                   type: file_info[:content_type],
                   disposition: "attachment"
       else
-        redirect_to individual_assignment_reports_institute_admin_reports_path, alert: "Export file expired or not found."
+        redirect_back fallback_location: institute_admin_reports_path, alert: "Export file expired or not found."
       end
     end
 
@@ -699,9 +747,9 @@ module InstituteAdmin
             date: log.response_date,
             participant_id: log.participant_id,
             assignment_id: log.assignment_id,
-            participant_name: log.participant.full_name,
-            participant_email: log.participant.email,
-            section_name: log.participant.section&.name || "N/A",
+            participant_name: log.participant&.full_name.to_s.presence || "Unknown",
+            participant_email: log.participant&.email.to_s.presence || "N/A",
+            section_name: log.participant&.section&.name || "N/A",
             assignment_title: log.assignment&.title || "Assignment",
             status: "submitted"
           }
@@ -712,9 +760,9 @@ module InstituteAdmin
         @not_submitted_participants.each do |participant|
           @report_rows << {
             date: nil,
-            participant_name: participant.full_name,
-            participant_email: participant.email,
-            section_name: participant.section&.name || "N/A",
+            participant_name: participant&.full_name.to_s.presence || "Unknown",
+            participant_email: participant&.email.to_s.presence || "N/A",
+            section_name: participant&.section&.name || "N/A",
             assignment_title: @assignment_title || "Assigned Tasks",
             status: "pending"
           }
@@ -907,9 +955,9 @@ module InstituteAdmin
         @paginated_rows = paginated_participants.map do |participant|
           {
             date: nil,
-            participant_name: participant.full_name,
-            participant_email: participant.email,
-            section_name: participant.section&.name || "N/A",
+            participant_name: participant&.full_name.to_s.presence || "Unknown",
+            participant_email: participant&.email.to_s.presence || "N/A",
+            section_name: participant&.section&.name || "N/A",
             assignment_title: @assignment_title || "Assigned Tasks",
             status: "pending"
           }
@@ -922,9 +970,9 @@ module InstituteAdmin
             date: log.response_date,
             participant_id: log.participant_id,
             assignment_id: log.assignment_id,
-            participant_name: log.participant.full_name,
-            participant_email: log.participant.email,
-            section_name: log.participant.section&.name || "N/A",
+            participant_name: log.participant&.full_name.to_s.presence || "Unknown",
+            participant_email: log.participant&.email.to_s.presence || "N/A",
+            section_name: log.participant&.section&.name || "N/A",
             assignment_title: log.assignment&.title || "Assignment",
             status: "submitted"
           }
@@ -943,9 +991,9 @@ module InstituteAdmin
               date: log.response_date,
               participant_id: log.participant_id,
               assignment_id: log.assignment_id,
-              participant_name: log.participant.full_name,
-              participant_email: log.participant.email,
-              section_name: log.participant.section&.name || "N/A",
+              participant_name: log.participant&.full_name.to_s.presence || "Unknown",
+              participant_email: log.participant&.email.to_s.presence || "N/A",
+              section_name: log.participant&.section&.name || "N/A",
               assignment_title: log.assignment&.title || "Assignment",
               status: "submitted"
             }
@@ -957,9 +1005,9 @@ module InstituteAdmin
             pending_for_page.each do |participant|
               @paginated_rows << {
                 date: nil,
-                participant_name: participant.full_name,
-                participant_email: participant.email,
-                section_name: participant.section&.name || "N/A",
+                participant_name: participant&.full_name.to_s.presence || "Unknown",
+                participant_email: participant&.email.to_s.presence || "N/A",
+                section_name: participant&.section&.name || "N/A",
                 assignment_title: @assignment_title || "Assigned Tasks",
                 status: "pending"
               }
@@ -971,9 +1019,9 @@ module InstituteAdmin
           pending_for_page.each do |participant|
             @paginated_rows << {
               date: nil,
-              participant_name: participant.full_name,
-              participant_email: participant.email,
-              section_name: participant.section&.name || "N/A",
+              participant_name: participant&.full_name.to_s.presence || "Unknown",
+              participant_email: participant&.email.to_s.presence || "N/A",
+              section_name: participant&.section&.name || "N/A",
               assignment_title: @assignment_title || "Assigned Tasks",
               status: "pending"
             }
@@ -985,9 +1033,16 @@ module InstituteAdmin
     end
 
     def set_report_filters
-      @date_range = params[:date_range]
-      @start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : Date.current
-      @end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.current
+      @date_range = params[:date_range].presence
+      if @date_range == "custom"
+        s_date = safe_parse_date(params[:start_date], 30.days.ago.to_date)
+        e_date = safe_parse_date(params[:end_date], Date.current)
+        @start_date = [s_date, e_date].min
+        @end_date = [s_date, e_date].max
+      else
+        @start_date = safe_parse_date(params[:start_date], Date.current)
+        @end_date = safe_parse_date(params[:end_date], Date.current)
+      end
       @section_id = params[:section_id]
       @participant_id = params[:participant_id]
       @assignment_id = params[:assignment_id]
@@ -999,24 +1054,22 @@ module InstituteAdmin
                                         .where(institute: current_institute)
 
       if params[:specific_date].present?
-        exact_date = begin
-          Date.parse(params[:specific_date])
-        rescue StandardError
-          nil
-        end
-        base_query = base_query.where(response_date: exact_date) if exact_date
+        exact_date = safe_parse_date(params[:specific_date], nil)
+        base_query = base_query.where(response_date: exact_date.all_day) if exact_date
       elsif @date_range.present?
         base_query = case @date_range
         when "today"
-                       base_query.where(response_date: Date.current)
+                       base_query.where(response_date: Date.current.all_day)
         when "yesterday"
-                       base_query.where(response_date: Date.yesterday)
+                       base_query.where(response_date: Date.yesterday.all_day)
         when "last_7_days"
                        base_query.where(response_date: 7.days.ago.beginning_of_day..Time.current)
         when "this_month"
                        base_query.where(response_date: Time.current.beginning_of_month..Time.current)
         when "custom"
-                       base_query.where(response_date: @start_date.beginning_of_day..@end_date.end_of_day)
+                       start_d = [@start_date, @end_date].min
+                       end_d = [@start_date, @end_date].max
+                       base_query.where(response_date: start_d.beginning_of_day..end_d.end_of_day)
         else
                        base_query
         end
@@ -1028,7 +1081,9 @@ module InstituteAdmin
     # Shared builder for all participants query, optionally filtered by section and search.
     def build_all_participants_query
       all_participants = if @section_id.present? && @section_id != "all"
-                           current_institute.participants.includes(:section, :user).where(section_id: @section_id)
+                           current_institute.participants.includes(:section, :user)
+                                            .left_outer_joins(:user)
+                                            .where("COALESCE(participants.section_id, users.section_id) = ?", @section_id)
       else
                            current_institute.participants.includes(:section, :user)
       end
@@ -1036,7 +1091,7 @@ module InstituteAdmin
       if params[:search].present?
         query_str = "%#{params[:search].strip.downcase}%"
         all_participants = all_participants.left_outer_joins(:user, :section)
-                                           .where("LOWER(users.first_name) LIKE :q OR LOWER(users.last_name) LIKE :q OR LOWER(users.email) LIKE :q OR LOWER(sections.name) LIKE :q", q:query_str)
+                                           .where("LOWER(users.first_name) LIKE :q OR LOWER(users.last_name) LIKE :q OR LOWER(users.email) LIKE :q OR LOWER(sections.name) LIKE :q", q: query_str)
       end
 
       all_participants
@@ -1062,7 +1117,7 @@ module InstituteAdmin
 
     def self.ferrum_browser
       @ferrum_browser ||= Ferrum::Browser.new(
-        timeout: 15,
+        timeout: 45,
         window_size: [ 1200, 1600 ],
         browser_options: {
           "no-sandbox": nil,
@@ -1216,9 +1271,9 @@ module InstituteAdmin
             date: log.response_date,
             participant_id: log.participant_id,
             assignment_id: log.assignment_id,
-            participant_name: log.participant.full_name,
-            participant_email: log.participant.email,
-            section_name: log.participant.section&.name || "N/A",
+            participant_name: log.participant&.full_name.to_s.presence || "Unknown",
+            participant_email: log.participant&.email.to_s.presence || "N/A",
+            section_name: log.participant&.section&.name || "N/A",
             assignment_title: log.assignment&.title || "Assignment",
             status: "submitted"
           }
@@ -1229,9 +1284,9 @@ module InstituteAdmin
         @not_submitted_participants.each do |participant|
           @report_rows << {
             date: nil,
-            participant_name: participant.full_name,
-            participant_email: participant.email,
-            section_name: participant.section&.name || "N/A",
+            participant_name: participant&.full_name.to_s.presence || "Unknown",
+            participant_email: participant&.email.to_s.presence || "N/A",
+            section_name: participant&.section&.name || "N/A",
             assignment_title: @assignment_title || "Assigned Tasks",
             status: "pending"
           }
@@ -1312,12 +1367,12 @@ module InstituteAdmin
           @report_rows.each_with_index do |row, index|
             csv << [
               index + 1,
-              row[:date].present? ? row[:date].strftime("%Y-%m-%d") : "N/A",
+              row[:date].respond_to?(:strftime) ? row[:date].strftime("%Y-%m-%d") : (row[:date].presence || "N/A"),
               row[:participant_name],
               row[:participant_email],
               row[:section_name],
               row[:assignment_title],
-              row[:status].titleize
+              row[:status].to_s.titleize
             ]
           end
         end
@@ -1335,9 +1390,9 @@ module InstituteAdmin
             csv << [
               index + 1,
               feedback.created_at.strftime("%B %d, %Y"),
-              feedback.participant.full_name,
-              feedback.participant.section.name,
-              feedback.training_program.title,
+              feedback.participant&.full_name.to_s,
+              feedback.participant&.section&.name || "N/A",
+              feedback.training_program&.title.to_s,
               feedback.rating,
               feedback.content
             ]
@@ -1348,9 +1403,9 @@ module InstituteAdmin
           @not_submitted_participants.each_with_index do |participant, index|
             csv << [
               index + 1,
-              participant.full_name,
-              participant.section.name,
-              participant.email
+              participant&.full_name.to_s,
+              participant&.section&.name || "N/A",
+              participant&.email.to_s
             ]
           end
         end
@@ -1366,7 +1421,7 @@ module InstituteAdmin
         (@report_rows || []).each_with_index do |row, index|
           csv << [
             index + 1,
-            row[:date].present? ? row[:date].strftime("%B %d, %Y") : "Pending",
+            row[:date].respond_to?(:strftime) ? row[:date].strftime("%B %d, %Y") : (row[:date].presence || "Pending"),
             row[:participant_name],
             row[:participant_email],
             row[:section_name],
@@ -1405,6 +1460,966 @@ module InstituteAdmin
               tp.status
             ]
           end
+        end
+      end
+    end
+
+    def set_consolidated_report_filters
+      @available_assignments = current_institute.assignments.active.order(start_date: :desc, title: :asc)
+      @available_sections = current_institute.sections.active.order(:name)
+
+      @selected_assignment_ids = parse_multiselect_param(params[:assignment_ids])
+      @selected_section_ids = parse_multiselect_param(params[:section_ids])
+
+      participants_scope = current_institute.participants.includes(:user, :section)
+      if @selected_section_ids.present?
+        participants_scope = participants_scope.where(section_id: @selected_section_ids)
+      end
+      @available_participants = participants_scope.joins(:user).order("users.first_name ASC, users.last_name ASC")
+      @selected_participant_ids = parse_multiselect_param(params[:participant_ids])
+
+      @selected_statuses = parse_multiselect_param(params[:submission_statuses])
+      @selected_statuses = [ "submitted", "pending" ] if @selected_statuses.blank?
+
+      @date_range = params[:date_range].presence || "all_time"
+      set_consolidated_date_range_window(@date_range)
+    end
+
+    def safe_parse_date(val, fallback = Date.current)
+      return fallback if val.blank?
+      Date.parse(val.to_s)
+    rescue Date::Error, ArgumentError, TypeError
+      fallback
+    end
+
+    def parse_multiselect_param(param)
+      return [] if param.blank?
+      if param.is_a?(Array)
+        param.reject(&:blank?).map(&:to_s)
+      elsif param.is_a?(String)
+        param.split(",").map(&:strip).reject(&:blank?)
+      else
+        []
+      end
+    end
+
+    def set_consolidated_date_range_window(range = @date_range)
+      case range
+      when "today"
+        @start_date = Date.current
+        @end_date = Date.current
+      when "yesterday"
+        @start_date = Date.yesterday
+        @end_date = Date.yesterday
+      when "last_7_days"
+        @start_date = 6.days.ago.to_date
+        @end_date = Date.current
+      when "this_month"
+        @start_date = Date.current.beginning_of_month
+        @end_date = Date.current
+      when "custom"
+        s_date = safe_parse_date(params[:start_date], 30.days.ago.to_date)
+        e_date = safe_parse_date(params[:end_date], Date.current)
+        @start_date = [s_date, e_date].min
+        @end_date = [s_date, e_date].max
+      else # "all_time"
+        @start_date = nil
+        @end_date = nil
+      end
+    rescue StandardError
+      @start_date = nil
+      @end_date = nil
+    end
+
+    def build_consolidated_report_base_query
+      base_query = AssignmentResponse.joins(:assignment, :question, participant: :user)
+                                     .joins("LEFT OUTER JOIN sections ON sections.id = COALESCE(participants.section_id, users.section_id)")
+                                     .where(participants: { institute_id: current_institute.id })
+                                     .where(assignments: { institute_id: current_institute.id })
+
+      if @selected_assignment_ids.present?
+        base_query = base_query.where(assignment_id: @selected_assignment_ids)
+      end
+
+      if @selected_section_ids.present?
+        base_query = base_query.where("COALESCE(participants.section_id, users.section_id) IN (?)", @selected_section_ids)
+      end
+
+      if @selected_participant_ids.present?
+        base_query = base_query.where(participant_id: @selected_participant_ids)
+      end
+
+      if @start_date.present? && @end_date.present?
+        s_d = [@start_date, @end_date].min
+        e_d = [@start_date, @end_date].max
+        base_query = base_query.where(response_date: s_d..e_d)
+      end
+
+      if params[:search].present?
+        q_str = "%#{params[:search].strip.downcase}%"
+        base_query = base_query.where(
+          "LOWER(users.first_name) LIKE :q OR LOWER(users.last_name) LIKE :q OR LOWER(users.email) LIKE :q OR LOWER(sections.name) LIKE :q OR LOWER(assignments.title) LIKE :q OR LOWER(questions.title) LIKE :q OR LOWER(assignment_responses.answer) LIKE :q",
+          q: q_str
+        )
+      end
+
+      base_query
+    end
+
+    def build_consolidated_pending_rows(base_query)
+      return [] unless @selected_statuses.include?("pending")
+
+      target_assignments = if @selected_assignment_ids.present?
+                             current_institute.assignments.where(id: @selected_assignment_ids)
+                           else
+                             current_institute.assignments.active
+                           end
+
+      target_participants = if @selected_participant_ids.present?
+                              current_institute.participants.includes(:user, :section).where(id: @selected_participant_ids)
+                            elsif @selected_section_ids.present?
+                              current_institute.participants.includes(:user, :section)
+                                               .left_outer_joins(:user)
+                                               .where("COALESCE(participants.section_id, users.section_id) IN (?)", @selected_section_ids)
+                            else
+                              current_institute.participants.includes(:user, :section)
+                            end
+
+      submitted_pairs = Set.new(base_query.distinct.pluck(:participant_id, :assignment_id))
+
+      assignment_ids = target_assignments.pluck(:id)
+      individual_assignments_map = AssignmentParticipant.where(assignment_id: assignment_ids)
+                                                        .pluck(:assignment_id, :participant_id)
+                                                        .group_by(&:first)
+                                                        .transform_values { |pairs| Set.new(pairs.map(&:second)) }
+
+      section_assignments_map = AssignmentSection.where(assignment_id: assignment_ids)
+                                                 .pluck(:assignment_id, :section_id)
+                                                 .group_by(&:first)
+                                                 .transform_values { |pairs| Set.new(pairs.map(&:second)) }
+
+      pending_rows = []
+      search_q = params[:search].to_s.strip.downcase
+
+      target_participants.each do |p|
+        p_name = p.full_name.to_s
+        p_email = p.email.to_s
+        p_sec = p.section&.name.to_s.presence || "N/A"
+        p_sec_id = p.section_id.presence || p.user&.section_id
+
+        target_assignments.each do |asg|
+          asg_title = asg.title.to_s
+          is_assigned = if asg.assignment_type == "individual"
+                          individual_assignments_map[asg.id]&.include?(p.id)
+                        else
+                          p_sec_id.present? && (
+                            (asg.section_id.present? && asg.section_id == p_sec_id) ||
+                            section_assignments_map[asg.id]&.include?(p_sec_id)
+                          )
+                        end
+
+          next unless is_assigned
+          next if submitted_pairs.include?([p.id, asg.id])
+
+          if search_q.present?
+            match = p_name.downcase.include?(search_q) ||
+                    p_email.downcase.include?(search_q) ||
+                    p_sec.downcase.include?(search_q) ||
+                    asg_title.downcase.include?(search_q)
+            next unless match
+          end
+
+          pending_rows << {
+            id: nil,
+            date: nil,
+            participant_id: p.id,
+            participant_name: p_name.presence || "N/A",
+            participant_email: p_email.presence || "N/A",
+            section_name: p_sec,
+            assignment_id: asg.id,
+            assignment_title: asg_title.presence || "Assignment",
+            question_id: nil,
+            question_title: "Pending Submission",
+            question_type: "-",
+            answer: "No submission recorded",
+            status: "pending",
+            submitted_at: nil
+          }
+        end
+      end
+
+      pending_rows
+    end
+
+    def fetch_consolidated_response_reports
+      set_consolidated_report_filters
+      base_query = build_consolidated_report_base_query
+      pending_rows = build_consolidated_pending_rows(base_query)
+
+      @report_rows = []
+
+      if @selected_statuses.include?("submitted")
+        submitted_responses = base_query.includes(:question, :assignment, participant: [ :user, :section ])
+                                         .order("assignment_responses.response_date DESC, assignment_responses.id DESC")
+        submitted_responses.each do |resp|
+          @report_rows << format_consolidated_response_row(resp)
+        end
+      end
+
+      if @selected_statuses.include?("pending")
+        @report_rows.concat(pending_rows)
+      end
+
+      calculate_consolidated_kpis(base_query, pending_rows)
+    end
+
+    def fetch_consolidated_response_reports_paginated
+      set_consolidated_report_filters
+      base_query = build_consolidated_report_base_query
+      pending_rows_list = build_consolidated_pending_rows(base_query)
+
+      submitted_count = @selected_statuses.include?("submitted") ? base_query.count : 0
+      pending_count = @selected_statuses.include?("pending") ? pending_rows_list.size : 0
+
+      @total_report_count = submitted_count + pending_count
+      page_num = [ (params[:page] || 1).to_i, 1 ].max
+      items_per_page = 20
+
+      @pagy = Pagy.new(count: @total_report_count, page: page_num, items: items_per_page)
+      page_offset = @pagy.offset
+      @paginated_rows = []
+
+      if page_offset < submitted_count
+        responses_for_page = base_query.includes(:question, :assignment, participant: [ :user, :section ])
+                                       .order("assignment_responses.response_date DESC, assignment_responses.id DESC")
+                                       .offset(page_offset)
+                                       .limit(items_per_page)
+
+        responses_for_page.each do |resp|
+          @paginated_rows << format_consolidated_response_row(resp)
+        end
+
+        if @paginated_rows.size < items_per_page && pending_count > 0
+          needed = items_per_page - @paginated_rows.size
+          @paginated_rows.concat(pending_rows_list.slice(0, needed) || [])
+        end
+      else
+        pending_offset = page_offset - submitted_count
+        @paginated_rows.concat(pending_rows_list.slice(pending_offset, items_per_page) || [])
+      end
+
+      calculate_consolidated_kpis(base_query, pending_rows_list)
+      @report_rows = Array.new(@total_report_count)
+    end
+
+    def calculate_consolidated_kpis(base_query, pending_rows)
+      @total_filtered_assignments = @selected_assignment_ids.present? ? @selected_assignment_ids.size : @available_assignments.count
+      @filtered_participants_count = @selected_participant_ids.present? ? @selected_participant_ids.size : @available_participants.count
+      @total_submitted_responses = base_query.count
+      @total_pending_count = pending_rows.size
+
+      submitted_participant_ids = base_query.distinct.pluck(:participant_id)
+      @submitted_participants_count = submitted_participant_ids.size
+
+      total_assigned_slots = @submitted_participants_count + @total_pending_count
+      @overall_completion_rate = if total_assigned_slots > 0
+        ((@submitted_participants_count.to_f / total_assigned_slots) * 100).round(1)
+      else
+        0.0
+      end
+    end
+
+    def format_consolidated_response_row(resp)
+      answer_text = if resp.answer.present?
+                      resp.answer
+                    elsif resp.selected_options.is_a?(Array)
+                      resp.selected_options.reject(&:blank?).join(", ")
+                    else
+                      resp.selected_options.to_s
+                    end
+
+      {
+        id: resp.id,
+        date: resp.response_date,
+        participant_id: resp.participant_id,
+        participant_name: resp.participant&.full_name || "N/A",
+        participant_email: resp.participant&.email || "N/A",
+        section_name: resp.participant&.section&.name || "N/A",
+        assignment_id: resp.assignment_id,
+        assignment_title: resp.assignment&.title || "Assignment",
+        question_id: resp.question_id,
+        question_title: resp.question&.title || "Question",
+        question_type: resp.question&.question_type || "text",
+        answer: answer_text.presence || "-",
+        status: "submitted",
+        submitted_at: resp.submitted_at || resp.created_at
+      }
+    end
+
+    def generate_consolidated_response_excel
+      rows = @report_rows || []
+
+      xml = String.new
+      xml << %{<?xml version="1.0" encoding="UTF-8"?>\n}
+      xml << %{<?mso-application progid="Excel.Sheet"?>\n}
+      xml << %{<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n}
+      xml << %{ xmlns:o="urn:schemas-microsoft-com:office:office"\n}
+      xml << %{ xmlns:x="urn:schemas-microsoft-com:office:excel"\n}
+      xml << %{ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"\n}
+      xml << %{ xmlns:html="http://www.w3.org/TR/REC-html40">\n}
+      xml << %{ <Styles>\n}
+      xml << %{  <Style ss:ID="Header">\n}
+      xml << %{   <Font ss:Bold="1" ss:Color="#FFFFFF" ss:FontName="Segoe UI" ss:Size="11"/>\n}
+      xml << %{   <Interior ss:Color="#1E293B" ss:Pattern="Solid"/>\n}
+      xml << %{   <Alignment ss:Vertical="Center" ss:WrapText="1"/>\n}
+      xml << %{  </Style>\n}
+      xml << %{  <Style ss:ID="RowSubmitted">\n}
+      xml << %{   <Font ss:Color="#0F172A" ss:FontName="Segoe UI" ss:Size="10"/>\n}
+      xml << %{   <Alignment ss:Vertical="Center" ss:WrapText="1"/>\n}
+      xml << %{  </Style>\n}
+      xml << %{  <Style ss:ID="BadgeSubmitted">\n}
+      xml << %{   <Font ss:Bold="1" ss:Color="#15803D" ss:FontName="Segoe UI" ss:Size="10"/>\n}
+      xml << %{   <Interior ss:Color="#DCFCE7" ss:Pattern="Solid"/>\n}
+      xml << %{   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>\n}
+      xml << %{  </Style>\n}
+      xml << %{  <Style ss:ID="BadgePending">\n}
+      xml << %{   <Font ss:Bold="1" ss:Color="#B45309" ss:FontName="Segoe UI" ss:Size="10"/>\n}
+      xml << %{   <Interior ss:Color="#FEF3C7" ss:Pattern="Solid"/>\n}
+      xml << %{   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>\n}
+      xml << %{  </Style>\n}
+      xml << %{ </Styles>\n}
+
+      # WORKSHEET 1: Detailed Responses
+      xml << %{ <Worksheet ss:Name="Consolidated Responses">\n}
+      xml << %{  <Table>\n}
+      xml << %{   <Column ss:Width="40"/>\n}
+      xml << %{   <Column ss:Width="90"/>\n}
+      xml << %{   <Column ss:Width="160"/>\n}
+      xml << %{   <Column ss:Width="180"/>\n}
+      xml << %{   <Column ss:Width="110"/>\n}
+      xml << %{   <Column ss:Width="170"/>\n}
+      xml << %{   <Column ss:Width="220"/>\n}
+      xml << %{   <Column ss:Width="100"/>\n}
+      xml << %{   <Column ss:Width="220"/>\n}
+      xml << %{   <Column ss:Width="90"/>\n}
+      xml << %{   <Column ss:Width="120"/>\n}
+
+      headers = [ "#", "Response Date", "Participant Name", "Email", "Section", "Assignment Title", "Question", "Question Type", "Answer / Response", "Status", "Submitted At" ]
+      xml << %{   <Row ss:Height="26" ss:StyleID="Header">\n}
+      headers.each do |h|
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(h)}</Data></Cell>\n}
+      end
+      xml << %{   </Row>\n}
+
+      rows.each_with_index do |row, idx|
+        status_style = row[:status] == "submitted" ? "BadgeSubmitted" : "BadgePending"
+        date_str = row[:date].present? ? row[:date].strftime("%Y-%m-%d") : "-"
+        time_str = row[:submitted_at].present? ? row[:submitted_at].strftime("%I:%M %p") : "-"
+
+        xml << %{   <Row ss:Height="22" ss:StyleID="RowSubmitted">\n}
+        xml << %{    <Cell><Data ss:Type="Number">#{idx + 1}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(date_str)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:participant_name].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:participant_email].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:section_name].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:assignment_title].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:question_title].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:question_type].to_s.humanize)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:answer].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell ss:StyleID="#{status_style}"><Data ss:Type="String">#{CGI.escapeHTML(row[:status].to_s.titleize)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(time_str)}</Data></Cell>\n}
+        xml << %{   </Row>\n}
+      end
+
+      xml << %{  </Table>\n}
+      xml << %{ </Worksheet>\n}
+
+      # WORKSHEET 2: Participant Summary Matrix
+      xml << %{ <Worksheet ss:Name="Participant Summary">\n}
+      xml << %{  <Table>\n}
+      xml << %{   <Column ss:Width="40"/>\n}
+      xml << %{   <Column ss:Width="160"/>\n}
+      xml << %{   <Column ss:Width="180"/>\n}
+      xml << %{   <Column ss:Width="110"/>\n}
+      xml << %{   <Column ss:Width="170"/>\n}
+      xml << %{   <Column ss:Width="120"/>\n}
+      xml << %{   <Column ss:Width="100"/>\n}
+
+      summary_headers = [ "#", "Participant Name", "Email", "Section", "Assignment Title", "Questions Answered", "Status" ]
+      xml << %{   <Row ss:Height="26" ss:StyleID="Header">\n}
+      summary_headers.each do |h|
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(h)}</Data></Cell>\n}
+      end
+      xml << %{   </Row>\n}
+
+      grouped_summary = rows.group_by { |r| [ r[:participant_id], r[:assignment_id] ] }
+      summary_idx = 0
+      grouped_summary.each do |_, group_items|
+        summary_idx += 1
+        first_item = group_items.first
+        answered_count = group_items.count { |r| r[:status] == "submitted" }
+        overall_status = answered_count > 0 ? "Submitted" : "Pending"
+        status_style = overall_status == "Submitted" ? "BadgeSubmitted" : "BadgePending"
+
+        xml << %{   <Row ss:Height="22" ss:StyleID="RowSubmitted">\n}
+        xml << %{    <Cell><Data ss:Type="Number">#{summary_idx}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(first_item[:participant_name].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(first_item[:participant_email].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(first_item[:section_name].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(first_item[:assignment_title].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="Number">#{answered_count}</Data></Cell>\n}
+        xml << %{    <Cell ss:StyleID="#{status_style}"><Data ss:Type="String">#{CGI.escapeHTML(overall_status)}</Data></Cell>\n}
+        xml << %{   </Row>\n}
+      end
+
+      xml << %{  </Table>\n}
+      xml << %{ </Worksheet>\n}
+      xml << %{</Workbook>\n}
+
+      xml
+    end
+
+    def generate_consolidated_response_csv
+      require "csv"
+      rows = @report_rows || []
+
+      CSV.generate(headers: true) do |csv|
+        csv << [ "#", "Response Date", "Participant Name", "Email", "Section", "Assignment Title", "Question", "Question Type", "Answer / Response", "Status", "Submitted At" ]
+
+        rows.each_with_index do |row, index|
+          csv << [
+            index + 1,
+            row[:date].present? ? row[:date].strftime("%Y-%m-%d") : "-",
+            row[:participant_name],
+            row[:participant_email],
+            row[:section_name],
+            row[:assignment_title],
+            row[:question_title],
+            row[:question_type].to_s.humanize,
+            row[:answer],
+            row[:status].to_s.titleize,
+            row[:submitted_at].present? ? row[:submitted_at].strftime("%I:%M %p") : "-"
+          ]
+        end
+      end
+    end
+
+    def set_consolidated_matrix_filters
+      @available_assignments = current_institute.assignments.active.order(:title)
+      @available_sections = current_institute.sections.active.order(:name)
+      @available_participants = current_institute.participants.includes(:user, :section).joins(:user).order("users.first_name ASC, users.last_name ASC")
+
+      @selected_assignment_ids = parse_multiselect_param(params[:assignment_ids])
+      @selected_section_ids = parse_multiselect_param(params[:section_ids])
+      @selected_participant_ids = parse_multiselect_param(params[:participant_ids])
+
+      @selected_statuses = parse_multiselect_param(params[:submission_statuses])
+      @selected_statuses = [ "submitted", "pending" ] if @selected_statuses.empty?
+
+      @date_range = params[:date_range].presence || "all_time"
+      set_consolidated_date_range_window(@date_range)
+      @search = params[:search].to_s.strip
+
+      resolve_matrix_questions
+    end
+
+    def resolve_matrix_questions
+      target_assignments = if @selected_assignment_ids.present?
+                             current_institute.assignments.where(id: @selected_assignment_ids)
+                           else
+                             current_institute.assignments.active
+                           end
+
+      assignment_ids = target_assignments.pluck(:id)
+      questions_map = {}
+
+      # 1. Questions via AssignmentQuestion
+      aqs = AssignmentQuestion.where(assignment_id: assignment_ids)
+                              .includes(:question, :assignment)
+                              .order("assignment_questions.assignment_id ASC, assignment_questions.order_number ASC NULLS LAST, assignment_questions.id ASC")
+
+      aqs.each do |aq|
+        q = aq.question
+        next unless q
+        questions_map[q.id] ||= {
+          id: q.id,
+          title: q.title,
+          question_type: q.question_type,
+          assignment_ids: Set.new,
+          assignment_titles: Set.new,
+          order: aq.order_number || 999
+        }
+        questions_map[q.id][:assignment_ids] << aq.assignment_id
+        questions_map[q.id][:assignment_titles] << aq.assignment&.title
+      end
+
+      # 2. Questions via AssignmentQuestionSet
+      aq_sets = AssignmentQuestionSet.where(assignment_id: assignment_ids)
+                                     .includes(question_set: { question_set_items: :question }, assignment: {})
+      aq_sets.each do |aqs_item|
+        aqs_item.question_set&.question_set_items&.each do |qsi|
+          q = qsi.question
+          next unless q
+          questions_map[q.id] ||= {
+            id: q.id,
+            title: q.title,
+            question_type: q.question_type,
+            assignment_ids: Set.new,
+            assignment_titles: Set.new,
+            order: qsi.position || 999
+          }
+          questions_map[q.id][:assignment_ids] << aqs_item.assignment_id
+          questions_map[q.id][:assignment_titles] << aqs_item.assignment&.title
+        end
+      end
+
+      questions_map.each_value do |q_data|
+        q_data[:assignments_text] = q_data[:assignment_titles].to_a.compact.join(", ")
+      end
+
+      @matrix_questions = questions_map.values.sort_by { |q| [ q[:order], q[:id] ] }
+    end
+
+    def build_consolidated_matrix_base_query
+      base_query = AssignmentResponseLog.joins(:participant, :assignment)
+                                        .joins("INNER JOIN users ON users.id = participants.user_id")
+                                        .joins("LEFT OUTER JOIN sections ON sections.id = COALESCE(participants.section_id, users.section_id)")
+                                        .where(assignment_response_logs: { institute_id: current_institute.id })
+                                        .where(participants: { institute_id: current_institute.id })
+                                        .where(assignments: { institute_id: current_institute.id })
+
+      if @selected_assignment_ids.present?
+        base_query = base_query.where(assignment_id: @selected_assignment_ids)
+      end
+
+      if @selected_section_ids.present?
+        base_query = base_query.where("COALESCE(participants.section_id, users.section_id) IN (?)", @selected_section_ids)
+      end
+
+      if @selected_participant_ids.present?
+        base_query = base_query.where(participant_id: @selected_participant_ids)
+      end
+
+      if @start_date.present? && @end_date.present?
+        s_d = [@start_date, @end_date].min
+        e_d = [@start_date, @end_date].max
+        base_query = base_query.where(response_date: s_d.beginning_of_day..e_d.end_of_day)
+      end
+
+      if params[:search].present?
+        q_str = "%#{params[:search].strip.downcase}%"
+        base_query = base_query.where(
+          "LOWER(users.first_name) LIKE :q OR LOWER(users.last_name) LIKE :q OR LOWER(users.email) LIKE :q OR LOWER(sections.name) LIKE :q OR LOWER(assignments.title) LIKE :q",
+          q: q_str
+        )
+      end
+
+      base_query
+    end
+
+    def build_consolidated_matrix_pending_rows(base_query)
+      return [] unless @selected_statuses.include?("pending")
+
+      target_assignments = if @selected_assignment_ids.present?
+                             current_institute.assignments.where(id: @selected_assignment_ids)
+                           else
+                             current_institute.assignments.active
+                           end
+
+      target_participants = if @selected_participant_ids.present?
+                              current_institute.participants.includes(:user, :section).where(id: @selected_participant_ids)
+                            elsif @selected_section_ids.present?
+                              current_institute.participants.includes(:user, :section)
+                                               .left_outer_joins(:user)
+                                               .where("COALESCE(participants.section_id, users.section_id) IN (?)", @selected_section_ids)
+                            else
+                              current_institute.participants.includes(:user, :section)
+                            end
+
+      submitted_pairs = Set.new(base_query.distinct.pluck(:participant_id, :assignment_id))
+
+      assignment_ids = target_assignments.pluck(:id)
+      individual_assignments_map = AssignmentParticipant.where(assignment_id: assignment_ids)
+                                                        .pluck(:assignment_id, :participant_id)
+                                                        .group_by(&:first)
+                                                        .transform_values { |pairs| Set.new(pairs.map(&:second)) }
+
+      section_assignments_map = AssignmentSection.where(assignment_id: assignment_ids)
+                                                 .pluck(:assignment_id, :section_id)
+                                                 .group_by(&:first)
+                                                 .transform_values { |pairs| Set.new(pairs.map(&:second)) }
+
+      pending_rows = []
+      search_q = params[:search].to_s.strip.downcase
+
+      target_participants.each do |p|
+        p_name = p.full_name.to_s
+        p_email = p.email.to_s
+        p_sec = p.section&.name.to_s.presence || "N/A"
+        p_sec_id = p.section_id.presence || p.user&.section_id
+
+        target_assignments.each do |asg|
+          asg_title = asg.title.to_s
+          is_assigned = if asg.assignment_type == "individual"
+                          individual_assignments_map[asg.id]&.include?(p.id)
+                        else
+                          p_sec_id.present? && (
+                            (asg.section_id.present? && asg.section_id == p_sec_id) ||
+                            section_assignments_map[asg.id]&.include?(p_sec_id)
+                          )
+                        end
+
+          next unless is_assigned
+          next if submitted_pairs.include?([p.id, asg.id])
+
+          if search_q.present?
+            match = p_name.downcase.include?(search_q) ||
+                    p_email.downcase.include?(search_q) ||
+                    p_sec.downcase.include?(search_q) ||
+                    asg_title.downcase.include?(search_q)
+            next unless match
+          end
+
+          pending_rows << {
+            id: nil,
+            date: nil,
+            participant_id: p.id,
+            participant_name: p_name.presence || "N/A",
+            participant_email: p_email.presence || "N/A",
+            section_name: p_sec,
+            assignment_id: asg.id,
+            assignment_title: asg_title.presence || "Assignment",
+            status: "pending",
+            submitted_at: nil,
+            answers: {}
+          }
+        end
+      end
+
+      pending_rows
+    end
+
+    def fetch_consolidated_matrix_reports
+      set_consolidated_matrix_filters
+      base_query = build_consolidated_matrix_base_query
+      pending_rows = build_consolidated_matrix_pending_rows(base_query)
+
+      @matrix_rows = []
+
+      if @selected_statuses.include?("submitted")
+        logs = base_query.includes(:assignment, participant: [ :user, :section ])
+                         .order("assignment_response_logs.response_date DESC, assignment_response_logs.id DESC")
+
+        load_matrix_answers_for_logs(logs).each do |formatted_row|
+          @matrix_rows << formatted_row
+        end
+      end
+
+      if @selected_statuses.include?("pending")
+        @matrix_rows.concat(pending_rows)
+      end
+
+      calculate_matrix_kpis(base_query, pending_rows)
+    end
+
+    def fetch_consolidated_matrix_reports_paginated
+      set_consolidated_matrix_filters
+      base_query = build_consolidated_matrix_base_query
+      pending_rows_list = build_consolidated_matrix_pending_rows(base_query)
+
+      submitted_count = @selected_statuses.include?("submitted") ? base_query.count : 0
+      pending_count = @selected_statuses.include?("pending") ? pending_rows_list.size : 0
+
+      @total_matrix_count = submitted_count + pending_count
+      page_num = [ (params[:page] || 1).to_i, 1 ].max
+      items_per_page = 20
+
+      @pagy = Pagy.new(count: @total_matrix_count, page: page_num, items: items_per_page)
+      page_offset = @pagy.offset
+      @paginated_matrix_rows = []
+
+      if page_offset < submitted_count
+        page_logs = base_query.includes(:assignment, participant: [ :user, :section ])
+                              .order("assignment_response_logs.response_date DESC, assignment_response_logs.id DESC")
+                              .offset(page_offset)
+                              .limit(items_per_page)
+
+        @paginated_matrix_rows.concat(load_matrix_answers_for_logs(page_logs))
+
+        if @paginated_matrix_rows.size < items_per_page && pending_count > 0
+          needed = items_per_page - @paginated_matrix_rows.size
+          @paginated_matrix_rows.concat(pending_rows_list.slice(0, needed) || [])
+        end
+      else
+        pending_offset = page_offset - submitted_count
+        @paginated_matrix_rows.concat(pending_rows_list.slice(pending_offset, items_per_page) || [])
+      end
+
+      calculate_matrix_kpis(base_query, pending_rows_list)
+      @matrix_rows = Array.new(@total_matrix_count)
+    end
+
+    def load_matrix_answers_for_logs(logs)
+      return [] if logs.blank?
+
+      p_ids = logs.map(&:participant_id).uniq
+      a_ids = logs.map(&:assignment_id).uniq
+      dates = logs.map { |l| l.response_date&.to_date }.compact.uniq
+      all_response_ids = logs.flat_map { |l| Array(l.assignment_response_ids) }.map(&:to_i).reject(&:zero?).uniq
+
+      responses = if all_response_ids.present?
+                    AssignmentResponse.where(id: all_response_ids).includes(:question)
+                  else
+                    AssignmentResponse.where(participant_id: p_ids, assignment_id: a_ids)
+                                      .where(response_date: dates.presence || nil)
+                                      .includes(:question)
+                  end
+
+      responses_by_id = responses.index_by(&:id)
+      answers_by_submission = Hash.new { |h, k| h[k] = {} }
+      responses.each do |resp|
+        sub_key = [ resp.participant_id, resp.assignment_id, resp.response_date&.to_date ]
+        answer_text = if resp.answer.present?
+                        resp.answer
+                      elsif resp.selected_options.is_a?(Array)
+                        resp.selected_options.reject(&:blank?).join(", ")
+                      else
+                        resp.selected_options.to_s
+                      end
+        answers_by_submission[sub_key][resp.question_id] = {
+          answer: answer_text.presence || "-",
+          question_type: resp.question&.question_type
+        }
+      end
+
+      logs.map do |log|
+        sub_date = log.response_date&.to_date
+        sub_key = [ log.participant_id, log.assignment_id, sub_date ]
+        log_answers = {}
+
+        log_resp_ids = Array(log.assignment_response_ids).map(&:to_i).reject(&:zero?)
+        if log_resp_ids.present?
+          log_resp_ids.each do |resp_id|
+            resp = responses_by_id[resp_id]
+            next unless resp
+            answer_text = if resp.answer.present?
+                            resp.answer
+                          elsif resp.selected_options.is_a?(Array)
+                            resp.selected_options.reject(&:blank?).join(", ")
+                          else
+                            resp.selected_options.to_s
+                          end
+            log_answers[resp.question_id] = {
+              answer: answer_text.presence || "-",
+              question_type: resp.question&.question_type
+            }
+          end
+        else
+          log_answers = answers_by_submission[sub_key] || {}
+        end
+
+        {
+          id: log.id,
+          date: log.response_date,
+          participant_id: log.participant_id,
+          participant_name: log.participant&.full_name || "N/A",
+          participant_email: log.participant&.email || "N/A",
+          section_name: log.participant&.section&.name || "N/A",
+          assignment_id: log.assignment_id,
+          assignment_title: log.assignment&.title || "Assignment",
+          status: "submitted",
+          submitted_at: log.created_at,
+          answers: log_answers
+        }
+      end
+    end
+
+    def calculate_matrix_kpis(base_query, pending_rows)
+      @total_filtered_assignments = @selected_assignment_ids.present? ? @selected_assignment_ids.size : @available_assignments.count
+      @filtered_participants_count = @selected_participant_ids.present? ? @selected_participant_ids.size : @available_participants.count
+      @total_matrix_questions_count = @matrix_questions.size
+      @total_submissions_count = base_query.count
+      @total_pending_count = pending_rows.size
+
+      submitted_participant_ids = base_query.distinct.pluck(:participant_id)
+      @submitted_participants_count = submitted_participant_ids.size
+
+      total_assigned_slots = @submitted_participants_count + @total_pending_count
+      @overall_completion_rate = if total_assigned_slots > 0
+                                   ((@submitted_participants_count.to_f / total_assigned_slots) * 100).round(1)
+                                 else
+                                   0.0
+                                 end
+    end
+
+    def generate_consolidated_matrix_excel
+      rows = @matrix_rows || []
+      questions = @matrix_questions || []
+
+      xml = String.new
+      xml << %{<?xml version="1.0" encoding="UTF-8"?>\n}
+      xml << %{<?mso-application progid="Excel.Sheet"?>\n}
+      xml << %{<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n}
+      xml << %{ xmlns:o="urn:schemas-microsoft-com:office:office"\n}
+      xml << %{ xmlns:x="urn:schemas-microsoft-com:office:excel"\n}
+      xml << %{ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"\n}
+      xml << %{ xmlns:html="http://www.w3.org/TR/REC-html40">\n}
+      xml << %{ <Styles>\n}
+      xml << %{  <Style ss:ID="Header">\n}
+      xml << %{   <Font ss:Bold="1" ss:Color="#FFFFFF" ss:FontName="Segoe UI" ss:Size="11"/>\n}
+      xml << %{   <Interior ss:Color="#1E293B" ss:Pattern="Solid"/>\n}
+      xml << %{   <Alignment ss:Vertical="Center" ss:WrapText="1"/>\n}
+      xml << %{  </Style>\n}
+      xml << %{  <Style ss:ID="QuestionHeader">\n}
+      xml << %{   <Font ss:Bold="1" ss:Color="#FFFFFF" ss:FontName="Segoe UI" ss:Size="10"/>\n}
+      xml << %{   <Interior ss:Color="#312E81" ss:Pattern="Solid"/>\n}
+      xml << %{   <Alignment ss:Vertical="Center" ss:WrapText="1"/>\n}
+      xml << %{  </Style>\n}
+      xml << %{  <Style ss:ID="RowSubmitted">\n}
+      xml << %{   <Font ss:Color="#0F172A" ss:FontName="Segoe UI" ss:Size="10"/>\n}
+      xml << %{   <Alignment ss:Vertical="Center" ss:WrapText="1"/>\n}
+      xml << %{  </Style>\n}
+      xml << %{  <Style ss:ID="BadgeSubmitted">\n}
+      xml << %{   <Font ss:Bold="1" ss:Color="#15803D" ss:FontName="Segoe UI" ss:Size="10"/>\n}
+      xml << %{   <Interior ss:Color="#DCFCE7" ss:Pattern="Solid"/>\n}
+      xml << %{   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>\n}
+      xml << %{  </Style>\n}
+      xml << %{  <Style ss:ID="BadgePending">\n}
+      xml << %{   <Font ss:Bold="1" ss:Color="#B45309" ss:FontName="Segoe UI" ss:Size="10"/>\n}
+      xml << %{   <Interior ss:Color="#FEF3C7" ss:Pattern="Solid"/>\n}
+      xml << %{   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>\n}
+      xml << %{  </Style>\n}
+      xml << %{  <Style ss:ID="CellEmpty">\n}
+      xml << %{   <Font ss:Color="#94A3B8" ss:FontName="Segoe UI" ss:Size="10"/>\n}
+      xml << %{   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>\n}
+      xml << %{  </Style>\n}
+      xml << %{ </Styles>\n}
+
+      # WORKSHEET 1: Question Matrix
+      xml << %{ <Worksheet ss:Name="Question Matrix">\n}
+      xml << %{  <Table>\n}
+      xml << %{   <Column ss:Width="40"/>\n}
+      xml << %{   <Column ss:Width="90"/>\n}
+      xml << %{   <Column ss:Width="160"/>\n}
+      xml << %{   <Column ss:Width="180"/>\n}
+      xml << %{   <Column ss:Width="110"/>\n}
+      xml << %{   <Column ss:Width="170"/>\n}
+      xml << %{   <Column ss:Width="90"/>\n}
+      xml << %{   <Column ss:Width="110"/>\n}
+      questions.each do
+        xml << %{   <Column ss:Width="200"/>\n}
+      end
+
+      xml << %{   <Row ss:Height="28">\n}
+      info_headers = [ "#", "Response Date", "Participant Name", "Email", "Section", "Assignment Title", "Status", "Submitted At" ]
+      info_headers.each do |h|
+        xml << %{    <Cell ss:StyleID="Header"><Data ss:Type="String">#{CGI.escapeHTML(h)}</Data></Cell>\n}
+      end
+      questions.each_with_index do |q, q_idx|
+        q_label = "Q#{q_idx + 1}: #{q[:title]} (#{q[:question_type].to_s.humanize})"
+        xml << %{    <Cell ss:StyleID="QuestionHeader"><Data ss:Type="String">#{CGI.escapeHTML(q_label)}</Data></Cell>\n}
+      end
+      xml << %{   </Row>\n}
+
+      rows.each_with_index do |row, idx|
+        status_style = row[:status] == "submitted" ? "BadgeSubmitted" : "BadgePending"
+        date_str = row[:date].present? ? row[:date].strftime("%Y-%m-%d") : "-"
+        time_str = row[:submitted_at].present? ? row[:submitted_at].strftime("%I:%M %p") : "-"
+
+        xml << %{   <Row ss:Height="22" ss:StyleID="RowSubmitted">\n}
+        xml << %{    <Cell><Data ss:Type="Number">#{idx + 1}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(date_str)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:participant_name].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:participant_email].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:section_name].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:assignment_title].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell ss:StyleID="#{status_style}"><Data ss:Type="String">#{CGI.escapeHTML(row[:status].to_s.titleize)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(time_str)}</Data></Cell>\n}
+
+        row_answers = row[:answers] || {}
+        questions.each do |q|
+          q_info = row_answers[q[:id]]
+          if q_info.present?
+            val = q_info[:answer].to_s
+            xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(val)}</Data></Cell>\n}
+          else
+            dash = row[:status] == "submitted" ? "-" : "Pending"
+            xml << %{    <Cell ss:StyleID="CellEmpty"><Data ss:Type="String">#{dash}</Data></Cell>\n}
+          end
+        end
+        xml << %{   </Row>\n}
+      end
+
+      xml << %{  </Table>\n}
+      xml << %{ </Worksheet>\n}
+
+      # WORKSHEET 2: Question Summary & Stats
+      xml << %{ <Worksheet ss:Name="Question Summary">\n}
+      xml << %{  <Table>\n}
+      xml << %{   <Column ss:Width="40"/>\n}
+      xml << %{   <Column ss:Width="60"/>\n}
+      xml << %{   <Column ss:Width="260"/>\n}
+      xml << %{   <Column ss:Width="130"/>\n}
+      xml << %{   <Column ss:Width="200"/>\n}
+      xml << %{   <Column ss:Width="130"/>\n}
+
+      summary_headers = [ "#", "Question #", "Question Title", "Question Type", "Assignment(s)", "Total Responses" ]
+      xml << %{   <Row ss:Height="26" ss:StyleID="Header">\n}
+      summary_headers.each do |h|
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(h)}</Data></Cell>\n}
+      end
+      xml << %{   </Row>\n}
+
+      questions.each_with_index do |q, q_idx|
+        ans_count = rows.count { |r| r[:answers]&.key?(q[:id]) }
+        xml << %{   <Row ss:Height="22" ss:StyleID="RowSubmitted">\n}
+        xml << %{    <Cell><Data ss:Type="Number">#{q_idx + 1}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">Q#{q_idx + 1}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(q[:title].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(q[:question_type].to_s.humanize)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(q[:assignments_text].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="Number">#{ans_count}</Data></Cell>\n}
+        xml << %{   </Row>\n}
+      end
+
+      xml << %{  </Table>\n}
+      xml << %{ </Worksheet>\n}
+      xml << %{</Workbook>\n}
+
+      xml
+    end
+
+    def generate_consolidated_matrix_csv
+      require "csv"
+      rows = @matrix_rows || []
+      questions = @matrix_questions || []
+
+      CSV.generate(headers: true) do |csv|
+        headers = [ "#", "Response Date", "Participant Name", "Email", "Section", "Assignment Title", "Status", "Submitted At" ]
+        questions.each_with_index do |q, q_idx|
+          headers << "Q#{q_idx + 1}: #{q[:title]}"
+        end
+        csv << headers
+
+        rows.each_with_index do |row, index|
+          row_answers = row[:answers] || {}
+          row_vals = [
+            index + 1,
+            row[:date].present? ? row[:date].strftime("%Y-%m-%d") : "-",
+            row[:participant_name],
+            row[:participant_email],
+            row[:section_name],
+            row[:assignment_title],
+            row[:status].to_s.titleize,
+            row[:submitted_at].present? ? row[:submitted_at].strftime("%I:%M %p") : "-"
+          ]
+
+          questions.each do |q|
+            q_info = row_answers[q[:id]]
+            row_vals << (q_info ? q_info[:answer].to_s : (row[:status] == "submitted" ? "-" : "Pending"))
+          end
+
+          csv << row_vals
         end
       end
     end
