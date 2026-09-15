@@ -71,7 +71,7 @@ class Participant < ApplicationRecord
     joins(:user).order(Arel.sql("LOWER(COALESCE(users.first_name, '')) ASC, LOWER(COALESCE(users.last_name, '')) ASC, LOWER(COALESCE(users.email, '')) ASC"))
   }
 
-  delegate :full_name, :email, to: :user
+  delegate :full_name, :email, to: :user, allow_nil: true
 
   # Helper method to get all training programs (both individual and section)
   def all_training_programs

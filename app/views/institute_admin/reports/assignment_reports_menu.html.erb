@@ -28,7 +28,7 @@
   <!-- Modern Interactive Report Cards Grid -->
   <div class="row g-4 mt-1">
     <!-- Section-wise Reports Card -->
-    <div class="col-12 col-md-6 col-xl-5">
+    <div class="col-12 col-md-6 col-xl-3">
       <div class="report-menu-card card-emerald">
         <%= link_to assignment_reports_institute_admin_reports_path, class: "card-overlay-link", title: "Open Section-wise Reports" do %><% end %>
         
@@ -61,16 +61,16 @@
     </div>
 
     <!-- Individual Reports Card -->
-    <div class="col-12 col-md-6 col-xl-5">
+    <div class="col-12 col-md-6 col-xl-3">
       <div class="report-menu-card card-indigo">
         <%= link_to individual_assignment_reports_institute_admin_reports_path, class: "card-overlay-link", title: "Open Individual Assignment Reports" do %><% end %>
         
         <div class="d-flex align-items-start justify-content-between mb-3">
           <div class="report-icon-wrapper icon-indigo">
-            <i class="bi bi-person-bounding-box"></i>
+            <i class="bi bi-person-badge-fill"></i>
           </div>
           <span class="badge badge-indigo rounded-pill px-3 py-1.5 fw-semibold">
-            <i class="bi bi-person-lines-fill me-1"></i> Participant Mode
+            <i class="bi bi-person-lines-fill me-1"></i> Individual Mode
           </span>
         </div>
 
@@ -87,6 +87,72 @@
         <div class="report-card-footer mt-4 pt-3 border-top d-flex align-items-center justify-content-between">
           <span class="text-indigo fw-semibold small d-inline-flex align-items-center gap-1">
             <i class="bi bi-card-checklist"></i> View Individual Logs
+          </span>
+          <i class="bi bi-chevron-right text-muted small"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consolidated Response Report Card -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="report-menu-card card-purple">
+        <%= link_to consolidated_response_report_institute_admin_reports_path, class: "card-overlay-link", title: "Open Consolidated Response Report" do %><% end %>
+        
+        <div class="d-flex align-items-start justify-content-between mb-3">
+          <div class="report-icon-wrapper icon-purple">
+            <i class="bi bi-collection-fill"></i>
+          </div>
+          <span class="badge badge-purple rounded-pill px-3 py-1.5 fw-semibold">
+            <i class="bi bi-layers-fill me-1"></i> Detailed Log Mode
+          </span>
+        </div>
+
+        <div class="report-card-content">
+          <h5 class="fw-bold text-dark mb-2 d-flex align-items-center justify-content-between">
+            <span>Consolidated Responses</span>
+            <i class="bi bi-arrow-right action-arrow text-purple"></i>
+          </h5>
+          <p class="text-muted small mb-0 leading-relaxed">
+            Analyze consolidated participant responses across multiple assignments with multi-select filters, question breakdowns, and Excel downloads.
+          </p>
+        </div>
+
+        <div class="report-card-footer mt-4 pt-3 border-top d-flex align-items-center justify-content-between">
+          <span class="text-purple fw-semibold small d-inline-flex align-items-center gap-1">
+            <i class="bi bi-table"></i> View Response Logs
+          </span>
+          <i class="bi bi-chevron-right text-muted small"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consolidated Question Matrix Report Card -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="report-menu-card card-sky">
+        <%= link_to consolidated_matrix_report_institute_admin_reports_path, class: "card-overlay-link", title: "Open Question Matrix Report" do %><% end %>
+        
+        <div class="d-flex align-items-start justify-content-between mb-3">
+          <div class="report-icon-wrapper icon-sky">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+          </div>
+          <span class="badge badge-sky rounded-pill px-3 py-1.5 fw-semibold">
+            <i class="bi bi-layout-three-columns me-1"></i> Pivot Matrix Mode
+          </span>
+        </div>
+
+        <div class="report-card-content">
+          <h5 class="fw-bold text-dark mb-2 d-flex align-items-center justify-content-between">
+            <span>Question Matrix Report</span>
+            <i class="bi bi-arrow-right action-arrow text-sky"></i>
+          </h5>
+          <p class="text-muted small mb-0 leading-relaxed">
+            Cross-tabular pivot view with questions as column headers and participant responses side-by-side with multi-column Excel exports.
+          </p>
+        </div>
+
+        <div class="report-card-footer mt-4 pt-3 border-top d-flex align-items-center justify-content-between">
+          <span class="text-sky fw-semibold small d-inline-flex align-items-center gap-1">
+            <i class="bi bi-grid-3x3"></i> View Question Matrix
           </span>
           <i class="bi bi-chevron-right text-muted small"></i>
         </div>
@@ -168,6 +234,50 @@
 
   .text-indigo {
     color: #4f46e5 !important;
+  }
+
+  /* Purple Variant (Consolidated) */
+  .card-purple:hover {
+    box-shadow: 0 12px 28px rgba(168, 85, 247, 0.18);
+    border-color: #e9d5ff;
+  }
+
+  .icon-purple {
+    background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+    color: #ffffff;
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.3);
+  }
+
+  .badge-purple {
+    background-color: #faf5ff;
+    color: #7e22ce;
+    border: 1px solid #e9d5ff;
+  }
+
+  .text-purple {
+    color: #7e22ce !important;
+  }
+
+  /* Sky / Teal Variant (Question Matrix) */
+  .card-sky:hover {
+    box-shadow: 0 12px 28px rgba(14, 165, 233, 0.18);
+    border-color: #bae6fd;
+  }
+
+  .icon-sky {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: #ffffff;
+    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.3);
+  }
+
+  .badge-sky {
+    background-color: #f0f9ff;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+  }
+
+  .text-sky {
+    color: #0284c7 !important;
   }
 
   /* Icon Wrapper */

@@ -192,6 +192,8 @@ Rails.application.routes.draw do
           get "assignment_reports_menu"
           get "assignment_reports"
           get "individual_assignment_reports"
+          get "consolidated_response_report"
+          get "consolidated_matrix_report"
           get "assignment_response_details"
           match "export_async", via: [ :get, :post, :delete ]
           get "export_status"

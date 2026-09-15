@@ -1,0 +1,1111 @@
+<div class="container-fluid px-0 pt-2 pb-4">
+  <!-- MODERN PAGE HEADER CARD -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 page-header-card">
+    <div class="card-body p-3 p-md-4">
+      <!-- Top Breadcrumb Bar -->
+      <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-light-subtle">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb breadcrumb-modern mb-0">
+            <li class="breadcrumb-item"><%= link_to institute_admin_root_path do %><i class="bi bi-house-door-fill"></i><% end %></li>
+            <li class="breadcrumb-item"><%= link_to "Reports", institute_admin_reports_path %></li>
+            <li class="breadcrumb-item"><%= link_to "Assignment Reports", assignment_reports_menu_institute_admin_reports_path %></li>
+            <li class="breadcrumb-item active" aria-current="page">Consolidated Response Report</li>
+          </ol>
+        </nav>
+        <span class="badge bg-light text-muted border px-2.5 py-1 small fw-medium d-none d-sm-inline-flex align-items-center gap-1">
+          <i class="bi bi-shield-check text-success"></i>
+          <span>Institute Admin</span>
+        </span>
+      </div>
+
+      <!-- Main Header Row: Icon + Title/Subtitle + Action Toolbar -->
+      <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="header-icon-box detailed-theme shadow-sm">
+            <i class="bi bi-list-columns-reverse fs-3"></i>
+          </div>
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h3 class="fw-bold text-dark mb-0" style="letter-spacing: -0.3px;">Consolidated Response Report</h3>
+              <span class="badge rounded-pill bg-indigo-subtle text-indigo border border-indigo-subtle px-2.5 py-1 fw-semibold" style="font-size: 0.72rem;">
+                <i class="bi bi-file-text me-1"></i>Detailed Log View
+              </span>
+            </div>
+            <p class="text-secondary small mb-0 mt-1">Multi-assignment consolidated response matrix and participant submissions log</p>
+          </div>
+        </div>
+
+        <div class="header-actions d-flex flex-wrap align-items-center gap-2">
+          <!-- Switch to Question Matrix View -->
+          <%= link_to consolidated_matrix_report_institute_admin_reports_path(request.query_parameters.except("format", :format)), 
+                      class: "btn d-inline-flex align-items-center gap-1.5 shadow-sm rounded-3 px-3 py-2 fw-medium", 
+                      style: "color: #0284c7; background-color: #f0f9ff; border: 1px solid #bae6fd;",
+                      title: "Switch to Question Matrix View" do %>
+            <i class="bi bi-grid-3x3-gap-fill" style="color: #0284c7;"></i>
+            <span>Matrix View</span>
+          <% end %>
+
+          <!-- Direct Excel Download (.xls SpreadsheetML) -->
+          <%= link_to consolidated_response_report_institute_admin_reports_path(request.query_parameters.merge(format: :xls)), 
+                      class: "btn btn-outline-success d-inline-flex align-items-center gap-2 shadow-sm rounded-3 px-3 py-2 fw-medium", 
+                      data: { turbo: false }, 
+                      download: "", 
+                      title: "Direct Download Excel (.xls)" do %>
+            <i class="bi bi-file-earmark-excel-fill text-success"></i>
+            <span>Download Excel</span>
+          <% end %>
+
+          <!-- Full Background Export Button -->
+          <button type="button" 
+                  class="btn btn-outline-primary d-inline-flex align-items-center gap-2 shadow-sm rounded-3 px-3 py-2 fw-medium" 
+                  onclick="startAsyncExport('consolidated_response_excel');"
+                  title="Generate and download full report in the background with live progress">
+            <i class="bi bi-cloud-arrow-down-fill"></i>
+            <span>Export Full Report</span>
+          </button>
+
+          <!-- Direct CSV Download -->
+          <%= link_to consolidated_response_report_institute_admin_reports_path(request.query_parameters.merge(format: :csv)), 
+                      class: "btn btn-outline-secondary d-inline-flex align-items-center gap-1.5 shadow-sm rounded-3 px-3 py-2 fw-medium", 
+                      data: { turbo: false }, 
+                      download: "", 
+                      title: "Download CSV" do %>
+            <i class="bi bi-file-earmark-spreadsheet"></i>
+            <span>CSV</span>
+          <% end %>
+
+          <%= link_to assignment_reports_menu_institute_admin_reports_path, class: "btn btn-light border d-inline-flex align-items-center gap-1.5 rounded-3 px-3 py-2 fw-medium text-secondary shadow-sm" do %>
+            <i class="bi bi-arrow-left"></i>
+            <span>Back</span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI SUMMARY METRICS ROW -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+      <div class="inst-kpi-card">
+        <div>
+          <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Assignments</div>
+          <div class="h4 fw-bold mb-0 text-dark"><%= @total_filtered_assignments || 0 %></div>
+        </div>
+        <div class="inst-kpi-icon inst-kpi-icon-primary">
+          <i class="bi bi-journal-text"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <div class="inst-kpi-card">
+        <div>
+          <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Participants</div>
+          <div class="h4 fw-bold mb-0 text-indigo"><%= @filtered_participants_count || 0 %></div>
+        </div>
+        <div class="inst-kpi-icon inst-kpi-icon-indigo" style="background-color: #e0e7ff; color: #4f46e5;">
+          <i class="bi bi-people-fill"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <div class="inst-kpi-card">
+        <div>
+          <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Responses Recorded</div>
+          <div class="h4 fw-bold mb-0 text-success"><%= @total_submitted_responses || 0 %></div>
+        </div>
+        <div class="inst-kpi-icon inst-kpi-icon-success">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MULTI-SELECT CHECKBOX FILTER TOOLBAR -->
+  <%
+    active_filters_count = 0
+    active_filters_count += 1 if params[:search].present?
+    active_filters_count += 1 if @selected_assignment_ids.present?
+    active_filters_count += 1 if @selected_section_ids.present?
+    active_filters_count += 1 if @selected_participant_ids.present?
+    active_filters_count += 1 if @selected_statuses.present? && @selected_statuses.size == 1
+    active_filters_count += 1 if @date_range.present? && @date_range != 'all_time'
+  %>
+  <div class="filter-toolbar-card bg-white rounded-4 shadow-sm border mb-4 p-3 p-md-4">
+    <%= form_tag consolidated_response_report_institute_admin_reports_path, method: :get, id: "consolidatedReportForm" do %>
+      <!-- TOP ROW: Search Input & Action Buttons -->
+      <div class="row g-2 g-md-3 align-items-center mb-3">
+        <!-- Search Keyword -->
+        <div class="col-12 col-md-7 col-lg-8">
+          <div class="input-group filter-input-group">
+            <span class="input-group-text bg-white border-end-0 ps-3 pe-2">
+              <i class="bi bi-search text-indigo"></i>
+            </span>
+            <input type="text" 
+                   name="search" 
+                   id="consolidatedSearchInput" 
+                   class="form-control border-start-0 ps-1 text-dark fw-medium" 
+                   placeholder="Search by participant, email, assignment..." 
+                   value="<%= params[:search] %>"
+                   aria-label="Search by participant, email, assignment..."
+                   autocomplete="off">
+            <% if params[:search].present? %>
+              <button type="button" 
+                      class="btn btn-link text-muted pe-3 text-decoration-none border-start-0" 
+                      onclick="document.getElementById('consolidatedSearchInput').value=''; document.getElementById('consolidatedReportForm').submit();" 
+                      title="Clear search">
+                <i class="bi bi-x-circle-fill"></i>
+              </button>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Action Buttons (Reset & Apply Filters) -->
+        <div class="col-12 col-md-5 col-lg-4 d-flex align-items-center justify-content-md-end gap-2">
+          <%= link_to consolidated_response_report_institute_admin_reports_path, class: "btn btn-filter-reset px-3 rounded-3 d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-md-grow-0", title: "Reset All Filters" do %>
+            <i class="bi bi-arrow-counterclockwise"></i>
+            <span>Reset</span>
+            <% if active_filters_count > 0 %>
+              <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1" style="font-size: 0.72rem;"><%= active_filters_count %></span>
+            <% end %>
+          <% end %>
+
+          <button type="submit" class="btn btn-filter-apply-indigo px-4 rounded-3 d-inline-flex align-items-center justify-content-center gap-1.5 fw-semibold shadow-sm flex-grow-1 flex-md-grow-0">
+            <i class="bi bi-funnel-fill"></i>
+            <span>Apply Filters</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- BOTTOM ROW: 5 Dimension Multi-Select Dropdowns -->
+      <div class="row g-2 g-md-3 align-items-center">
+        <!-- Assignments Multi-Select Dropdown -->
+        <div class="col-12 col-sm-6 col-md-4 col-lg">
+          <div class="dropdown multiselect-dropdown">
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active-indigo' if @selected_assignment_ids.present? %>" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    data-bs-auto-close="outside"
+                    aria-expanded="false">
+              <span class="d-inline-flex align-items-center text-truncate">
+                <i class="bi bi-journal-check me-2 text-primary flex-shrink-0"></i>
+                <span class="dropdown-label text-truncate" id="asgLabel">
+                  Assignments (<%= @selected_assignment_ids.empty? ? 'All' : @selected_assignment_ids.size %>)
+                </span>
+              </span>
+            </button>
+            <div class="dropdown-menu p-2 shadow-lg rounded-3 border" style="min-width: 270px; max-height: 320px; overflow-y: auto;">
+              <div class="px-1 mb-2">
+                <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search assignments..." oninput="filterDropdownList(this)">
+              </div>
+              <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'asgLabel', 'Assignments')">Select All</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'asgLabel', 'Assignments')">Clear</button>
+              </div>
+              <div class="multiselect-options-list">
+                <% @available_assignments.each do |asg| %>
+                  <div class="form-check dropdown-item rounded px-2 py-1 multiselect-item">
+                    <input class="form-check-input ms-0 me-2" 
+                           type="checkbox" 
+                           name="assignment_ids[]" 
+                           value="<%= asg.id %>" 
+                           id="asg_cb_<%= asg.id %>" 
+                           <%= 'checked' if @selected_assignment_ids.include?(asg.id.to_s) %>
+                           onchange="updateDropdownCounter('asgLabel', 'Assignments', 'assignment_ids[]')">
+                    <label class="form-check-label text-truncate cursor-pointer small" for="asg_cb_<%= asg.id %>" title="<%= asg.title %>">
+                      <%= asg.title %>
+                    </label>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sections Multi-Select Dropdown -->
+        <div class="col-12 col-sm-6 col-md-4 col-lg">
+          <div class="dropdown multiselect-dropdown">
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active-indigo' if @selected_section_ids.present? %>" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    data-bs-auto-close="outside"
+                    aria-expanded="false">
+              <span class="d-inline-flex align-items-center text-truncate">
+                <i class="bi bi-people me-2 text-info flex-shrink-0"></i>
+                <span class="dropdown-label text-truncate" id="secLabel">
+                  Sections (<%= @selected_section_ids.empty? ? 'All' : @selected_section_ids.size %>)
+                </span>
+              </span>
+            </button>
+            <div class="dropdown-menu p-2 shadow-lg rounded-3 border" style="min-width: 250px; max-height: 320px; overflow-y: auto;">
+              <div class="px-1 mb-2">
+                <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search sections..." oninput="filterDropdownList(this)">
+              </div>
+              <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'secLabel', 'Sections')">Select All</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'secLabel', 'Sections')">Clear</button>
+              </div>
+              <div class="multiselect-options-list">
+                <% @available_sections.each do |sec| %>
+                  <div class="form-check dropdown-item rounded px-2 py-1 multiselect-item">
+                    <input class="form-check-input ms-0 me-2" 
+                           type="checkbox" 
+                           name="section_ids[]" 
+                           value="<%= sec.id %>" 
+                           id="sec_cb_<%= sec.id %>" 
+                           <%= 'checked' if @selected_section_ids.include?(sec.id.to_s) %>
+                           onchange="updateDropdownCounter('secLabel', 'Sections', 'section_ids[]')">
+                    <label class="form-check-label text-truncate cursor-pointer small" for="sec_cb_<%= sec.id %>">
+                      <%= sec.name %>
+                    </label>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Participants Multi-Select Dropdown -->
+        <div class="col-12 col-sm-6 col-md-4 col-lg">
+          <div class="dropdown multiselect-dropdown">
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active-indigo' if @selected_participant_ids.present? %>" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    data-bs-auto-close="outside"
+                    aria-expanded="false">
+              <span class="d-inline-flex align-items-center text-truncate">
+                <i class="bi bi-person me-2 text-success flex-shrink-0"></i>
+                <span class="dropdown-label text-truncate" id="partLabel">
+                  Participants (<%= @selected_participant_ids.empty? ? 'All' : @selected_participant_ids.size %>)
+                </span>
+              </span>
+            </button>
+            <div class="dropdown-menu p-2 shadow-lg rounded-3 border" style="min-width: 280px; max-height: 320px; overflow-y: auto;">
+              <div class="px-1 mb-2">
+                <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search participants..." oninput="filterDropdownList(this)">
+              </div>
+              <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'partLabel', 'Participants')">Select All</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'partLabel', 'Participants')">Clear</button>
+              </div>
+              <div class="multiselect-options-list">
+                <% @available_participants.each do |p| %>
+                  <div class="form-check dropdown-item rounded px-2 py-1 multiselect-item">
+                    <input class="form-check-input ms-0 me-2" 
+                           type="checkbox" 
+                           name="participant_ids[]" 
+                           value="<%= p.id %>" 
+                           id="part_cb_<%= p.id %>" 
+                           <%= 'checked' if @selected_participant_ids.include?(p.id.to_s) %>
+                           onchange="updateDropdownCounter('partLabel', 'Participants', 'participant_ids[]')">
+                    <label class="form-check-label text-truncate cursor-pointer small" for="part_cb_<%= p.id %>" title="<%= p.email %>">
+                      <%= p.full_name %> <span class="text-muted" style="font-size: 0.75rem;">(<%= p.section&.name || 'No Sec' %>)</span>
+                    </label>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Multi-Select Checkbox Dropdown -->
+        <div class="col-12 col-sm-6 col-md-4 col-lg">
+          <div class="dropdown multiselect-dropdown">
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active-indigo' if @selected_statuses.present? && @selected_statuses.size == 1 %>" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    data-bs-auto-close="outside"
+                    aria-expanded="false">
+              <span class="d-inline-flex align-items-center text-truncate">
+                <i class="bi bi-check2-circle me-2 text-warning flex-shrink-0"></i>
+                <span class="dropdown-label text-truncate" id="statusLabel">
+                  Status (<%= @selected_statuses.size == 2 ? 'All' : @selected_statuses.map(&:titleize).join(', ') %>)
+                </span>
+              </span>
+            </button>
+            <div class="dropdown-menu p-2 shadow-lg rounded-3 border" style="min-width: 200px;">
+              <div class="multiselect-options-list">
+                <div class="form-check dropdown-item rounded px-2 py-1">
+                  <input class="form-check-input ms-0 me-2" 
+                         type="checkbox" 
+                         name="submission_statuses[]" 
+                         value="submitted" 
+                         id="status_cb_sub" 
+                         <%= 'checked' if @selected_statuses.include?('submitted') %>
+                         onchange="updateStatusCounter()">
+                  <label class="form-check-label cursor-pointer small fw-medium text-success" for="status_cb_sub">
+                    <i class="bi bi-check-circle-fill me-1"></i> Submitted
+                  </label>
+                </div>
+                <div class="form-check dropdown-item rounded px-2 py-1">
+                  <input class="form-check-input ms-0 me-2" 
+                         type="checkbox" 
+                         name="submission_statuses[]" 
+                         value="pending" 
+                         id="status_cb_pend" 
+                         <%= 'checked' if @selected_statuses.include?('pending') %>
+                         onchange="updateStatusCounter()">
+                  <label class="form-check-label cursor-pointer small fw-medium text-warning" for="status_cb_pend">
+                    <i class="bi bi-clock-fill me-1"></i> Pending Only
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date Range Filter -->
+        <div class="col-12 col-sm-6 col-md-4 col-lg">
+          <div class="input-group filter-input-group">
+            <span class="input-group-text bg-white border-end-0 ps-3 pe-2">
+              <i class="bi bi-calendar-range text-secondary flex-shrink-0"></i>
+            </span>
+            <select name="date_range" 
+                    id="consolidatedDateRange" 
+                    class="form-select border-start-0 ps-1 pe-4 text-truncate filter-select <%= 'filter-active-indigo' if @date_range.present? && @date_range != 'all_time' %>" 
+                    onchange="toggleConsolidatedCustomDates(this.value); this.classList.toggle('filter-active-indigo', this.value !== 'all_time');">
+              <option value="all_time" <%= 'selected' if @date_range == 'all_time' %>>All Time</option>
+              <option value="today" <%= 'selected' if @date_range == 'today' %>>Today</option>
+              <option value="yesterday" <%= 'selected' if @date_range == 'yesterday' %>>Yesterday</option>
+              <option value="last_7_days" <%= 'selected' if @date_range == 'last_7_days' %>>Last 7 Days</option>
+              <option value="this_month" <%= 'selected' if @date_range == 'this_month' %>>This Month</option>
+              <option value="custom" <%= 'selected' if @date_range == 'custom' %>>Custom Range</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Date Pickers (Shown if Custom Range is selected) -->
+      <div id="consolidatedCustomDateRow" class="row g-2 g-md-3 mt-3 pt-3 border-top align-items-center <%= 'd-none' unless @date_range == 'custom' %>">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+          <div class="input-group filter-input-group">
+            <span class="input-group-text bg-white text-muted small fw-semibold">From</span>
+            <input type="date" name="start_date" class="form-control" value="<%= @start_date.to_s %>">
+          </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+          <div class="input-group filter-input-group">
+            <span class="input-group-text bg-white text-muted small fw-semibold">To</span>
+            <input type="date" name="end_date" class="form-control" value="<%= @end_date.to_s %>">
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- CONSOLIDATED RESPONSE DATA TABLE CARD -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+    <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-table text-primary fs-5"></i>
+        <h6 class="fw-bold mb-0 text-dark">Consolidated Participant Responses</h6>
+      </div>
+      <span class="badge bg-light text-secondary border px-3 py-1.5 fw-medium">
+        Showing <%= @paginated_rows&.size || 0 %> of <%= @total_report_count || 0 %> Records
+      </span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle mb-0 table-hover">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 50px;" class="text-center">#</th>
+            <th style="min-width: 110px;">Date</th>
+            <th style="min-width: 200px;">Participant</th>
+            <th style="min-width: 120px;">Section</th>
+            <th style="min-width: 190px;">Assignment Title</th>
+            <th style="min-width: 220px;">Question</th>
+            <th style="min-width: 220px;">Recorded Answer</th>
+            <th style="min-width: 110px;" class="text-center">Status</th>
+            <th style="min-width: 110px;" class="text-center">Submitted At</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% display_rows = @paginated_rows.presence || [] %>
+          <% if display_rows.blank? %>
+            <tr>
+              <td colspan="9" class="text-center py-5">
+                <div class="text-muted mb-2"><i class="bi bi-inbox fs-1"></i></div>
+                <h6 class="fw-bold text-dark mb-1">No Response Records Found</h6>
+                <p class="text-muted small mb-0">No participant responses match the selected filters. Try adjusting your assignment, section, or date criteria.</p>
+              </td>
+            </tr>
+          <% else %>
+            <% display_rows.each_with_index do |row, index| %>
+              <% row_num = (@pagy ? @pagy.from : 1) + index %>
+              <tr>
+                <td class="text-center fw-semibold text-secondary" style="font-size: 0.85rem;"><%= row_num %></td>
+                <td>
+                  <span class="fw-medium text-dark"><%= row[:date].present? ? row[:date].strftime("%b %d, %Y") : "-" %></span>
+                </td>
+                <td>
+                  <div class="fw-semibold text-dark"><%= row[:participant_name] %></div>
+                  <div class="text-muted small" style="font-size: 0.78rem;"><%= row[:participant_email] %></div>
+                </td>
+                <td>
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-medium">
+                    <%= row[:section_name] %>
+                  </span>
+                </td>
+                <td>
+                  <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle px-2.5 py-1 rounded-pill fw-medium text-wrap text-start" style="max-width: 190px;">
+                    <%= row[:assignment_title] %>
+                  </span>
+                </td>
+                <td>
+                  <div class="fw-medium text-dark text-wrap" style="max-width: 220px;"><%= row[:question_title] %></div>
+                  <% if row[:question_type].present? && row[:question_type] != '-' %>
+                    <span class="badge bg-light text-muted border px-1.5 py-0.5 rounded small text-capitalize mt-0.5" style="font-size: 0.7rem;">
+                      <%= row[:question_type].humanize %>
+                    </span>
+                  <% end %>
+                </td>
+                <td>
+                  <% if row[:status] == 'submitted' %>
+                    <% if row[:question_type] == 'rating' %>
+                      <div class="d-flex align-items-center gap-1.5">
+                        <span class="text-warning fs-6">
+                          <% rating_val = row[:answer].to_i %>
+                          <% (1..5).each do |star| %>
+                            <i class="bi <%= star <= rating_val ? 'bi-star-fill' : 'bi-star' %>"></i>
+                          <% end %>
+                        </span>
+                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle font-monospace px-1.5 py-0.5 small">
+                          <%= row[:answer] %>/5
+                        </span>
+                      </div>
+                    <% elsif row[:question_type] == 'checkboxes' %>
+                      <div class="d-flex flex-wrap gap-1">
+                        <% row[:answer].to_s.split(',').map(&:strip).each do |opt| %>
+                          <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill small">
+                            <%= opt %>
+                          </span>
+                        <% end %>
+                      </div>
+                    <% elsif row[:question_type] == 'yes_or_no' %>
+                      <% is_yes = row[:answer].to_s.downcase.in?(['yes', 'true', '1']) %>
+                      <span class="badge <%= is_yes ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle' %> rounded-pill px-2.5 py-1 fw-semibold">
+                        <i class="bi <%= is_yes ? 'bi-check-circle-fill' : 'bi-x-circle-fill' %> me-1"></i><%= row[:answer] %>
+                      </span>
+                    <% else %>
+                      <div class="text-dark small text-wrap" style="max-width: 220px; line-height: 1.4;">
+                        <%= row[:answer] %>
+                      </div>
+                    <% end %>
+                  <% else %>
+                    <span class="text-muted fst-italic small">No submission recorded</span>
+                  <% end %>
+                </td>
+                <td class="text-center">
+                  <% if row[:status] == 'submitted' %>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-medium">
+                      <i class="bi bi-check-circle me-1"></i>Submitted
+                    </span>
+                  <% else %>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-medium">
+                      <i class="bi bi-clock me-1"></i>Pending
+                    </span>
+                  <% end %>
+                </td>
+                <td class="text-center text-muted small">
+                  <%= row[:submitted_at].present? ? row[:submitted_at].strftime("%I:%M %p") : "-" %>
+                </td>
+              </tr>
+            <% end %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINATION FOOTER -->
+    <% if @pagy && @pagy.pages > 1 %>
+      <div class="card-footer bg-white border-top py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="text-muted small">
+          Showing <strong><%= @pagy.from %></strong> to <strong><%= @pagy.to %></strong> of <strong><%= @pagy.count %></strong> records
+        </div>
+        <div class="pagy-bootstrap-nav">
+          <%== pagy_bootstrap_nav(@pagy) %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- ASYNC EXPORT PROGRESS MODAL -->
+<div class="modal fade" id="asyncExportModal" tabindex="-1" aria-labelledby="asyncExportModalLabel" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2.5">
+          <div class="p-2 rounded-3 text-white" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);" id="asyncExportIconBox">
+            <i class="bi bi-cpu-fill fs-3" id="asyncExportIcon"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-dark mb-0" id="asyncExportModalLabel">Exporting Consolidated Report</h5>
+          </div>
+        </div>
+        <button type="button" class="btn-close" aria-label="Close" id="asyncExportCloseBtn" onclick="minimizeAsyncModal();"></button>
+      </div>
+
+      <div class="modal-body p-4 text-center">
+        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+          <span class="text-secondary small fw-semibold" id="asyncExportStage">Preparing report export...</span>
+          <span class="badge bg-indigo text-white fw-bold px-2.5 py-1 rounded-pill" id="asyncExportPercent" style="background-color: #6366f1;">0%</span>
+        </div>
+
+        <div class="progress rounded-pill mb-3" style="height: 12px; background-color: #f1f5f9;">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" 
+               id="asyncProgressBar" 
+               role="progressbar" 
+               style="width: 0%; background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%); transition: width 0.4s ease;"></div>
+        </div>
+
+        <p class="text-muted small mb-0" id="asyncExportMessage">Compiling response records and worksheets...</p>
+      </div>
+
+      <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-center">
+        <a href="#" id="asyncDownloadBtn" class="btn btn-success d-none d-inline-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm fw-semibold">
+          <i class="bi bi-cloud-arrow-down-fill fs-5"></i>
+          <span>Download Excel File</span>
+        </a>
+        <button type="button" class="btn btn-outline-secondary px-3 py-1.5 rounded-3 small text-muted d-inline-flex align-items-center gap-1.5" id="asyncCancelBtn" onclick="minimizeAsyncModal();">
+          <span>Minimize Window</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MINIMIZED FLOATING PROGRESS WIDGET -->
+<div id="minimizedProgressWidget" 
+     class="d-none position-fixed bottom-0 end-0 m-4 p-3 bg-white rounded-4 shadow-lg border d-flex align-items-center gap-3" 
+     style="z-index: 1065; min-width: 300px; border-color: rgba(99, 102, 241, 0.25) !important;">
+  <div class="p-2 rounded-3 text-white" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);" id="minimizedIconBox">
+    <i class="bi bi-cpu-fill fs-5" id="minimizedIcon"></i>
+  </div>
+  <div class="flex-grow-1 overflow-hidden">
+    <div class="d-flex align-items-center justify-content-between">
+      <span class="fw-bold text-dark small" id="minimizedTitle">Exporting...</span>
+      <span class="badge bg-indigo text-white fw-bold px-2 py-0.5 rounded-pill small" id="minimizedPercent" style="background-color: #6366f1;">0%</span>
+    </div>
+    <div class="progress rounded-pill mt-1" style="height: 6px; background-color: #f1f5f9;">
+      <div class="progress-bar progress-bar-striped progress-bar-animated" id="minimizedProgressBar" style="width: 0%; background: #6366f1; transition: width 0.4s ease;"></div>
+    </div>
+  </div>
+  <button type="button" class="btn btn-sm btn-light rounded-circle p-1.5 lh-1 shadow-sm" title="Maximize Progress Window" onclick="maximizeAsyncModal();">
+    <i class="bi bi-arrows-angle-expand text-primary fs-6"></i>
+  </button>
+  <button type="button" class="btn btn-sm btn-light rounded-circle p-1.5 lh-1 text-muted shadow-sm" title="Dismiss Widget" onclick="dismissWidget();">
+    <i class="bi bi-x-lg"></i>
+  </button>
+</div>
+
+<style>
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  .multiselect-dropdown .dropdown-toggle::after {
+    margin-left: auto;
+  }
+  .multiselect-options-list {
+    scrollbar-width: thin;
+  }
+  .multiselect-item:hover {
+    background-color: #f8fafc;
+  }
+  .bg-indigo-subtle {
+    background-color: #eef2ff !important;
+  }
+  .text-indigo {
+    color: #4f46e5 !important;
+  }
+  .border-indigo-subtle {
+    border-color: #c7d2fe !important;
+  }
+
+  /* Enhanced Filter Toolbar & Dropdowns */
+  .filter-toolbar-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+
+  .filter-input-group {
+    height: 42px;
+  }
+
+  .filter-input-group .input-group-text {
+    border: 1px solid #cbd5e1;
+    border-radius: 10px 0 0 10px;
+    background-color: #ffffff;
+    font-size: 0.9rem;
+    color: #64748b;
+  }
+
+  .filter-input-group .form-control,
+  .filter-input-group .form-select {
+    border: 1px solid #cbd5e1;
+    border-radius: 0 10px 10px 0;
+    font-size: 0.86rem;
+    color: #1e293b;
+    font-weight: 500;
+    height: 42px;
+  }
+
+  .filter-input-group .form-control:focus,
+  .filter-input-group .form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    background-color: #ffffff;
+  }
+
+  .filter-input-group:focus-within .input-group-text {
+    border-color: #6366f1;
+  }
+
+  .filter-input-group .form-control::placeholder {
+    color: #94a3b8;
+    font-size: 0.84rem;
+    font-weight: 400;
+  }
+
+  /* Custom Filter Dropdown Toggle Button - Eliminates White-on-White Text Bug */
+  .filter-dropdown-btn {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+    font-size: 0.86rem !important;
+    font-weight: 500 !important;
+    height: 42px;
+    padding: 0.45rem 0.85rem !important;
+    border-radius: 10px !important;
+    transition: all 0.15s ease-in-out !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    cursor: pointer;
+    text-decoration: none !important;
+  }
+
+  .filter-dropdown-btn:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+  }
+
+  .filter-dropdown-btn:focus,
+  .filter-dropdown-btn:active,
+  .filter-dropdown-btn.show,
+  .show > .filter-dropdown-btn.dropdown-toggle {
+    background-color: #ffffff !important;
+    border-color: #6366f1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+  }
+
+  .filter-dropdown-btn .dropdown-label {
+    color: #1e293b !important;
+    font-weight: 500;
+  }
+
+  .filter-dropdown-btn:hover .dropdown-label,
+  .filter-dropdown-btn.show .dropdown-label {
+    color: #0f172a !important;
+  }
+
+  .filter-dropdown-btn.filter-active-indigo {
+    border-color: #6366f1 !important;
+    background-color: #eef2ff !important;
+    color: #4338ca !important;
+  }
+
+  .filter-dropdown-btn.filter-active-indigo .dropdown-label {
+    color: #4338ca !important;
+    font-weight: 600 !important;
+  }
+
+  .filter-dropdown-btn::after {
+    margin-left: 0.5rem;
+    color: #64748b !important;
+    border-top-color: #64748b !important;
+    vertical-align: middle;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  .filter-dropdown-btn.show::after {
+    transform: rotate(180deg);
+  }
+
+  .filter-select {
+    cursor: pointer;
+  }
+
+  .filter-select.filter-active-indigo {
+    border-color: #6366f1 !important;
+    background-color: #eef2ff !important;
+    color: #4338ca !important;
+    font-weight: 600 !important;
+  }
+
+  /* Filter Action Buttons */
+  .btn-filter-reset {
+    height: 42px;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    font-size: 0.86rem;
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
+  }
+
+  .btn-filter-reset:hover {
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
+  }
+
+  .btn-filter-apply-indigo {
+    height: 42px;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border: 1px solid #4f46e5;
+    color: #ffffff;
+    font-size: 0.86rem;
+    font-weight: 600;
+    transition: all 0.15s ease-in-out;
+  }
+
+  .btn-filter-apply-indigo:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    border-color: #4338ca;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.25);
+  }
+
+  @media (max-width: 576px) {
+    .multiselect-dropdown .dropdown-menu {
+      min-width: 100% !important;
+      max-width: 100% !important;
+    }
+  }
+
+  /* Executive Page Header Styles */
+  .page-header-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  }
+  .header-icon-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .header-icon-box.detailed-theme {
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    color: #4f46e5;
+    border: 1px solid #c7d2fe;
+  }
+  .header-icon-box.matrix-theme {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    color: #0284c7;
+    border: 1px solid #bae6fd;
+  }
+</style>
+
+<script>
+  let pollInterval = null;
+
+  function filterDropdownList(input) {
+    const term = input.value.toLowerCase().trim();
+    const dropdownMenu = input.closest('.dropdown-menu');
+    const items = dropdownMenu.querySelectorAll('.multiselect-item');
+    items.forEach(item => {
+      const text = item.textContent.toLowerCase();
+      item.style.display = text.includes(term) ? 'block' : 'none';
+    });
+  }
+
+  function selectAllDropdownCheckboxes(btn, selectAll, labelId, prefix) {
+    const dropdownMenu = btn.closest('.dropdown-menu');
+    const checkboxes = dropdownMenu.querySelectorAll('.multiselect-options-list input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+      if (cb.closest('.multiselect-item').style.display !== 'none') {
+        cb.checked = selectAll;
+      }
+    });
+    const fallbackName = prefix === 'Assignments' ? 'assignment_ids[]' : (prefix === 'Sections' ? 'section_ids[]' : 'participant_ids[]');
+    const inputName = checkboxes[0]?.name || fallbackName;
+    updateDropdownCounter(labelId, prefix, inputName);
+  }
+
+  function updateDropdownCounter(labelId, prefix, inputName) {
+    if (!inputName) return;
+    const checkedBoxes = document.querySelectorAll(`input[name="${inputName}"]:checked`);
+    const allBoxes = document.querySelectorAll(`input[name="${inputName}"]`);
+    const labelEl = document.getElementById(labelId);
+    if (!labelEl) return;
+
+    const btn = labelEl.closest('.filter-dropdown-btn');
+
+    if (checkedBoxes.length === 0 || checkedBoxes.length === allBoxes.length) {
+      labelEl.innerText = `${prefix} (All)`;
+      if (btn) btn.classList.remove('filter-active-indigo');
+    } else {
+      labelEl.innerText = `${prefix} (${checkedBoxes.length})`;
+      if (btn) btn.classList.add('filter-active-indigo');
+    }
+  }
+
+  function updateStatusCounter() {
+    const checked = document.querySelectorAll('input[name="submission_statuses[]"]:checked');
+    const labelEl = document.getElementById('statusLabel');
+    if (!labelEl) return;
+
+    const btn = labelEl.closest('.filter-dropdown-btn');
+
+    if (checked.length === 0 || checked.length === 2) {
+      labelEl.innerText = 'Status (All)';
+      if (btn) btn.classList.remove('filter-active-indigo');
+    } else {
+      const val = checked[0].value === 'submitted' ? 'Submitted' : 'Pending';
+      labelEl.innerText = `Status (${val})`;
+      if (btn) btn.classList.add('filter-active-indigo');
+    }
+  }
+
+  function toggleConsolidatedCustomDates(val) {
+    const row = document.getElementById('consolidatedCustomDateRow');
+    if (!row) return;
+    if (val === 'custom') {
+      row.classList.remove('d-none');
+    } else {
+      row.classList.add('d-none');
+    }
+  }
+
+  function showAsyncModal() {
+    const modalElement = document.getElementById('asyncExportModal');
+    if (!modalElement) return;
+    if (window.bootstrap && window.bootstrap.Modal) {
+      try {
+        const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+        modal.show();
+        return;
+      } catch (e) { console.warn('Bootstrap modal fallback', e); }
+    }
+    modalElement.classList.add('show');
+    modalElement.style.display = 'block';
+    document.body.classList.add('modal-open');
+    let backdrop = document.getElementById('customModalBackdrop');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.id = 'customModalBackdrop';
+      backdrop.className = 'modal-backdrop fade show';
+      document.body.appendChild(backdrop);
+    }
+  }
+
+  function hideAsyncModal() {
+    const modalElement = document.getElementById('asyncExportModal');
+    if (!modalElement) return;
+    if (window.bootstrap && window.bootstrap.Modal) {
+      try {
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        if (modal) modal.hide();
+      } catch (e) { /* ignore */ }
+    }
+    modalElement.classList.remove('show');
+    modalElement.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    const backdrop = document.getElementById('customModalBackdrop');
+    if (backdrop) backdrop.remove();
+  }
+
+  function minimizeAsyncModal() {
+    hideAsyncModal();
+    const widget = document.getElementById('minimizedProgressWidget');
+    if (widget) widget.classList.remove('d-none');
+  }
+
+  function maximizeAsyncModal() {
+    dismissWidget();
+    showAsyncModal();
+  }
+
+  function dismissWidget() {
+    const widget = document.getElementById('minimizedProgressWidget');
+    if (widget) widget.classList.add('d-none');
+  }
+
+  let exportPollTimer = null;
+  let isExportRunning = false;
+  let exportDownloaded = false;
+
+  function startAsyncExport(exportType) {
+    if (isExportRunning) {
+      console.warn("Export already in progress.");
+      showAsyncModal();
+      return;
+    }
+
+    isExportRunning = true;
+    exportDownloaded = false;
+    if (exportPollTimer) {
+      clearTimeout(exportPollTimer);
+      exportPollTimer = null;
+    }
+
+    const progressBar = document.getElementById('asyncProgressBar');
+    progressBar.style.width = '5%';
+    progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+    document.getElementById('asyncExportPercent').innerText = '5%';
+    document.getElementById('asyncExportStage').innerText = 'Preparing Export...';
+    document.getElementById('asyncExportMessage').innerText = 'Initializing report compilation...';
+    document.getElementById('asyncDownloadBtn').classList.add('d-none');
+    document.getElementById('asyncExportIcon').className = 'bi bi-cpu-fill fs-3';
+
+    const minBar = document.getElementById('minimizedProgressBar');
+    minBar.style.width = '5%';
+    minBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+    document.getElementById('minimizedPercent').innerText = '5%';
+    document.getElementById('minimizedIcon').className = 'bi bi-cpu-fill fs-5';
+
+    showAsyncModal();
+
+    const form = document.getElementById('consolidatedReportForm');
+    const formData = new FormData(form || undefined);
+    formData.delete('_method');
+    formData.append('export_type', exportType);
+
+    // Merge any active query parameters from the URL that may not be present in form
+    const urlParams = new URLSearchParams(window.location.search);
+    for (const [key, value] of urlParams.entries()) {
+      if (key !== 'page' && key !== 'format' && !formData.has(key)) {
+        formData.append(key, value);
+      }
+    }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    fetch('/institute_admin/reports/export_async', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-Token': csrfToken,
+        'Accept': 'application/json'
+      },
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.export_token) {
+        pollExportStatus(data.export_token);
+      } else {
+        isExportRunning = false;
+        document.getElementById('asyncExportStage').innerText = 'Export Failed';
+        document.getElementById('asyncExportMessage').innerText = 'Failed to start export job. Please try again.';
+        progressBar.className = 'progress-bar bg-danger';
+        minBar.className = 'progress-bar bg-danger';
+      }
+    })
+    .catch(err => {
+      console.error('Export enqueue error:', err);
+      isExportRunning = false;
+      document.getElementById('asyncExportStage').innerText = 'Export Failed';
+      document.getElementById('asyncExportMessage').innerText = 'Network error while triggering export. Please try again.';
+      progressBar.className = 'progress-bar bg-danger';
+      minBar.className = 'progress-bar bg-danger';
+    });
+  }
+
+  function pollExportStatus(exportToken) {
+    if (!isExportRunning || exportDownloaded) return;
+
+    fetch(`/institute_admin/reports/export_status?export_token=${exportToken}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!isExportRunning || exportDownloaded) return;
+
+        const percent = data.progress || 0;
+        document.getElementById('asyncProgressBar').style.width = `${percent}%`;
+        document.getElementById('asyncExportPercent').innerText = `${percent}%`;
+        document.getElementById('asyncExportMessage').innerText = data.message || 'Processing...';
+
+        document.getElementById('minimizedProgressBar').style.width = `${percent}%`;
+        document.getElementById('minimizedPercent').innerText = `${percent}%`;
+
+        if (data.status === 'processing' || data.status === 'queued') {
+          document.getElementById('asyncExportStage').innerText = 'Compiling Responses...';
+          exportPollTimer = setTimeout(() => {
+            pollExportStatus(exportToken);
+          }, 1500);
+        } else if (data.status === 'completed') {
+          exportDownloaded = true;
+          isExportRunning = false;
+          if (exportPollTimer) {
+            clearTimeout(exportPollTimer);
+            exportPollTimer = null;
+          }
+
+          document.getElementById('asyncExportStage').innerText = 'Report Ready!';
+          document.getElementById('asyncExportIcon').className = 'bi bi-check-circle-fill text-success fs-3';
+          document.getElementById('minimizedIcon').className = 'bi bi-check-circle-fill text-success fs-5';
+          
+          const downloadBtn = document.getElementById('asyncDownloadBtn');
+          downloadBtn.href = data.download_url;
+          downloadBtn.classList.remove('d-none');
+
+          triggerFileDownload(data.download_url);
+
+          setTimeout(() => {
+            hideAsyncModal();
+            dismissWidget();
+          }, 2000);
+        } else if (data.status === 'failed') {
+          isExportRunning = false;
+          if (exportPollTimer) {
+            clearTimeout(exportPollTimer);
+            exportPollTimer = null;
+          }
+          document.getElementById('asyncExportStage').innerText = 'Export Failed';
+          document.getElementById('asyncExportMessage').innerText = data.message || 'Export failed. Please check filters and try again.';
+          document.getElementById('asyncExportIcon').className = 'bi bi-exclamation-triangle-fill text-danger fs-3';
+          document.getElementById('minimizedIcon').className = 'bi bi-exclamation-triangle-fill text-danger fs-5';
+          document.getElementById('asyncProgressBar').className = 'progress-bar bg-danger';
+          document.getElementById('minimizedProgressBar').className = 'progress-bar bg-danger';
+        }
+      })
+      .catch(err => {
+        console.error('Error polling status:', err);
+        if (isExportRunning && !exportDownloaded) {
+          exportPollTimer = setTimeout(() => {
+            pollExportStatus(exportToken);
+          }, 2000);
+        }
+      });
+  }
+
+  function triggerFileDownload(downloadUrl) {
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = downloadUrl;
+    document.body.appendChild(iframe);
+    setTimeout(() => {
+      if (iframe.parentNode) {
+        iframe.parentNode.removeChild(iframe);
+      }
+    }, 15000);
+  }
+
+  document.addEventListener('turbo:before-cache', function() {
+    if (exportPollTimer) {
+      clearTimeout(exportPollTimer);
+      exportPollTimer = null;
+    }
+    isExportRunning = false;
+  });
+</script>
