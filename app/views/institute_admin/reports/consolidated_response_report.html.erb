@@ -942,7 +942,24 @@
     if (widget) widget.classList.add('d-none');
   }
 
+  let exportPollTimer = null;
+  let isExportRunning = false;
+  let exportDownloaded = false;
+
   function startAsyncExport(exportType) {
+    if (isExportRunning) {
+      console.warn("Export already in progress.");
+      showAsyncModal();
+      return;
+    }
+
+    isExportRunning = true;
+    exportDownloaded = false;
+    if (exportPollTimer) {
+      clearTimeout(exportPollTimer);
+      exportPollTimer = null;
+    }
+
     const progressBar = document.getElementById('asyncProgressBar');
     progressBar.style.width = '5%';
     progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
@@ -988,6 +1005,7 @@
       if (data.export_token) {
         pollExportStatus(data.export_token);
       } else {
+        isExportRunning = false;
         document.getElementById('asyncExportStage').innerText = 'Export Failed';
         document.getElementById('asyncExportMessage').innerText = 'Failed to start export job. Please try again.';
         progressBar.className = 'progress-bar bg-danger';
@@ -996,6 +1014,7 @@
     })
     .catch(err => {
       console.error('Export enqueue error:', err);
+      isExportRunning = false;
       document.getElementById('asyncExportStage').innerText = 'Export Failed';
       document.getElementById('asyncExportMessage').innerText = 'Network error while triggering export. Please try again.';
       progressBar.className = 'progress-bar bg-danger';
@@ -1004,56 +1023,89 @@
   }
 
   function pollExportStatus(exportToken) {
-    if (pollInterval) clearInterval(pollInterval);
+    if (!isExportRunning || exportDownloaded) return;
 
-    pollInterval = setInterval(() => {
-      fetch(`/institute_admin/reports/export_status?export_token=${exportToken}`)
-        .then(res => res.json())
-        .then(data => {
-          const percent = data.progress || 0;
-          document.getElementById('asyncProgressBar').style.width = `${percent}%`;
-          document.getElementById('asyncExportPercent').innerText = `${percent}%`;
-          document.getElementById('asyncExportMessage').innerText = data.message || 'Processing...';
+    fetch(`/institute_admin/reports/export_status?export_token=${exportToken}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!isExportRunning || exportDownloaded) return;
 
-          document.getElementById('minimizedProgressBar').style.width = `${percent}%`;
-          document.getElementById('minimizedPercent').innerText = `${percent}%`;
+        const percent = data.progress || 0;
+        document.getElementById('asyncProgressBar').style.width = `${percent}%`;
+        document.getElementById('asyncExportPercent').innerText = `${percent}%`;
+        document.getElementById('asyncExportMessage').innerText = data.message || 'Processing...';
 
-          if (data.status === 'processing') {
-            document.getElementById('asyncExportStage').innerText = 'Compiling Responses...';
-          } else if (data.status === 'completed') {
-            clearInterval(pollInterval);
-            document.getElementById('asyncExportStage').innerText = 'Report Ready!';
-            document.getElementById('asyncExportIcon').className = 'bi bi-check-circle-fill text-success fs-3';
-            document.getElementById('minimizedIcon').className = 'bi bi-check-circle-fill text-success fs-5';
-            
-            const downloadBtn = document.getElementById('asyncDownloadBtn');
-            downloadBtn.href = data.download_url;
-            downloadBtn.classList.remove('d-none');
+        document.getElementById('minimizedProgressBar').style.width = `${percent}%`;
+        document.getElementById('minimizedPercent').innerText = `${percent}%`;
 
-            // Trigger direct download without Turbo Drive interception
-            const dlLink = document.createElement('a');
-            dlLink.href = data.download_url;
-            dlLink.setAttribute('download', '');
-            dlLink.setAttribute('data-turbo', 'false');
-            document.body.appendChild(dlLink);
-            dlLink.click();
-            document.body.removeChild(dlLink);
-
-            setTimeout(() => {
-              hideAsyncModal();
-              dismissWidget();
-            }, 1500);
-          } else if (data.status === 'failed') {
-            clearInterval(pollInterval);
-            document.getElementById('asyncExportStage').innerText = 'Export Failed';
-            document.getElementById('asyncExportMessage').innerText = data.message || 'Export failed. Please check filters and try again.';
-            document.getElementById('asyncExportIcon').className = 'bi bi-exclamation-triangle-fill text-danger fs-3';
-            document.getElementById('minimizedIcon').className = 'bi bi-exclamation-triangle-fill text-danger fs-5';
-            document.getElementById('asyncProgressBar').className = 'progress-bar bg-danger';
-            document.getElementById('minimizedProgressBar').className = 'progress-bar bg-danger';
+        if (data.status === 'processing' || data.status === 'queued') {
+          document.getElementById('asyncExportStage').innerText = 'Compiling Responses...';
+          exportPollTimer = setTimeout(() => {
+            pollExportStatus(exportToken);
+          }, 1500);
+        } else if (data.status === 'completed') {
+          exportDownloaded = true;
+          isExportRunning = false;
+          if (exportPollTimer) {
+            clearTimeout(exportPollTimer);
+            exportPollTimer = null;
           }
-        })
-        .catch(err => console.error('Error polling status:', err));
-    }, 600);
+
+          document.getElementById('asyncExportStage').innerText = 'Report Ready!';
+          document.getElementById('asyncExportIcon').className = 'bi bi-check-circle-fill text-success fs-3';
+          document.getElementById('minimizedIcon').className = 'bi bi-check-circle-fill text-success fs-5';
+          
+          const downloadBtn = document.getElementById('asyncDownloadBtn');
+          downloadBtn.href = data.download_url;
+          downloadBtn.classList.remove('d-none');
+
+          triggerFileDownload(data.download_url);
+
+          setTimeout(() => {
+            hideAsyncModal();
+            dismissWidget();
+          }, 2000);
+        } else if (data.status === 'failed') {
+          isExportRunning = false;
+          if (exportPollTimer) {
+            clearTimeout(exportPollTimer);
+            exportPollTimer = null;
+          }
+          document.getElementById('asyncExportStage').innerText = 'Export Failed';
+          document.getElementById('asyncExportMessage').innerText = data.message || 'Export failed. Please check filters and try again.';
+          document.getElementById('asyncExportIcon').className = 'bi bi-exclamation-triangle-fill text-danger fs-3';
+          document.getElementById('minimizedIcon').className = 'bi bi-exclamation-triangle-fill text-danger fs-5';
+          document.getElementById('asyncProgressBar').className = 'progress-bar bg-danger';
+          document.getElementById('minimizedProgressBar').className = 'progress-bar bg-danger';
+        }
+      })
+      .catch(err => {
+        console.error('Error polling status:', err);
+        if (isExportRunning && !exportDownloaded) {
+          exportPollTimer = setTimeout(() => {
+            pollExportStatus(exportToken);
+          }, 2000);
+        }
+      });
   }
+
+  function triggerFileDownload(downloadUrl) {
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = downloadUrl;
+    document.body.appendChild(iframe);
+    setTimeout(() => {
+      if (iframe.parentNode) {
+        iframe.parentNode.removeChild(iframe);
+      }
+    }, 15000);
+  }
+
+  document.addEventListener('turbo:before-cache', function() {
+    if (exportPollTimer) {
+      clearTimeout(exportPollTimer);
+      exportPollTimer = null;
+    }
+    isExportRunning = false;
+  });
 </script>

@@ -81,7 +81,29 @@ class ReportExportJob < ApplicationJob
 
     # Stage 4: Finalizing & Packaging (92%)
     update_progress(export_token, "processing", 92, "Finalizing download package...")
-    Rails.cache.write("export_file_#{export_token}", { data: file_data, content_type: content_type, filename: filename }, expires_in: 30.minutes)
+
+    export_dir = Rails.root.join("tmp", "exports")
+    FileUtils.mkdir_p(export_dir)
+
+    # Periodic cleanup of exports older than 2 hours
+    begin
+      Dir.glob(export_dir.join("*")).each do |old_file|
+        File.delete(old_file) if File.file?(old_file) && File.mtime(old_file) < 2.hours.ago
+      end
+    rescue StandardError => cleanup_err
+      Rails.logger.warn("Export cleanup error: #{cleanup_err.message}")
+    end
+
+    filepath = export_dir.join("#{export_token}_#{filename}")
+    File.binwrite(filepath, file_data)
+
+    file_info = {
+      filepath: filepath.to_s,
+      data: (file_data.bytesize < 5.megabytes ? file_data : nil),
+      content_type: content_type,
+      filename: filename
+    }
+    Rails.cache.write("export_file_#{export_token}", file_info, expires_in: 2.hours)
 
     # Stage 5: Completed (100%)
     update_progress(export_token, "completed", 100, "Export ready for download!")
@@ -93,6 +115,6 @@ class ReportExportJob < ApplicationJob
   private
 
   def update_progress(token, status, progress, message)
-    Rails.cache.write("export_progress_#{token}", { status: status, progress: progress, message: message }, expires_in: 30.minutes)
+    Rails.cache.write("export_progress_#{token}", { status: status, progress: progress, message: message }, expires_in: 2.hours)
   end
 end

@@ -524,7 +524,22 @@ module InstituteAdmin
 
     def export_status
       export_token = params[:export_token]
-      progress_info = Rails.cache.read("export_progress_#{export_token}") || { status: "queued", progress: 5, message: "Preparing job..." }
+      if export_token.blank?
+        render json: { status: "failed", progress: 0, message: "Invalid export token." }, status: :bad_request
+        return
+      end
+
+      progress_info = Rails.cache.read("export_progress_#{export_token}")
+
+      # If progress info is missing from cache, check if file exists on disk
+      if progress_info.nil?
+        export_dir = Rails.root.join("tmp", "exports")
+        if Dir.glob(export_dir.join("#{export_token}_*")).any?
+          progress_info = { status: "completed", progress: 100, message: "Export ready for download!" }
+        else
+          progress_info = { status: "queued", progress: 5, message: "Preparing job..." }
+        end
+      end
 
       if progress_info[:status] == "completed"
         progress_info[:download_url] = download_export_institute_admin_reports_path(export_token: export_token)
@@ -535,16 +550,51 @@ module InstituteAdmin
 
     def download_export
       export_token = params[:export_token]
+      if export_token.blank?
+        respond_to do |format|
+          format.html { redirect_back fallback_location: institute_admin_reports_path, alert: "Invalid export token." }
+          format.all { render plain: "Invalid export token.", status: :bad_request }
+        end
+        return
+      end
+
       file_info = Rails.cache.read("export_file_#{export_token}")
 
       if file_info.present?
-        response.headers["Content-Length"] = file_info[:data].bytesize.to_s
-        send_data file_info[:data],
-                  filename: file_info[:filename],
-                  type: file_info[:content_type],
-                  disposition: "attachment"
+        if file_info[:filepath].present? && File.exist?(file_info[:filepath])
+          send_file file_info[:filepath],
+                    filename: file_info[:filename],
+                    type: file_info[:content_type],
+                    disposition: "attachment"
+        elsif file_info[:data].present?
+          send_data file_info[:data],
+                    filename: file_info[:filename],
+                    type: file_info[:content_type],
+                    disposition: "attachment"
+        else
+          respond_to do |format|
+            format.html { redirect_back fallback_location: institute_admin_reports_path, alert: "Export file expired or not found. Please regenerate." }
+            format.all { render plain: "Export file expired or not found.", status: :not_found }
+          end
+        end
       else
-        redirect_back fallback_location: institute_admin_reports_path, alert: "Export file expired or not found."
+        # Fallback check on filesystem directly in case cache was flushed or memory store differed
+        export_dir = Rails.root.join("tmp", "exports")
+        matching_files = Dir.glob(export_dir.join("#{export_token}_*"))
+        if matching_files.any? && File.exist?(matching_files.first)
+          matched_path = matching_files.first
+          filename = File.basename(matched_path).sub(/^#{Regexp.escape(export_token)}_/, "")
+          content_type = filename.ends_with?(".pdf") ? "application/pdf" : (filename.ends_with?(".csv") ? "text/csv" : "application/vnd.ms-excel")
+          send_file matched_path,
+                    filename: filename,
+                    type: content_type,
+                    disposition: "attachment"
+        else
+          respond_to do |format|
+            format.html { redirect_back fallback_location: institute_admin_reports_path, alert: "Export file expired or not found. Please regenerate." }
+            format.all { render plain: "Export file expired or not found.", status: :not_found }
+          end
+        end
       end
     end
 
