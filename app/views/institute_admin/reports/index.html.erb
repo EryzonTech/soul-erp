@@ -176,7 +176,7 @@
           <h4>Consolidated Responses</h4>
           <p>Multi-assignment response matrices, question breakdown, and Excel export pipeline.</p>
         </div>
-        <%= link_to consolidated_response_report_institute_admin_reports_path, class: "btn-report-action btn-indigo" do %>
+        <%= link_to consolidated_matrix_report_institute_admin_reports_path(date_range: :today), class: "btn-report-action btn-indigo" do %>
           <span>Open Consolidated Report</span>
           <i class="bi bi-arrow-right fs-6"></i>
         <% end %>

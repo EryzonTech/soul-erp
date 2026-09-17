@@ -29,11 +29,32 @@ module InstituteAdmin
     end
 
     def consolidated_response_report
+      # Matrix view is default for Consolidated Report unless detailed view or download/scroll is explicitly requested
+      if request.format.html? && params[:view] != "detailed" && !request.xhr? && params[:scroll].blank?
+        redirect_to consolidated_matrix_report_institute_admin_reports_path(request.query_parameters)
+        return
+      end
+
       set_consolidated_report_filters
 
       respond_to do |format|
         format.html do
           fetch_consolidated_response_reports_paginated
+          if (params[:scroll].present? || request.xhr?) && params[:page].to_i > 1
+            render partial: "consolidated_response_rows",
+                   locals: { rows: @paginated_rows, start_index: @pagy ? @pagy.from : 1 }
+          end
+        end
+        format.json do
+          fetch_consolidated_response_reports_paginated
+          page_num = [ (params[:page] || 1).to_i, 1 ].max
+          render json: {
+            html: render_to_string(partial: "consolidated_response_rows", formats: [ :html ], locals: { rows: @paginated_rows, start_index: @pagy ? @pagy.from : 1 }),
+            page: page_num,
+            has_more: @pagy ? (page_num < @pagy.pages) : false,
+            loaded_count: [ (@pagy ? @pagy.offset : 0) + @paginated_rows.size, @total_report_count ].min,
+            total_count: @total_report_count
+          }
         end
         format.xls do
           fetch_consolidated_response_reports
@@ -58,6 +79,21 @@ module InstituteAdmin
       respond_to do |format|
         format.html do
           fetch_consolidated_matrix_reports_paginated
+          if (params[:scroll].present? || request.xhr?) && params[:page].to_i > 1
+            render partial: "consolidated_matrix_rows",
+                   locals: { rows: @paginated_matrix_rows, start_index: @pagy ? @pagy.from : 1, matrix_questions: @matrix_questions }
+          end
+        end
+        format.json do
+          fetch_consolidated_matrix_reports_paginated
+          page_num = [ (params[:page] || 1).to_i, 1 ].max
+          render json: {
+            html: render_to_string(partial: "consolidated_matrix_rows", formats: [ :html ], locals: { rows: @paginated_matrix_rows, start_index: @pagy ? @pagy.from : 1, matrix_questions: @matrix_questions }),
+            page: page_num,
+            has_more: @pagy ? (page_num < @pagy.pages) : false,
+            loaded_count: [ (@pagy ? @pagy.offset : 0) + @paginated_matrix_rows.size, @total_matrix_count ].min,
+            total_count: @total_matrix_count
+          }
         end
         format.xls do
           fetch_consolidated_matrix_reports
@@ -1517,22 +1553,44 @@ module InstituteAdmin
     def set_consolidated_report_filters
       @available_assignments = current_institute.assignments.active.order(start_date: :desc, title: :asc)
       @available_sections = current_institute.sections.active.order(:name)
+      @available_participant_types = Participant.participant_types.keys
 
       @selected_assignment_ids = parse_multiselect_param(params[:assignment_ids])
       @selected_section_ids = parse_multiselect_param(params[:section_ids])
+      @selected_participant_types = parse_multiselect_param(params[:participant_types])
 
       participants_scope = current_institute.participants.includes(:user, :section)
       if @selected_section_ids.present?
         participants_scope = participants_scope.where(section_id: @selected_section_ids)
       end
+      if @selected_participant_types.present?
+        participants_scope = participants_scope.where(participant_type: @selected_participant_types)
+      end
       @available_participants = participants_scope.joins(:user).order("users.first_name ASC, users.last_name ASC")
       @selected_participant_ids = parse_multiselect_param(params[:participant_ids])
+
+      target_asg_ids = @selected_assignment_ids.presence || @available_assignments.pluck(:id)
+      aq_ids = AssignmentQuestion.where(assignment_id: target_asg_ids).pluck(:question_id)
+      aqs_ids = AssignmentQuestionSet.where(assignment_id: target_asg_ids)
+                                     .joins(question_set: :question_set_items)
+                                     .pluck("question_set_items.question_id")
+      all_q_ids = (aq_ids + aqs_ids).uniq
+      @available_questions = current_institute.questions.where(id: all_q_ids).order(:title)
+      if @available_questions.empty?
+        @available_questions = current_institute.questions.active.order(:title)
+      end
+      @selected_question_ids = parse_multiselect_param(params[:question_ids])
 
       @selected_statuses = parse_multiselect_param(params[:submission_statuses])
       @selected_statuses = [ "submitted", "pending" ] if @selected_statuses.blank?
 
-      @date_range = params[:date_range].presence || "all_time"
+      @date_range = params[:date_range].presence || "today"
       set_consolidated_date_range_window(@date_range)
+      @today_active_question_ids = AssignmentResponse.joins(:participant)
+                                                     .where(participants: { institute_id: current_institute.id })
+                                                     .where(response_date: Date.current.all_day)
+                                                     .distinct
+                                                     .pluck(:question_id)
     end
 
     def safe_parse_date(val, fallback = Date.current)
@@ -1599,10 +1657,18 @@ module InstituteAdmin
         base_query = base_query.where(participant_id: @selected_participant_ids)
       end
 
+      if @selected_participant_types.present?
+        base_query = base_query.where(participants: { participant_type: @selected_participant_types })
+      end
+
+      if @selected_question_ids.present?
+        base_query = base_query.where(question_id: @selected_question_ids)
+      end
+
       if @start_date.present? && @end_date.present?
         s_d = [@start_date, @end_date].min
         e_d = [@start_date, @end_date].max
-        base_query = base_query.where(response_date: s_d..e_d)
+        base_query = base_query.where(response_date: s_d.beginning_of_day..e_d.end_of_day)
       end
 
       if params[:search].present?
@@ -1634,6 +1700,10 @@ module InstituteAdmin
                             else
                               current_institute.participants.includes(:user, :section)
                             end
+
+      if @selected_participant_types.present?
+        target_participants = target_participants.where(participant_type: @selected_participant_types)
+      end
 
       submitted_pairs = Set.new(base_query.distinct.pluck(:participant_id, :assignment_id))
 
@@ -1685,6 +1755,7 @@ module InstituteAdmin
             participant_id: p.id,
             participant_name: p_name.presence || "N/A",
             participant_email: p_email.presence || "N/A",
+            participant_type: p.participant_type,
             section_name: p_sec,
             assignment_id: asg.id,
             assignment_title: asg_title.presence || "Assignment",
@@ -1733,7 +1804,7 @@ module InstituteAdmin
 
       @total_report_count = submitted_count + pending_count
       page_num = [ (params[:page] || 1).to_i, 1 ].max
-      items_per_page = 20
+      items_per_page = 25
 
       @pagy = Pagy.new(count: @total_report_count, page: page_num, items: items_per_page)
       page_offset = @pagy.offset
@@ -1763,12 +1834,29 @@ module InstituteAdmin
     end
 
     def calculate_consolidated_kpis(base_query, pending_rows)
-      @total_filtered_assignments = @selected_assignment_ids.present? ? @selected_assignment_ids.size : @available_assignments.count
-      @filtered_participants_count = @selected_participant_ids.present? ? @selected_participant_ids.size : @available_participants.count
+      submitted_participant_ids = base_query.distinct.pluck(:participant_id)
+      pending_participant_ids = pending_rows.map { |r| r[:participant_id] }.compact.uniq
+      all_filtered_participant_ids = (submitted_participant_ids + pending_participant_ids).uniq
+
+      @filtered_participants_count = all_filtered_participant_ids.size
+
+      if all_filtered_participant_ids.present?
+        @participant_type_distribution = current_institute.participants
+                                                          .where(id: all_filtered_participant_ids)
+                                                          .group(:participant_type)
+                                                          .count
+      else
+        @participant_type_distribution = {}
+      end
+
+      submitted_asg_ids = base_query.distinct.pluck(:assignment_id)
+      pending_asg_ids = pending_rows.map { |r| r[:assignment_id] }.compact.uniq
+      all_filtered_asg_ids = (submitted_asg_ids + pending_asg_ids).uniq
+      @total_filtered_assignments = all_filtered_asg_ids.size
+
       @total_submitted_responses = base_query.count
       @total_pending_count = pending_rows.size
 
-      submitted_participant_ids = base_query.distinct.pluck(:participant_id)
       @submitted_participants_count = submitted_participant_ids.size
 
       total_assigned_slots = @submitted_participants_count + @total_pending_count
@@ -1794,6 +1882,7 @@ module InstituteAdmin
         participant_id: resp.participant_id,
         participant_name: resp.participant&.full_name || "N/A",
         participant_email: resp.participant&.email || "N/A",
+        participant_type: resp.participant&.participant_type,
         section_name: resp.participant&.section&.name || "N/A",
         assignment_id: resp.assignment_id,
         assignment_title: resp.assignment&.title || "Assignment",
@@ -1854,7 +1943,7 @@ module InstituteAdmin
       xml << %{   <Column ss:Width="90"/>\n}
       xml << %{   <Column ss:Width="120"/>\n}
 
-      headers = [ "#", "Response Date", "Participant Name", "Email", "Section", "Assignment Title", "Question", "Question Type", "Answer / Response", "Status", "Submitted At" ]
+      headers = [ "#", "Response Date", "Participant Name", "Participant Type", "Email", "Section", "Assignment Title", "Question", "Question Type", "Answer / Response", "Status", "Submitted At" ]
       xml << %{   <Row ss:Height="26" ss:StyleID="Header">\n}
       headers.each do |h|
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(h)}</Data></Cell>\n}
@@ -1870,6 +1959,7 @@ module InstituteAdmin
         xml << %{    <Cell><Data ss:Type="Number">#{idx + 1}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(date_str)}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:participant_name].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:participant_type].to_s.titleize)}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:participant_email].to_s)}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:section_name].to_s)}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:assignment_title].to_s)}</Data></Cell>\n}
@@ -1934,13 +2024,14 @@ module InstituteAdmin
       rows = @report_rows || []
 
       CSV.generate(headers: true) do |csv|
-        csv << [ "#", "Response Date", "Participant Name", "Email", "Section", "Assignment Title", "Question", "Question Type", "Answer / Response", "Status", "Submitted At" ]
+        csv << [ "#", "Response Date", "Participant Name", "Participant Type", "Email", "Section", "Assignment Title", "Question", "Question Type", "Answer / Response", "Status", "Submitted At" ]
 
         rows.each_with_index do |row, index|
           csv << [
             index + 1,
             row[:date].present? ? row[:date].strftime("%Y-%m-%d") : "-",
             row[:participant_name],
+            row[:participant_type].to_s.titleize,
             row[:participant_email],
             row[:section_name],
             row[:assignment_title],
@@ -1957,18 +2048,45 @@ module InstituteAdmin
     def set_consolidated_matrix_filters
       @available_assignments = current_institute.assignments.active.order(:title)
       @available_sections = current_institute.sections.active.order(:name)
-      @available_participants = current_institute.participants.includes(:user, :section).joins(:user).order("users.first_name ASC, users.last_name ASC")
+      @available_participant_types = Participant.participant_types.keys
 
       @selected_assignment_ids = parse_multiselect_param(params[:assignment_ids])
       @selected_section_ids = parse_multiselect_param(params[:section_ids])
+      @selected_participant_types = parse_multiselect_param(params[:participant_types])
+
+      participants_scope = current_institute.participants.includes(:user, :section)
+      if @selected_section_ids.present?
+        participants_scope = participants_scope.where(section_id: @selected_section_ids)
+      end
+      if @selected_participant_types.present?
+        participants_scope = participants_scope.where(participant_type: @selected_participant_types)
+      end
+      @available_participants = participants_scope.joins(:user).order("users.first_name ASC, users.last_name ASC")
       @selected_participant_ids = parse_multiselect_param(params[:participant_ids])
+
+      target_asg_ids = @selected_assignment_ids.presence || @available_assignments.pluck(:id)
+      aq_ids = AssignmentQuestion.where(assignment_id: target_asg_ids).pluck(:question_id)
+      aqs_ids = AssignmentQuestionSet.where(assignment_id: target_asg_ids)
+                                     .joins(question_set: :question_set_items)
+                                     .pluck("question_set_items.question_id")
+      all_q_ids = (aq_ids + aqs_ids).uniq
+      @available_questions = current_institute.questions.where(id: all_q_ids).order(:title)
+      if @available_questions.empty?
+        @available_questions = current_institute.questions.active.order(:title)
+      end
+      @selected_question_ids = parse_multiselect_param(params[:question_ids])
 
       @selected_statuses = parse_multiselect_param(params[:submission_statuses])
       @selected_statuses = [ "submitted", "pending" ] if @selected_statuses.empty?
 
-      @date_range = params[:date_range].presence || "all_time"
+      @date_range = params[:date_range].presence || "today"
       set_consolidated_date_range_window(@date_range)
       @search = params[:search].to_s.strip
+      @today_active_question_ids = AssignmentResponse.joins(:participant)
+                                                     .where(participants: { institute_id: current_institute.id })
+                                                     .where(response_date: Date.current.all_day)
+                                                     .distinct
+                                                     .pluck(:question_id)
 
       resolve_matrix_questions
     end
@@ -2027,6 +2145,12 @@ module InstituteAdmin
         q_data[:assignments_text] = q_data[:assignment_titles].to_a.compact.join(", ")
       end
 
+      # Filter matrix questions if specific questions are selected
+      if @selected_question_ids.present?
+        sel_q_set = Set.new(@selected_question_ids.map(&:to_i))
+        questions_map.select! { |q_id, _| sel_q_set.include?(q_id) }
+      end
+
       @matrix_questions = questions_map.values.sort_by { |q| [ q[:order], q[:id] ] }
     end
 
@@ -2050,6 +2174,10 @@ module InstituteAdmin
         base_query = base_query.where(participant_id: @selected_participant_ids)
       end
 
+      if @selected_participant_types.present?
+        base_query = base_query.where(participants: { participant_type: @selected_participant_types })
+      end
+
       if @start_date.present? && @end_date.present?
         s_d = [@start_date, @end_date].min
         e_d = [@start_date, @end_date].max
@@ -2058,10 +2186,28 @@ module InstituteAdmin
 
       if params[:search].present?
         q_str = "%#{params[:search].strip.downcase}%"
-        base_query = base_query.where(
-          "LOWER(users.first_name) LIKE :q OR LOWER(users.last_name) LIKE :q OR LOWER(users.email) LIKE :q OR LOWER(sections.name) LIKE :q OR LOWER(assignments.title) LIKE :q",
-          q: q_str
-        )
+        # Match user details, section, assignment title, or questions assigned
+        matched_asg_ids = AssignmentQuestion.joins(:question)
+                                            .where(questions: { institute_id: current_institute.id })
+                                            .where("LOWER(questions.title) LIKE :q", q: q_str)
+                                            .pluck(:assignment_id)
+        matched_asg_ids += AssignmentQuestionSet.joins(question_set: { question_set_items: :question })
+                                                .where("LOWER(questions.title) LIKE :q", q: q_str)
+                                                .pluck(:assignment_id)
+        matched_asg_ids.uniq!
+
+        if matched_asg_ids.present?
+          base_query = base_query.where(
+            "LOWER(users.first_name) LIKE :q OR LOWER(users.last_name) LIKE :q OR LOWER(users.email) LIKE :q OR LOWER(sections.name) LIKE :q OR LOWER(assignments.title) LIKE :q OR assignments.id IN (:asg_ids)",
+            q: q_str,
+            asg_ids: matched_asg_ids
+          )
+        else
+          base_query = base_query.where(
+            "LOWER(users.first_name) LIKE :q OR LOWER(users.last_name) LIKE :q OR LOWER(users.email) LIKE :q OR LOWER(sections.name) LIKE :q OR LOWER(assignments.title) LIKE :q",
+            q: q_str
+          )
+        end
       end
 
       base_query
@@ -2085,6 +2231,10 @@ module InstituteAdmin
                             else
                               current_institute.participants.includes(:user, :section)
                             end
+
+      if @selected_participant_types.present?
+        target_participants = target_participants.where(participant_type: @selected_participant_types)
+      end
 
       submitted_pairs = Set.new(base_query.distinct.pluck(:participant_id, :assignment_id))
 
@@ -2136,6 +2286,7 @@ module InstituteAdmin
             participant_id: p.id,
             participant_name: p_name.presence || "N/A",
             participant_email: p_email.presence || "N/A",
+            participant_type: p.participant_type,
             section_name: p_sec,
             assignment_id: asg.id,
             assignment_title: asg_title.presence || "Assignment",
@@ -2182,7 +2333,7 @@ module InstituteAdmin
 
       @total_matrix_count = submitted_count + pending_count
       page_num = [ (params[:page] || 1).to_i, 1 ].max
-      items_per_page = 20
+      items_per_page = 25
 
       @pagy = Pagy.new(count: @total_matrix_count, page: page_num, items: items_per_page)
       page_offset = @pagy.offset
@@ -2274,6 +2425,7 @@ module InstituteAdmin
           participant_id: log.participant_id,
           participant_name: log.participant&.full_name || "N/A",
           participant_email: log.participant&.email || "N/A",
+          participant_type: log.participant&.participant_type,
           section_name: log.participant&.section&.name || "N/A",
           assignment_id: log.assignment_id,
           assignment_title: log.assignment&.title || "Assignment",
@@ -2285,15 +2437,31 @@ module InstituteAdmin
     end
 
     def calculate_matrix_kpis(base_query, pending_rows)
-      @total_filtered_assignments = @selected_assignment_ids.present? ? @selected_assignment_ids.size : @available_assignments.count
-      @filtered_participants_count = @selected_participant_ids.present? ? @selected_participant_ids.size : @available_participants.count
+      submitted_participant_ids = base_query.distinct.pluck(:participant_id)
+      pending_participant_ids = pending_rows.map { |r| r[:participant_id] }.compact.uniq
+      all_filtered_participant_ids = (submitted_participant_ids + pending_participant_ids).uniq
+
+      @filtered_participants_count = all_filtered_participant_ids.size
+
+      if all_filtered_participant_ids.present?
+        @participant_type_distribution = current_institute.participants
+                                                          .where(id: all_filtered_participant_ids)
+                                                          .group(:participant_type)
+                                                          .count
+      else
+        @participant_type_distribution = {}
+      end
+
+      submitted_asg_ids = base_query.distinct.pluck(:assignment_id)
+      pending_asg_ids = pending_rows.map { |r| r[:assignment_id] }.compact.uniq
+      all_filtered_asg_ids = (submitted_asg_ids + pending_asg_ids).uniq
+      @total_filtered_assignments = all_filtered_asg_ids.size
+
       @total_matrix_questions_count = @matrix_questions.size
       @total_submissions_count = base_query.count
       @total_pending_count = pending_rows.size
 
-      submitted_participant_ids = base_query.distinct.pluck(:participant_id)
       @submitted_participants_count = submitted_participant_ids.size
-
       total_assigned_slots = @submitted_participants_count + @total_pending_count
       @overall_completion_rate = if total_assigned_slots > 0
                                    ((@submitted_participants_count.to_f / total_assigned_slots) * 100).round(1)
@@ -2351,6 +2519,7 @@ module InstituteAdmin
       xml << %{   <Column ss:Width="40"/>\n}
       xml << %{   <Column ss:Width="90"/>\n}
       xml << %{   <Column ss:Width="160"/>\n}
+      xml << %{   <Column ss:Width="90"/>\n}
       xml << %{   <Column ss:Width="180"/>\n}
       xml << %{   <Column ss:Width="110"/>\n}
       xml << %{   <Column ss:Width="170"/>\n}
@@ -2361,7 +2530,7 @@ module InstituteAdmin
       end
 
       xml << %{   <Row ss:Height="28">\n}
-      info_headers = [ "#", "Response Date", "Participant Name", "Email", "Section", "Assignment Title", "Status", "Submitted At" ]
+      info_headers = [ "#", "Response Date", "Participant Name", "Participant Type", "Email", "Section", "Assignment Title", "Status", "Submitted At" ]
       info_headers.each do |h|
         xml << %{    <Cell ss:StyleID="Header"><Data ss:Type="String">#{CGI.escapeHTML(h)}</Data></Cell>\n}
       end
@@ -2380,6 +2549,7 @@ module InstituteAdmin
         xml << %{    <Cell><Data ss:Type="Number">#{idx + 1}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(date_str)}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:participant_name].to_s)}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:participant_type].to_s.titleize)}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:participant_email].to_s)}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:section_name].to_s)}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(row[:assignment_title].to_s)}</Data></Cell>\n}
@@ -2407,28 +2577,29 @@ module InstituteAdmin
       xml << %{ <Worksheet ss:Name="Question Summary">\n}
       xml << %{  <Table>\n}
       xml << %{   <Column ss:Width="40"/>\n}
-      xml << %{   <Column ss:Width="60"/>\n}
       xml << %{   <Column ss:Width="260"/>\n}
-      xml << %{   <Column ss:Width="130"/>\n}
-      xml << %{   <Column ss:Width="200"/>\n}
-      xml << %{   <Column ss:Width="130"/>\n}
-
-      summary_headers = [ "#", "Question #", "Question Title", "Question Type", "Assignment(s)", "Total Responses" ]
+      xml << %{   <Column ss:Width="140"/>\n}
+      xml << %{   <Column ss:Width="240"/>\n}
+      xml << %{   <Column ss:Width="120"/>\n}
       xml << %{   <Row ss:Height="26" ss:StyleID="Header">\n}
-      summary_headers.each do |h|
-        xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(h)}</Data></Cell>\n}
-      end
+      xml << %{    <Cell><Data ss:Type="String">#</Data></Cell>\n}
+      xml << %{    <Cell><Data ss:Type="String">Question Title</Data></Cell>\n}
+      xml << %{    <Cell><Data ss:Type="String">Question Type</Data></Cell>\n}
+      xml << %{    <Cell><Data ss:Type="String">Assignments Covered</Data></Cell>\n}
+      xml << %{    <Cell><Data ss:Type="String">Answers Provided</Data></Cell>\n}
       xml << %{   </Row>\n}
 
       questions.each_with_index do |q, q_idx|
-        ans_count = rows.count { |r| r[:answers]&.key?(q[:id]) }
-        xml << %{   <Row ss:Height="22" ss:StyleID="RowSubmitted">\n}
+        answered_cnt = rows.count do |r|
+          ans = (r[:answers] || {})[q[:id]]
+          ans && ans[:answer].present? && ans[:answer] != "-"
+        end
+        xml << %{   <Row ss:Height="20" ss:StyleID="RowSubmitted">\n}
         xml << %{    <Cell><Data ss:Type="Number">#{q_idx + 1}</Data></Cell>\n}
-        xml << %{    <Cell><Data ss:Type="String">Q#{q_idx + 1}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(q[:title].to_s)}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(q[:question_type].to_s.humanize)}</Data></Cell>\n}
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(q[:assignments_text].to_s)}</Data></Cell>\n}
-        xml << %{    <Cell><Data ss:Type="Number">#{ans_count}</Data></Cell>\n}
+        xml << %{    <Cell><Data ss:Type="Number">#{answered_cnt}</Data></Cell>\n}
         xml << %{   </Row>\n}
       end
 
@@ -2445,7 +2616,7 @@ module InstituteAdmin
       questions = @matrix_questions || []
 
       CSV.generate(headers: true) do |csv|
-        headers = [ "#", "Response Date", "Participant Name", "Email", "Section", "Assignment Title", "Status", "Submitted At" ]
+        headers = [ "#", "Response Date", "Participant Name", "Participant Type", "Email", "Section", "Assignment Title", "Status", "Submitted At" ]
         questions.each_with_index do |q, q_idx|
           headers << "Q#{q_idx + 1}: #{q[:title]}"
         end
@@ -2457,6 +2628,7 @@ module InstituteAdmin
             index + 1,
             row[:date].present? ? row[:date].strftime("%Y-%m-%d") : "-",
             row[:participant_name],
+            row[:participant_type].to_s.titleize,
             row[:participant_email],
             row[:section_name],
             row[:assignment_title],

@@ -12,10 +12,18 @@
             <li class="breadcrumb-item active" aria-current="page">Question Matrix Report</li>
           </ol>
         </nav>
-        <span class="badge bg-light text-muted border px-2.5 py-1 small fw-medium d-none d-sm-inline-flex align-items-center gap-1">
-          <i class="bi bi-shield-check text-success"></i>
-          <span>Institute Admin</span>
-        </span>
+        <div class="d-flex align-items-center gap-2">
+          <% if @date_range == 'today' %>
+            <span class="badge bg-primary text-white px-2.5 py-1 small fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs">
+              <i class="bi bi-clock-history"></i>
+              <span>Today's Responses Focus</span>
+            </span>
+          <% end %>
+          <span class="badge bg-light text-muted border px-2.5 py-1 small fw-medium d-none d-sm-inline-flex align-items-center gap-1">
+            <i class="bi bi-shield-check text-success"></i>
+            <span>Institute Admin</span>
+          </span>
+        </div>
       </div>
 
       <!-- Main Header Row: Icon + Title/Subtitle + Action Toolbar -->
@@ -28,8 +36,13 @@
             <div class="d-flex align-items-center gap-2 flex-wrap">
               <h3 class="fw-bold text-dark mb-0" style="letter-spacing: -0.3px;">Consolidated Question Matrix Report</h3>
               <span class="badge rounded-pill bg-info-subtle text-info border border-info-subtle px-2.5 py-1 fw-semibold" style="font-size: 0.72rem;">
-                <i class="bi bi-table me-1"></i>Pivot Matrix View
+                <i class="bi bi-table me-1"></i>Pivot Matrix View (Default)
               </span>
+              <% if @date_range == 'today' %>
+                <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 fw-semibold" style="font-size: 0.72rem;">
+                  <i class="bi bi-calendar-check me-1"></i>Today: <%= Date.current.strftime("%b %d, %Y") %>
+                </span>
+              <% end %>
             </div>
             <p class="text-secondary small mb-0 mt-1">Cross-tabular response matrix with questions as column headers and consolidated participant submissions</p>
           </div>
@@ -37,7 +50,7 @@
 
         <div class="header-actions d-flex flex-wrap align-items-center gap-2">
           <!-- Switch to Detailed Log View -->
-          <%= link_to consolidated_response_report_institute_admin_reports_path(request.query_parameters.except("format", :format)), 
+          <%= link_to consolidated_response_report_institute_admin_reports_path(request.query_parameters.merge(view: :detailed).except("format", :format)), 
                       class: "btn btn-outline-indigo d-inline-flex align-items-center gap-1.5 shadow-sm rounded-3 px-3 py-2 fw-medium", 
                       title: "Switch to Detailed Response Log View" do %>
             <i class="bi bi-list-columns-reverse text-indigo"></i>
@@ -82,40 +95,102 @@
     </div>
   </div>
 
-  <!-- KPI SUMMARY METRICS ROW -->
+  <!-- KPI SUMMARY METRICS ROW (4 Filter-Aware Dynamic Score Cards) -->
   <div class="row g-3 mb-4">
-    <div class="col-12 col-md-4">
-      <div class="inst-kpi-card">
-        <div>
-          <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Assignments</div>
-          <div class="h4 fw-bold mb-0 text-dark"><%= @total_filtered_assignments || 0 %></div>
+    <!-- Card 1: Filtered Assignments -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="report-kpi-card">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <div>
+            <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.6px;">Assignments</div>
+            <div class="h3 fw-bold mb-0 text-dark mt-1"><%= @total_filtered_assignments || 0 %></div>
+          </div>
+          <div class="report-kpi-icon icon-primary">
+            <i class="bi bi-journal-text"></i>
+          </div>
         </div>
-        <div class="inst-kpi-icon inst-kpi-icon-primary">
-          <i class="bi bi-journal-text"></i>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-md-4">
-      <div class="inst-kpi-card">
-        <div>
-          <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Participants</div>
-          <div class="h4 fw-bold mb-0 text-indigo"><%= @filtered_participants_count || 0 %></div>
-        </div>
-        <div class="inst-kpi-icon inst-kpi-icon-indigo" style="background-color: #e0e7ff; color: #4f46e5;">
-          <i class="bi bi-people-fill"></i>
+        <div class="mt-auto pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted" style="font-size: 0.75rem;">
+          <span>In current filter scope</span>
+          <span class="badge bg-light text-secondary border px-2 py-0.5 rounded-pill fw-medium">Active</span>
         </div>
       </div>
     </div>
 
-    <div class="col-12 col-md-4">
-      <div class="inst-kpi-card">
-        <div>
-          <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Questions in Matrix</div>
-          <div class="h4 fw-bold mb-0 text-primary"><%= @total_matrix_questions_count || 0 %></div>
+    <!-- Card 2: Participants with Type Distribution Breakdown -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="report-kpi-card">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <div>
+            <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.6px;">Participants</div>
+            <div class="h3 fw-bold mb-0 text-indigo mt-1"><%= @filtered_participants_count || 0 %></div>
+          </div>
+          <div class="report-kpi-icon icon-indigo">
+            <i class="bi bi-people-fill"></i>
+          </div>
         </div>
-        <div class="inst-kpi-icon inst-kpi-icon-primary" style="background-color: #e0f2fe; color: #0284c7;">
-          <i class="bi bi-question-circle-fill"></i>
+
+        <!-- Participant Type Distribution Breakdown -->
+        <%
+          dist = @participant_type_distribution || {}
+          students_cnt = dist['student'] || 0
+          guardians_cnt = dist['guardian'] || 0
+          employees_cnt = dist['employee'] || 0
+        %>
+        <div class="mt-auto pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-medium" title="Students">
+            <i class="bi bi-mortarboard me-1"></i>Stu: <%= students_cnt %>
+          </span>
+          <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-2 py-0.5 fw-medium" style="background-color: #f3e8ff; color: #7e22ce;" title="Guardians">
+            <i class="bi bi-shield-shaded me-1"></i>Gua: <%= guardians_cnt %>
+          </span>
+          <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-medium" title="Employees">
+            <i class="bi bi-briefcase me-1"></i>Emp: <%= employees_cnt %>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Questions in Matrix & Active Today -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="report-kpi-card">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <div>
+            <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.6px;">Questions in Matrix</div>
+            <div class="h3 fw-bold mb-0 text-primary mt-1"><%= @total_matrix_questions_count || 0 %></div>
+          </div>
+          <div class="report-kpi-icon icon-sky">
+            <i class="bi bi-question-circle-fill"></i>
+          </div>
+        </div>
+        <div class="mt-auto pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted" style="font-size: 0.75rem;">
+          <span>Active Today:</span>
+          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 fw-semibold">
+            <i class="bi bi-lightning-charge-fill me-0.5"></i><%= @today_active_question_ids&.size || 0 %> Questions
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Submissions & Completion Rate -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="report-kpi-card">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <div>
+            <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.6px;">Submissions</div>
+            <div class="h3 fw-bold mb-0 text-success mt-1"><%= @total_submissions_count || 0 %></div>
+          </div>
+          <div class="report-kpi-icon icon-success">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+        </div>
+        <div class="mt-auto pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted" style="font-size: 0.75rem;">
+          <span>Completion:</span>
+          <div class="d-flex align-items-center gap-1.5">
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 fw-semibold">
+              <%= @overall_completion_rate || 0.0 %>%
+            </span>
+            <span class="text-muted" style="font-size: 0.7rem;">(<%= @total_pending_count || 0 %> pend)</span>
+          </div>
         </div>
       </div>
     </div>
@@ -126,16 +201,18 @@
     active_filters_count = 0
     active_filters_count += 1 if params[:search].present?
     active_filters_count += 1 if @selected_assignment_ids.present?
+    active_filters_count += 1 if @selected_question_ids.present?
     active_filters_count += 1 if @selected_section_ids.present?
     active_filters_count += 1 if @selected_participant_ids.present?
+    active_filters_count += 1 if @selected_participant_types.present?
     active_filters_count += 1 if @selected_statuses.present? && @selected_statuses.size == 1
-    active_filters_count += 1 if @date_range.present? && @date_range != 'all_time'
+    active_filters_count += 1 if @date_range.present? && @date_range != 'today'
   %>
   <div class="filter-toolbar-card bg-white rounded-4 shadow-sm border mb-4 p-3 p-md-4">
     <%= form_tag consolidated_matrix_report_institute_admin_reports_path, method: :get, id: "consolidatedMatrixReportForm" do %>
       <!-- TOP ROW: Search Input & Action Buttons -->
       <div class="row g-2 g-md-3 align-items-center mb-3">
-        <!-- Search Keyword -->
+        <!-- Search Keyword (Searches participant, email, assignment, question) -->
         <div class="col-12 col-md-7 col-lg-8">
           <div class="input-group filter-input-group">
             <span class="input-group-text bg-white border-end-0 ps-3 pe-2">
@@ -145,9 +222,9 @@
                    name="search" 
                    id="consolidatedMatrixSearchInput" 
                    class="form-control border-start-0 ps-1 text-dark fw-medium" 
-                   placeholder="Search by participant, email, assignment..." 
+                   placeholder="Search by participant, email, assignment, question..." 
                    value="<%= params[:search] %>"
-                   aria-label="Search by participant, email, assignment..."
+                   aria-label="Search by participant, email, assignment, question..."
                    autocomplete="off">
             <% if params[:search].present? %>
               <button type="button" 
@@ -162,7 +239,7 @@
 
         <!-- Action Buttons (Reset & Apply Filters) -->
         <div class="col-12 col-md-5 col-lg-4 d-flex align-items-center justify-content-md-end gap-2">
-          <%= link_to consolidated_matrix_report_institute_admin_reports_path, class: "btn btn-filter-reset px-3 rounded-3 d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-md-grow-0", title: "Reset All Filters" do %>
+          <%= link_to consolidated_matrix_report_institute_admin_reports_path(date_range: :today), class: "btn btn-filter-reset px-3 rounded-3 d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-md-grow-0", title: "Reset All Filters to Default (Today)" do %>
             <i class="bi bi-arrow-counterclockwise"></i>
             <span>Reset</span>
             <% if active_filters_count > 0 %>
@@ -177,14 +254,15 @@
         </div>
       </div>
 
-      <!-- BOTTOM ROW: 5 Dimension Multi-Select Dropdowns -->
+      <!-- BOTTOM ROW: 7 Dimension Multi-Select Dropdowns -->
       <div class="row g-2 g-md-3 align-items-center">
-        <!-- Assignments Multi-Select Dropdown -->
-        <div class="col-12 col-sm-6 col-md-4 col-lg">
+        <!-- 1. Assignments Multi-Select Dropdown -->
+        <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="dropdown multiselect-dropdown">
             <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_assignment_ids.present? %>" 
                     type="button" 
                     data-bs-toggle="dropdown" 
+                    data-bs-display="static"
                     data-bs-auto-close="outside"
                     aria-expanded="false">
               <span class="d-inline-flex align-items-center text-truncate">
@@ -194,25 +272,25 @@
                 </span>
               </span>
             </button>
-            <div class="dropdown-menu p-2 shadow-lg rounded-3 border" style="min-width: 270px; max-height: 320px; overflow-y: auto;">
+            <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border" style="width: 320px; max-width: min(360px, calc(100vw - 2rem)); max-height: 360px; overflow-y: auto;">
               <div class="px-1 mb-2">
                 <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search assignments..." oninput="filterDropdownList(this)">
               </div>
               <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
-                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'asgLabel', 'Assignments')">Select All</button>
-                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'asgLabel', 'Assignments')">Clear</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'asgLabel', 'Assignments', 'assignment_ids[]')">Select All</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'asgLabel', 'Assignments', 'assignment_ids[]')">Clear</button>
               </div>
               <div class="multiselect-options-list">
                 <% @available_assignments.each do |asg| %>
-                  <div class="form-check dropdown-item rounded px-2 py-1 multiselect-item">
-                    <input class="form-check-input ms-0 me-2" 
+                  <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-start gap-2">
+                    <input class="form-check-input mt-1 flex-shrink-0" 
                            type="checkbox" 
                            name="assignment_ids[]" 
                            value="<%= asg.id %>" 
                            id="asg_cb_<%= asg.id %>" 
                            <%= 'checked' if @selected_assignment_ids.include?(asg.id.to_s) %>
                            onchange="updateDropdownCounter('asgLabel', 'Assignments', 'assignment_ids[]')">
-                    <label class="form-check-label text-truncate cursor-pointer small" for="asg_cb_<%= asg.id %>" title="<%= asg.title %>">
+                    <label class="form-check-label flex-grow-1 cursor-pointer small" for="asg_cb_<%= asg.id %>" title="<%= asg.title %>">
                       <%= asg.title %>
                     </label>
                   </div>
@@ -222,12 +300,60 @@
           </div>
         </div>
 
-        <!-- Sections Multi-Select Dropdown -->
-        <div class="col-12 col-sm-6 col-md-4 col-lg">
+        <!-- 2. Questions Multi-Select Dropdown [NEW] -->
+        <div class="col-12 col-sm-6 col-md-4 col-xl">
+          <div class="dropdown multiselect-dropdown">
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_question_ids.present? %>" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    data-bs-display="static"
+                    data-bs-auto-close="outside"
+                    aria-expanded="false">
+              <span class="d-inline-flex align-items-center text-truncate">
+                <i class="bi bi-question-circle me-2 text-indigo flex-shrink-0"></i>
+                <span class="dropdown-label text-truncate" id="qLabel">
+                  Questions (<%= @selected_question_ids.empty? ? 'All' : @selected_question_ids.size %>)
+                </span>
+              </span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border" style="width: 360px; max-width: min(420px, calc(100vw - 2rem)); max-height: 380px; overflow-y: auto;">
+              <div class="px-1 mb-2">
+                <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search questions..." oninput="filterDropdownList(this)">
+              </div>
+              <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'qLabel', 'Questions', 'question_ids[]')">Select All</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'qLabel', 'Questions', 'question_ids[]')">Clear</button>
+              </div>
+              <div class="multiselect-options-list">
+                <% (@available_questions || []).each do |q| %>
+                  <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-start gap-2">
+                    <input class="form-check-input mt-1 flex-shrink-0" 
+                           type="checkbox" 
+                           name="question_ids[]" 
+                           value="<%= q.id %>" 
+                           id="q_cb_<%= q.id %>" 
+                           <%= 'checked' if @selected_question_ids.include?(q.id.to_s) %>
+                           onchange="updateDropdownCounter('qLabel', 'Questions', 'question_ids[]')">
+                    <label class="form-check-label flex-grow-1 cursor-pointer small" for="q_cb_<%= q.id %>" title="<%= q.title %>">
+                      <%= q.title %>
+                      <% if @today_active_question_ids&.include?(q.id) %>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-1.5 py-0.5 ms-1" style="font-size: 0.65rem;">Today</span>
+                      <% end %>
+                    </label>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Sections Multi-Select Dropdown -->
+        <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="dropdown multiselect-dropdown">
             <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_section_ids.present? %>" 
                     type="button" 
                     data-bs-toggle="dropdown" 
+                    data-bs-display="static"
                     data-bs-auto-close="outside"
                     aria-expanded="false">
               <span class="d-inline-flex align-items-center text-truncate">
@@ -237,25 +363,25 @@
                 </span>
               </span>
             </button>
-            <div class="dropdown-menu p-2 shadow-lg rounded-3 border" style="min-width: 250px; max-height: 320px; overflow-y: auto;">
+            <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border" style="width: 280px; max-width: min(320px, calc(100vw - 2rem)); max-height: 360px; overflow-y: auto;">
               <div class="px-1 mb-2">
                 <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search sections..." oninput="filterDropdownList(this)">
               </div>
               <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
-                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'secLabel', 'Sections')">Select All</button>
-                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'secLabel', 'Sections')">Clear</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'secLabel', 'Sections', 'section_ids[]')">Select All</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'secLabel', 'Sections', 'section_ids[]')">Clear</button>
               </div>
               <div class="multiselect-options-list">
                 <% @available_sections.each do |sec| %>
-                  <div class="form-check dropdown-item rounded px-2 py-1 multiselect-item">
-                    <input class="form-check-input ms-0 me-2" 
+                  <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-start gap-2">
+                    <input class="form-check-input mt-1 flex-shrink-0" 
                            type="checkbox" 
                            name="section_ids[]" 
                            value="<%= sec.id %>" 
                            id="sec_cb_<%= sec.id %>" 
                            <%= 'checked' if @selected_section_ids.include?(sec.id.to_s) %>
                            onchange="updateDropdownCounter('secLabel', 'Sections', 'section_ids[]')">
-                    <label class="form-check-label text-truncate cursor-pointer small" for="sec_cb_<%= sec.id %>">
+                    <label class="form-check-label flex-grow-1 cursor-pointer small" for="sec_cb_<%= sec.id %>">
                       <%= sec.name %>
                     </label>
                   </div>
@@ -265,12 +391,13 @@
           </div>
         </div>
 
-        <!-- Participants Multi-Select Dropdown -->
-        <div class="col-12 col-sm-6 col-md-4 col-lg">
+        <!-- 4. Participants Multi-Select Dropdown -->
+        <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="dropdown multiselect-dropdown">
             <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_participant_ids.present? %>" 
                     type="button" 
                     data-bs-toggle="dropdown" 
+                    data-bs-display="static"
                     data-bs-auto-close="outside"
                     aria-expanded="false">
               <span class="d-inline-flex align-items-center text-truncate">
@@ -280,26 +407,30 @@
                 </span>
               </span>
             </button>
-            <div class="dropdown-menu p-2 shadow-lg rounded-3 border" style="min-width: 280px; max-height: 320px; overflow-y: auto;">
+            <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border" style="width: 340px; max-width: min(380px, calc(100vw - 2rem)); max-height: 380px; overflow-y: auto;">
               <div class="px-1 mb-2">
                 <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search participants..." oninput="filterDropdownList(this)">
               </div>
               <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
-                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'partLabel', 'Participants')">Select All</button>
-                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'partLabel', 'Participants')">Clear</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'partLabel', 'Participants', 'participant_ids[]')">Select All</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'partLabel', 'Participants', 'participant_ids[]')">Clear</button>
               </div>
               <div class="multiselect-options-list">
                 <% @available_participants.each do |p| %>
-                  <div class="form-check dropdown-item rounded px-2 py-1 multiselect-item">
-                    <input class="form-check-input ms-0 me-2" 
+                  <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-start gap-2">
+                    <input class="form-check-input mt-1 flex-shrink-0" 
                            type="checkbox" 
                            name="participant_ids[]" 
                            value="<%= p.id %>" 
                            id="part_cb_<%= p.id %>" 
                            <%= 'checked' if @selected_participant_ids.include?(p.id.to_s) %>
                            onchange="updateDropdownCounter('partLabel', 'Participants', 'participant_ids[]')">
-                    <label class="form-check-label text-truncate cursor-pointer small" for="part_cb_<%= p.id %>" title="<%= p.email %>">
-                      <%= p.full_name %> <span class="text-muted" style="font-size: 0.75rem;">(<%= p.section&.name || 'No Sec' %>)</span>
+                    <label class="form-check-label flex-grow-1 cursor-pointer small" for="part_cb_<%= p.id %>" title="<%= p.email %>">
+                      <%= p.full_name %> 
+                      <% if p.participant_type.present? %>
+                        <span class="badge bg-light text-muted border text-capitalize" style="font-size: 0.65rem;"><%= p.participant_type %></span>
+                      <% end %>
+                      <span class="text-muted" style="font-size: 0.72rem;">(<%= p.section&.name || 'No Sec' %>)</span>
                     </label>
                   </div>
                 <% end %>
@@ -308,12 +439,59 @@
           </div>
         </div>
 
-        <!-- Status Multi-Select Checkbox Dropdown -->
-        <div class="col-12 col-sm-6 col-md-4 col-lg">
+        <!-- 5. Participant Type Filter Dropdown [NEW] -->
+        <div class="col-12 col-sm-6 col-md-4 col-xl">
+          <div class="dropdown multiselect-dropdown">
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_participant_types.present? %>" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    data-bs-display="static"
+                    data-bs-auto-close="outside"
+                    aria-expanded="false">
+              <span class="d-inline-flex align-items-center text-truncate">
+                <i class="bi bi-person-badge me-2 text-purple flex-shrink-0" style="color: #9333ea;"></i>
+                <span class="dropdown-label text-truncate" id="typeLabel">
+                  Type (<%= @selected_participant_types.blank? ? 'All' : @selected_participant_types.map(&:titleize).join(', ') %>)
+                </span>
+              </span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-2 shadow-lg rounded-3 border" style="width: 240px; max-width: min(280px, calc(100vw - 2rem));">
+              <div class="multiselect-options-list">
+                <% (@available_participant_types || ['student', 'guardian', 'employee']).each do |ptype| %>
+                  <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-center gap-2">
+                    <input class="form-check-input flex-shrink-0" 
+                           type="checkbox" 
+                           name="participant_types[]" 
+                           value="<%= ptype %>" 
+                           id="type_cb_<%= ptype %>" 
+                           <%= 'checked' if @selected_participant_types.include?(ptype) %>
+                           onchange="updateTypeCounter()">
+                    <label class="form-check-label flex-grow-1 cursor-pointer small fw-medium text-capitalize" for="type_cb_<%= ptype %>">
+                      <% case ptype %>
+                      <% when 'student' %>
+                        <i class="bi bi-mortarboard text-primary me-1"></i> Student
+                      <% when 'guardian' %>
+                        <i class="bi bi-shield-shaded text-purple me-1" style="color: #9333ea;"></i> Guardian
+                      <% when 'employee' %>
+                        <i class="bi bi-briefcase text-info me-1"></i> Employee
+                      <% else %>
+                        <%= ptype.titleize %>
+                      <% end %>
+                    </label>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Status Multi-Select Checkbox Dropdown -->
+        <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="dropdown multiselect-dropdown">
             <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_statuses.present? && @selected_statuses.size == 1 %>" 
                     type="button" 
                     data-bs-toggle="dropdown" 
+                    data-bs-display="static"
                     data-bs-auto-close="outside"
                     aria-expanded="false">
               <span class="d-inline-flex align-items-center text-truncate">
@@ -323,29 +501,29 @@
                 </span>
               </span>
             </button>
-            <div class="dropdown-menu p-2 shadow-lg rounded-3 border" style="min-width: 200px;">
+            <div class="dropdown-menu dropdown-menu-end p-2 shadow-lg rounded-3 border" style="width: 220px; max-width: min(260px, calc(100vw - 2rem));">
               <div class="multiselect-options-list">
-                <div class="form-check dropdown-item rounded px-2 py-1">
-                  <input class="form-check-input ms-0 me-2" 
+                <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-center gap-2">
+                  <input class="form-check-input flex-shrink-0" 
                          type="checkbox" 
                          name="submission_statuses[]" 
                          value="submitted" 
                          id="matrix_status_cb_sub" 
                          <%= 'checked' if @selected_statuses.include?('submitted') %>
                          onchange="updateStatusCounter()">
-                  <label class="form-check-label cursor-pointer small fw-medium text-success" for="matrix_status_cb_sub">
+                  <label class="form-check-label flex-grow-1 cursor-pointer small fw-medium text-success" for="matrix_status_cb_sub">
                     <i class="bi bi-check-circle-fill me-1"></i> Submitted
                   </label>
                 </div>
-                <div class="form-check dropdown-item rounded px-2 py-1">
-                  <input class="form-check-input ms-0 me-2" 
+                <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-center gap-2">
+                  <input class="form-check-input flex-shrink-0" 
                          type="checkbox" 
                          name="submission_statuses[]" 
                          value="pending" 
                          id="matrix_status_cb_pend" 
                          <%= 'checked' if @selected_statuses.include?('pending') %>
                          onchange="updateStatusCounter()">
-                  <label class="form-check-label cursor-pointer small fw-medium text-warning" for="matrix_status_cb_pend">
+                  <label class="form-check-label flex-grow-1 cursor-pointer small fw-medium text-warning" for="matrix_status_cb_pend">
                     <i class="bi bi-clock-fill me-1"></i> Pending Only
                   </label>
                 </div>
@@ -354,21 +532,21 @@
           </div>
         </div>
 
-        <!-- Date Range Filter -->
-        <div class="col-12 col-sm-6 col-md-4 col-lg">
+        <!-- 7. Date Range Filter (Defaults to Today) -->
+        <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="input-group filter-input-group">
             <span class="input-group-text bg-white border-end-0 ps-3 pe-2">
               <i class="bi bi-calendar-range text-secondary flex-shrink-0"></i>
             </span>
             <select name="date_range" 
                     id="matrixDateRange" 
-                    class="form-select border-start-0 ps-1 pe-4 text-truncate filter-select <%= 'filter-active' if @date_range.present? && @date_range != 'all_time' %>" 
-                    onchange="toggleMatrixCustomDates(this.value); this.classList.toggle('filter-active', this.value !== 'all_time');">
-              <option value="all_time" <%= 'selected' if @date_range == 'all_time' %>>All Time</option>
-              <option value="today" <%= 'selected' if @date_range == 'today' %>>Today</option>
+                    class="form-select border-start-0 ps-1 pe-4 text-truncate filter-select <%= 'filter-active' if @date_range.present? %>" 
+                    onchange="toggleMatrixCustomDates(this.value);">
+              <option value="today" <%= 'selected' if @date_range == 'today' %>>Today (Default)</option>
               <option value="yesterday" <%= 'selected' if @date_range == 'yesterday' %>>Yesterday</option>
               <option value="last_7_days" <%= 'selected' if @date_range == 'last_7_days' %>>Last 7 Days</option>
               <option value="this_month" <%= 'selected' if @date_range == 'this_month' %>>This Month</option>
+              <option value="all_time" <%= 'selected' if @date_range == 'all_time' %>>All Time</option>
               <option value="custom" <%= 'selected' if @date_range == 'custom' %>>Custom Range</option>
             </select>
           </div>
@@ -393,8 +571,8 @@
     <% end %>
   </div>
 
-  <!-- CONSOLIDATED QUESTION MATRIX TABLE CARD -->
-  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+  <!-- CONSOLIDATED QUESTION MATRIX TABLE CARD (Supports Fullscreen Mode) -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4" id="matrixTableCard">
     <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
         <div class="p-1.5 bg-primary-subtle text-primary rounded-2">
@@ -404,23 +582,42 @@
           <h6 class="fw-bold mb-0 text-dark">Participant Question Response Matrix</h6>
           <span class="text-muted small" style="font-size: 0.78rem;">
             <%= @matrix_questions.size %> Questions across <%= @total_filtered_assignments %> Assignment<%= 's' if @total_filtered_assignments != 1 %>
+            <% if @date_range == 'today' %>
+              • <strong class="text-primary">Showing Today's Responses</strong>
+            <% end %>
           </span>
         </div>
       </div>
-      <span class="badge bg-light text-secondary border px-3 py-1.5 fw-medium">
-        Showing <%= @paginated_matrix_rows&.size || 0 %> of <%= @total_matrix_count || 0 %> Submissions
-      </span>
+
+      <div class="d-flex align-items-center gap-2">
+        <!-- Live Record Counter -->
+        <span class="badge bg-light text-secondary border px-3 py-2 fw-medium rounded-3" id="matrixRecordsBadge" style="font-size: 0.78rem;">
+          Showing <span id="matrixLoadedCount" class="fw-semibold text-dark"><%= @paginated_matrix_rows&.size || 0 %></span> of <span id="matrixTotalCount" class="fw-semibold text-dark"><%= @total_matrix_count || 0 %></span> Submissions
+        </span>
+
+        <!-- FULLSCREEN TOGGLE BUTTON -->
+        <button type="button" 
+                class="btn btn-table-fullscreen" 
+                id="toggleFullscreenBtn" 
+                onclick="toggleTableFullscreen();" 
+                title="Expand table to full screen for maximum viewing area">
+          <span class="fullscreen-icon-wrap">
+            <i class="bi bi-arrows-fullscreen" id="fullscreenIcon"></i>
+          </span>
+          <span id="fullscreenBtnText">Full Screen</span>
+        </button>
+      </div>
     </div>
 
     <!-- HORIZONTALLY SCROLLABLE RESPONSIVE MATRIX TABLE -->
-    <div class="table-responsive matrix-table-container">
-      <table class="table align-middle mb-0 table-hover table-bordered border-light-subtle">
+    <div class="table-responsive matrix-table-container" id="matrixScrollContainer">
+      <table class="table align-middle mb-0 table-hover table-bordered border-light-subtle" id="matrixDataTable">
         <thead class="table-light">
           <tr>
-            <!-- STICKY INFO HEADERS -->
+            <!-- STICKY INFO HEADERS (explicit light background to fix dark device bug) -->
             <th style="min-width: 50px; width: 50px;" class="text-center sticky-col sticky-col-num">#</th>
             <th style="min-width: 100px;" class="sticky-col sticky-col-date">Date</th>
-            <th style="min-width: 180px;" class="sticky-col sticky-col-part">Participant</th>
+            <th style="min-width: 190px;" class="sticky-col sticky-col-part">Participant</th>
             <th style="min-width: 110px;">Section</th>
             <th style="min-width: 160px;">Assignment</th>
             <th style="min-width: 95px;" class="text-center">Status</th>
@@ -428,14 +625,20 @@
 
             <!-- DYNAMIC QUESTION HEADERS -->
             <% @matrix_questions.each_with_index do |q, q_idx| %>
-              <th style="min-width: 200px; max-width: 280px; background-color: #f8fafc;" 
-                  class="question-header-th" 
+              <% has_today_resp = @today_active_question_ids&.include?(q[:id]) %>
+              <th style="min-width: 200px; max-width: 280px;" 
+                  class="question-header-th <%= 'active-today-header' if has_today_resp %>" 
                   title="<%= q[:title] %> (<%= q[:assignments_text] %>)">
                 <div class="d-flex flex-column gap-1">
                   <div class="d-flex align-items-center justify-content-between gap-1">
-                    <span class="badge bg-indigo-subtle text-indigo fw-bold" style="font-size: 0.7rem;">
+                    <span class="badge <%= has_today_resp ? 'bg-primary text-white' : 'bg-indigo-subtle text-indigo' %> fw-bold" style="font-size: 0.7rem;">
                       Q<%= q_idx + 1 %>
                     </span>
+                    <% if has_today_resp %>
+                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-1.5 py-0.5 fw-semibold" style="font-size: 0.64rem;">
+                        <i class="bi bi-lightning-charge-fill me-0.5"></i>Today
+                      </span>
+                    <% end %>
                     <span class="badge bg-light text-muted border text-capitalize" style="font-size: 0.65rem;">
                       <%= q[:question_type].to_s.humanize %>
                     </span>
@@ -453,118 +656,35 @@
             <% end %>
           </tr>
         </thead>
-        <tbody>
-          <% display_rows = @paginated_matrix_rows.presence || [] %>
-          <% if display_rows.blank? %>
-            <tr>
-              <td colspan="<%= 7 + (@matrix_questions.size.nonzero? || 1) %>" class="text-center py-5">
-                <div class="text-muted mb-2"><i class="bi bi-inbox fs-1"></i></div>
-                <h6 class="fw-bold text-dark mb-1">No Matrix Submissions Found</h6>
-                <p class="text-muted small mb-0">No participant responses match the selected filters. Try adjusting your assignment, section, or date criteria.</p>
-              </td>
-            </tr>
-          <% else %>
-            <% display_rows.each_with_index do |row, index| %>
-              <% row_num = (@pagy ? @pagy.from : 1) + index %>
-              <tr>
-                <!-- STICKY ROW CELLS -->
-                <td class="text-center fw-semibold text-secondary sticky-col sticky-col-num bg-white" style="font-size: 0.85rem;"><%= row_num %></td>
-                <td class="sticky-col sticky-col-date bg-white">
-                  <span class="fw-medium text-dark"><%= row[:date].present? ? row[:date].strftime("%b %d, %Y") : "-" %></span>
-                </td>
-                <td class="sticky-col sticky-col-part bg-white">
-                  <div class="fw-semibold text-dark text-truncate" style="max-width: 170px;"><%= row[:participant_name] %></div>
-                  <div class="text-muted text-truncate" style="font-size: 0.75rem; max-width: 170px;"><%= row[:participant_email] %></div>
-                </td>
-                <td>
-                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-medium text-truncate" style="max-width: 110px;">
-                    <%= row[:section_name] %>
-                  </span>
-                </td>
-                <td>
-                  <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle px-2.5 py-1 rounded-pill fw-medium text-wrap text-start" style="max-width: 160px;">
-                    <%= row[:assignment_title] %>
-                  </span>
-                </td>
-                <td class="text-center">
-                  <% if row[:status] == 'submitted' %>
-                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-medium">
-                      <i class="bi bi-check-circle me-1"></i>Submitted
-                    </span>
-                  <% else %>
-                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-medium">
-                      <i class="bi bi-clock me-1"></i>Pending
-                    </span>
-                  <% end %>
-                </td>
-                <td class="text-center text-muted small">
-                  <%= row[:submitted_at].present? ? row[:submitted_at].strftime("%I:%M %p") : "-" %>
-                </td>
-
-                <!-- DYNAMIC QUESTION RESPONSE CELLS -->
-                <% row_answers = row[:answers] || {} %>
-                <% @matrix_questions.each do |q| %>
-                  <% ans_info = row_answers[q[:id]] %>
-                  <td class="matrix-cell align-middle" style="min-width: 200px; max-width: 280px;">
-                    <% if row[:status] == 'pending' %>
-                      <span class="text-muted fst-italic small" style="font-size: 0.75rem;">Pending submission</span>
-                    <% elsif ans_info.blank? %>
-                      <span class="text-muted fst-italic small" title="Not answered / Not part of this assignment">-</span>
-                    <% else %>
-                      <% raw_ans = ans_info[:answer].to_s %>
-                      <% q_type = ans_info[:question_type] || q[:question_type] %>
-
-                      <% if q_type == 'rating' %>
-                        <div class="d-flex align-items-center gap-1">
-                          <span class="text-warning fs-6">
-                            <% rating_val = raw_ans.to_i %>
-                            <% (1..5).each do |star| %>
-                              <i class="bi <%= star <= rating_val ? 'bi-star-fill' : 'bi-star' %>"></i>
-                            <% end %>
-                          </span>
-                          <span class="badge bg-warning-subtle text-dark border border-warning-subtle font-monospace px-1.5 py-0.5 small" style="font-size: 0.72rem;">
-                            <%= raw_ans %>/5
-                          </span>
-                        </div>
-                      <% elsif q_type == 'checkboxes' %>
-                        <div class="d-flex flex-wrap gap-1">
-                          <% raw_ans.split(',').map(&:strip).each do |opt| %>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill small" style="font-size: 0.72rem;">
-                              <%= opt %>
-                            </span>
-                          <% end %>
-                        </div>
-                      <% elsif q_type == 'yes_or_no' %>
-                        <% is_yes = raw_ans.downcase.in?(['yes', 'true', '1']) %>
-                        <span class="badge <%= is_yes ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle' %> rounded-pill px-2 py-0.5 fw-medium" style="font-size: 0.75rem;">
-                          <i class="bi <%= is_yes ? 'bi-check-circle-fill' : 'bi-x-circle-fill' %> me-1"></i><%= raw_ans %>
-                        </span>
-                      <% else %>
-                        <div class="text-dark small text-wrap text-break" style="line-height: 1.4; max-height: 80px; overflow-y: auto;" title="<%= raw_ans %>">
-                          <%= raw_ans %>
-                        </div>
-                      <% end %>
-                    <% end %>
-                  </td>
-                <% end %>
-              </tr>
-            <% end %>
-          <% end %>
+        <tbody id="matrixTableBody">
+          <%= render partial: "consolidated_matrix_rows", locals: { rows: @paginated_matrix_rows, start_index: (@pagy ? @pagy.from : 1), matrix_questions: @matrix_questions } %>
         </tbody>
       </table>
     </div>
 
-    <!-- PAGINATION FOOTER -->
-    <% if @pagy && @pagy.pages > 1 %>
-      <div class="card-footer bg-white border-top py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-        <div class="text-muted small">
-          Showing <strong><%= @pagy.from %></strong> to <strong><%= @pagy.to %></strong> of <strong><%= @pagy.count %></strong> submissions
-        </div>
-        <div class="pagy-bootstrap-nav">
-          <%== pagy_bootstrap_nav(@pagy) %>
-        </div>
+    <!-- SCROLL PAGINATION / INFINITE SCROLL BAR -->
+    <div id="scrollPaginationWrapper" class="py-3 px-4 bg-white border-top d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="text-muted small">
+        Showing <strong id="footerLoadedCount"><%= @paginated_matrix_rows&.size || 0 %></strong> of <strong id="footerTotalCount"><%= @total_matrix_count || 0 %></strong> submissions
       </div>
-    <% end %>
+      <div id="scrollStatusBox" class="d-flex align-items-center gap-2">
+        <div id="scrollLoadingIndicator" class="d-none text-primary small fw-medium d-inline-flex align-items-center gap-2">
+          <div class="spinner-border spinner-border-sm" role="status"></div>
+          <span>Loading more submissions...</span>
+        </div>
+        <button type="button" 
+                id="manualLoadMoreBtn" 
+                class="btn btn-sm btn-outline-primary rounded-3 px-3 py-1 <%= 'd-none' if (@pagy ? @pagy.pages <= 1 : true) %>" 
+                onclick="loadNextMatrixPage();">
+          <i class="bi bi-arrow-down-circle me-1"></i>Load More Submissions
+        </button>
+        <span id="allLoadedMessage" class="badge bg-light text-muted border px-2.5 py-1 small <%= 'd-none' if (@pagy ? @pagy.pages > 1 : false) %>">
+          <i class="bi bi-check2-all text-success me-1"></i>All <%= @total_matrix_count || 0 %> submissions loaded
+        </span>
+      </div>
+    </div>
+    <!-- Infinite Scroll Sentinel Target -->
+    <div id="infiniteScrollSentinel" style="height: 10px; width: 100%;"></div>
   </div>
 </div>
 
@@ -638,6 +758,191 @@
 </div>
 
 <style>
+  /* ========================================================= */
+  /* TABLE HEADER SPECIFICITY FIX FOR DARK BACKGROUND IN CERTAIN DEVICES */
+  /* ========================================================= */
+  .matrix-table-container thead th,
+  .table thead th,
+  .table-responsive thead th,
+  thead.table-light th,
+  .table-light th,
+  #matrixDataTable thead th {
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+    font-weight: 600 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    vertical-align: middle !important;
+  }
+
+  /* Dynamic Question Header Styling */
+  .question-header-th {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    border-top: 2px solid #0284c7 !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+  }
+
+  .question-header-th.active-today-header {
+    background-color: #f0f9ff !important;
+    border-top: 3px solid #0284c7 !important;
+  }
+
+  /* Sticky Info Column Headers */
+  thead th.sticky-col,
+  thead th.sticky-col-num,
+  thead th.sticky-col-date,
+  thead th.sticky-col-part {
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+    z-index: 4 !important;
+  }
+
+  tbody td.sticky-col {
+    background-color: #ffffff !important;
+  }
+
+  .sticky-col-num {
+    left: 0;
+  }
+  .sticky-col-date {
+    left: 50px;
+  }
+  .sticky-col-part {
+    left: 150px;
+    box-shadow: 3px 0 6px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Today's active submission row accent */
+  .row-today-active {
+    background-color: #fbfdff !important;
+  }
+
+  /* Full Screen Table Card Styles (Supports both CSS Viewport & Native Fullscreen) */
+  .table-card-fullscreen,
+  .table-card-fullscreen:fullscreen,
+  .table-card-fullscreen:-webkit-full-screen,
+  .table-card-fullscreen:-moz-full-screen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    z-index: 99999 !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-shadow: none !important;
+  }
+
+  .table-card-fullscreen .card-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    flex-shrink: 0 !important;
+    z-index: 5 !important;
+  }
+
+  .table-card-fullscreen .matrix-table-container,
+  .table-card-fullscreen .table-responsive {
+    max-height: calc(100vh - 125px) !important;
+    flex-grow: 1 !important;
+  }
+
+  /* ========================================================= */
+  /* ENHANCED FULLSCREEN BUTTON & CONTROLS */
+  /* ========================================================= */
+  .btn-table-fullscreen {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.38rem 0.85rem !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.18s ease-in-out !important;
+    cursor: pointer;
+    white-space: nowrap;
+    line-height: 1.3 !important;
+    user-select: none;
+  }
+
+  .btn-table-fullscreen .fullscreen-icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    color: #2563eb;
+    margin-right: 0.45rem;
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+
+  @supports (gap: 0.45rem) {
+    .btn-table-fullscreen {
+      gap: 0.45rem !important;
+    }
+    .btn-table-fullscreen .fullscreen-icon-wrap {
+      margin-right: 0 !important;
+    }
+  }
+
+  .btn-table-fullscreen:hover {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-1px);
+  }
+
+  .btn-table-fullscreen:hover .fullscreen-icon-wrap {
+    transform: scale(1.12);
+    color: #1d4ed8;
+  }
+
+  .btn-table-fullscreen:active {
+    background-color: #f1f5f9 !important;
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .btn-table-fullscreen:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2) !important;
+    border-color: #3b82f6 !important;
+  }
+
+  .btn-table-fullscreen.is-active-fullscreen {
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border-color: #93c5fd !important;
+  }
+
+  .btn-table-fullscreen.is-active-fullscreen .fullscreen-icon-wrap {
+    color: #dc2626 !important;
+  }
+
+  .btn-table-fullscreen.is-active-fullscreen:hover {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+    border-color: #fca5a5 !important;
+  }
+
+  .btn-table-fullscreen.is-active-fullscreen:hover .fullscreen-icon-wrap {
+    color: #b91c1c !important;
+  }
+
+  /* Filter toolbar & dropdowns */
   .cursor-pointer {
     cursor: pointer;
   }
@@ -670,7 +975,6 @@
     border-color: #c7d2fe !important;
   }
 
-  /* Enhanced Filter Toolbar & Dropdowns */
   .filter-toolbar-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -710,13 +1014,6 @@
     border-color: #0284c7;
   }
 
-  .filter-input-group .form-control::placeholder {
-    color: #94a3b8;
-    font-size: 0.84rem;
-    font-weight: 400;
-  }
-
-  /* Custom Filter Dropdown Toggle Button - Eliminates White-on-White Text Bug */
   .filter-dropdown-btn {
     background-color: #ffffff !important;
     border: 1px solid #cbd5e1 !important;
@@ -793,7 +1090,6 @@
     font-weight: 600 !important;
   }
 
-  /* Filter Action Buttons */
   .btn-filter-reset {
     height: 42px;
     background-color: #f8fafc;
@@ -828,75 +1124,352 @@
     box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.25);
   }
 
-  @media (max-width: 576px) {
-    .multiselect-dropdown .dropdown-menu {
-      min-width: 100% !important;
-      max-width: 100% !important;
-    }
-  }
-
-  /* Executive Page Header Styles */
-  .page-header-card {
-    background: #ffffff;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-  }
-  .header-icon-box {
-    width: 50px;
-    height: 50px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .header-icon-box.detailed-theme {
-    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-    color: #4f46e5;
-    border: 1px solid #c7d2fe;
-  }
-  .header-icon-box.matrix-theme {
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-    color: #0284c7;
-    border: 1px solid #bae6fd;
-  }
-
-  /* Matrix Sticky Header & Column Styles */
   .matrix-table-container {
     max-height: 720px;
     overflow-x: auto;
     overflow-y: auto;
   }
+
   .sticky-col {
     position: sticky;
     z-index: 2;
   }
-  thead th.sticky-col {
-    z-index: 4;
+
+  /* ========================================================= */
+  /* KPI SCORE CARDS STYLING (Column layout avoiding inst-kpi conflicts) */
+  /* ========================================================= */
+  .report-kpi-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    padding: 1.15rem 1.25rem;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    height: 100%;
+    min-height: 135px;
+    position: relative;
+  }
+
+  .report-kpi-card:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+  }
+
+  .report-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .report-kpi-icon.icon-primary { background: #e0e7ff; color: #4f46e5; }
+  .report-kpi-icon.icon-indigo  { background: #e0e7ff; color: #4338ca; }
+  .report-kpi-icon.icon-sky     { background: #e0f2fe; color: #0284c7; }
+  .report-kpi-icon.icon-success { background: #dcfce7; color: #16a34a; }
+  .report-kpi-icon.icon-warning { background: #fef3c7; color: #d97706; }
+  .report-kpi-icon.icon-purple  { background: #f3e8ff; color: #7e22ce; }
+
+  /* ========================================================= */
+  /* MULTI-SELECT DROPDOWN Z-INDEX, WIDTH & TEXT WRAPPING FIXES */
+  /* ========================================================= */
+  .multiselect-dropdown {
+    position: relative;
+  }
+
+  .multiselect-dropdown .dropdown-menu {
+    z-index: 1060 !important;
+    box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.14), 0 6px 12px -2px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .multiselect-dropdown .multiselect-item {
+    white-space: normal !important;
+    word-break: break-word !important;
+    padding: 0.45rem 0.75rem !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+
+  .multiselect-dropdown .multiselect-item .form-check-input {
+    margin-top: 0.2rem !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .multiselect-dropdown .multiselect-item .form-check-label {
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: 1.35 !important;
+    font-size: 0.82rem !important;
+    flex-grow: 1 !important;
+    cursor: pointer;
+  }
+
+  /* ========================================================= */
+  /* PARTICIPANT TYPE LEGEND PILLS STYLING */
+  /* ========================================================= */
+  .badge-type-student {
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border: 1px solid #bfdbfe !important;
+    font-weight: 600 !important;
+    font-size: 0.68rem !important;
+    letter-spacing: 0.2px !important;
+  }
+
+  .badge-type-guardian {
+    background-color: #f3e8ff !important;
+    color: #7e22ce !important;
+    border: 1px solid #e9d5ff !important;
+    font-weight: 600 !important;
+    font-size: 0.68rem !important;
+    letter-spacing: 0.2px !important;
+  }
+
+  .badge-type-employee {
+    background-color: #ecfdf5 !important;
+    color: #047857 !important;
+    border: 1px solid #a7f3d0 !important;
+    font-weight: 600 !important;
+    font-size: 0.68rem !important;
+    letter-spacing: 0.2px !important;
+  }
+
+  .badge-type-other {
     background-color: #f8fafc !important;
+    color: #475569 !important;
+    border: 1px solid #cbd5e1 !important;
+    font-weight: 600 !important;
+    font-size: 0.68rem !important;
+    letter-spacing: 0.2px !important;
   }
-  tbody td.sticky-col {
-    background-color: #ffffff;
+
+  .bg-purple-subtle {
+    background-color: #f3e8ff !important;
   }
-  .sticky-col-num {
-    left: 0;
+  .text-purple {
+    color: #7e22ce !important;
   }
-  .sticky-col-date {
-    left: 50px;
-  }
-  .sticky-col-part {
-    left: 150px;
-    box-shadow: 3px 0 6px rgba(0, 0, 0, 0.04);
-  }
-  .question-header-th {
-    border-top: 2px solid #0284c7 !important;
+  .border-purple-subtle {
+    border-color: #e9d5ff !important;
   }
 </style>
 
 <script>
-  let pollInterval = null;
+  // =========================================================
+  // SCROLL PAGINATION (INFINITE SCROLL) ENGINE
+  // =========================================================
+  var currentMatrixPage = <%= (@pagy ? @pagy.page : 1) %>;
+  var hasMoreMatrixPages = <%= (@pagy ? (@pagy.page < @pagy.pages) : false) %>;
+  var isMatrixLoading = false;
+  var matrixScrollObserver = null;
 
+  function initMatrixScrollPagination() {
+    const sentinel = document.getElementById('infiniteScrollSentinel');
+    const scrollContainer = document.getElementById('matrixScrollContainer');
+
+    if (!sentinel) return;
+
+    if ('IntersectionObserver' in window) {
+      if (matrixScrollObserver) matrixScrollObserver.disconnect();
+
+      matrixScrollObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && hasMoreMatrixPages && !isMatrixLoading) {
+            loadNextMatrixPage();
+          }
+        });
+      }, {
+        root: null, // window or viewport
+        rootMargin: '250px',
+        threshold: 0.1
+      });
+
+      matrixScrollObserver.observe(sentinel);
+    }
+
+    // Also listen to internal container scroll
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', () => {
+        if (!hasMoreMatrixPages || isMatrixLoading) return;
+        const scrollBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
+        if (scrollBottom < 200) {
+          loadNextMatrixPage();
+        }
+      });
+    }
+  }
+
+  function loadNextMatrixPage() {
+    if (isMatrixLoading || !hasMoreMatrixPages) return;
+
+    isMatrixLoading = true;
+    const nextPage = currentMatrixPage + 1;
+    const loadingIndicator = document.getElementById('scrollLoadingIndicator');
+    const loadMoreBtn = document.getElementById('manualLoadMoreBtn');
+
+    if (loadingIndicator) loadingIndicator.classList.remove('d-none');
+    if (loadMoreBtn) loadMoreBtn.classList.add('d-none');
+
+    // Build URL with current query parameters
+    const form = document.getElementById('consolidatedMatrixReportForm');
+    const formData = new FormData(form || undefined);
+    const searchParams = new URLSearchParams(formData);
+    searchParams.set('page', nextPage);
+    searchParams.set('scroll', '1');
+
+    fetch(`/institute_admin/reports/consolidated_matrix_report?${searchParams.toString()}`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      isMatrixLoading = false;
+      if (loadingIndicator) loadingIndicator.classList.add('d-none');
+
+      if (data.html && data.html.trim().length > 0) {
+        const tbody = document.getElementById('matrixTableBody');
+        if (tbody) {
+          // Check if noRecordsRow is present and remove it
+          const noRec = document.getElementById('noRecordsRow');
+          if (noRec) noRec.remove();
+
+          tbody.insertAdjacentHTML('beforeend', data.html);
+        }
+
+        currentMatrixPage = data.page;
+        hasMoreMatrixPages = data.has_more;
+
+        // Update counters
+        const loadedEl = document.getElementById('matrixLoadedCount');
+        const footerLoadedEl = document.getElementById('footerLoadedCount');
+        if (loadedEl) loadedEl.innerText = data.loaded_count;
+        if (footerLoadedEl) footerLoadedEl.innerText = data.loaded_count;
+
+        if (hasMoreMatrixPages) {
+          if (loadMoreBtn) loadMoreBtn.classList.remove('d-none');
+        } else {
+          if (loadMoreBtn) loadMoreBtn.classList.add('d-none');
+          const allLoadedMsg = document.getElementById('allLoadedMessage');
+          if (allLoadedMsg) allLoadedMsg.classList.remove('d-none');
+          if (matrixScrollObserver) matrixScrollObserver.disconnect();
+        }
+      } else {
+        hasMoreMatrixPages = false;
+        if (loadMoreBtn) loadMoreBtn.classList.add('d-none');
+        const allLoadedMsg = document.getElementById('allLoadedMessage');
+        if (allLoadedMsg) allLoadedMsg.classList.remove('d-none');
+      }
+    })
+    .catch(err => {
+      console.error('Error fetching next matrix page:', err);
+      isMatrixLoading = false;
+      if (loadingIndicator) loadingIndicator.classList.add('d-none');
+      if (loadMoreBtn) loadMoreBtn.classList.remove('d-none');
+    });
+  }
+
+  // =========================================================
+  // FULL SCREEN TABLE ENGINE
+  // =========================================================
+  window.toggleTableFullscreen = function() {
+    const card = document.getElementById('matrixTableCard');
+    if (!card) return;
+    const btn = document.getElementById('toggleFullscreenBtn');
+    const btnText = document.getElementById('fullscreenBtnText');
+    const btnIcon = document.getElementById('fullscreenIcon');
+    const hasFsClass = card.classList.contains('table-card-fullscreen');
+    const hasNativeFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+    const isCurrentlyFullscreen = hasFsClass || hasNativeFs;
+
+    if (!isCurrentlyFullscreen) {
+      // Enter Fullscreen: CSS Viewport expansion + Native Fullscreen API
+      card.classList.add('table-card-fullscreen');
+      document.body.style.overflow = 'hidden';
+      if (btn) btn.classList.add('is-active-fullscreen');
+      if (btnText) btnText.innerText = 'Exit Full Screen';
+      if (btnIcon) btnIcon.className = 'bi bi-fullscreen-exit';
+
+      const requestFs = card.requestFullscreen || card.webkitRequestFullscreen || card.mozRequestFullScreen || card.msRequestFullscreen;
+      if (requestFs) {
+        try {
+          const res = requestFs.call(card);
+          if (res && typeof res.catch === 'function') {
+            res.catch(() => {});
+          }
+        } catch (e) {}
+      }
+    } else {
+      // Exit Fullscreen
+      window.exitTableFullscreen();
+    }
+  };
+
+  window.exitTableFullscreen = function() {
+    const card = document.getElementById('matrixTableCard');
+    const btn = document.getElementById('toggleFullscreenBtn');
+    const btnText = document.getElementById('fullscreenBtnText');
+    const btnIcon = document.getElementById('fullscreenIcon');
+
+    if (card) card.classList.remove('table-card-fullscreen');
+    document.body.style.removeProperty('overflow');
+    if (btn) btn.classList.remove('is-active-fullscreen');
+    if (btnText) btnText.innerText = 'Full Screen';
+    if (btnIcon) btnIcon.className = 'bi bi-arrows-fullscreen';
+
+    const hasNativeFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+    if (hasNativeFs) {
+      try {
+        const exitFs = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+        if (exitFs) {
+          const res = exitFs.call(document);
+          if (res && typeof res.catch === 'function') {
+            res.catch(() => {});
+          }
+        }
+      } catch (e) {}
+    }
+  };
+
+  // Safe global event listeners (registered only once across Turbo visits)
+  if (!window._reportsFullscreenListenersAttached) {
+    window._reportsFullscreenListenersAttached = true;
+
+    const onFullscreenChange = function() {
+      const isNativeFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+      if (!isNativeFs) {
+        if (typeof window.exitTableFullscreen === 'function') window.exitTableFullscreen();
+        if (typeof window.exitResponseTableFullscreen === 'function') window.exitResponseTableFullscreen();
+      }
+    };
+
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+    document.addEventListener('mozfullscreenchange', onFullscreenChange);
+    document.addEventListener('MSFullscreenChange', onFullscreenChange);
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        if (typeof window.exitTableFullscreen === 'function') window.exitTableFullscreen();
+        if (typeof window.exitResponseTableFullscreen === 'function') window.exitResponseTableFullscreen();
+      }
+    });
+  }
+
+  // =========================================================
+  // MULTI-SELECT DROPDOWN HELPERS
+  // =========================================================
   function filterDropdownList(input) {
     const term = input.value.toLowerCase().trim();
     const dropdownMenu = input.closest('.dropdown-menu');
@@ -907,16 +1480,15 @@
     });
   }
 
-  function selectAllDropdownCheckboxes(btn, selectAll, labelId, prefix) {
+  function selectAllDropdownCheckboxes(btn, selectAll, labelId, prefix, inputName) {
     const dropdownMenu = btn.closest('.dropdown-menu');
-    const checkboxes = dropdownMenu.querySelectorAll('.multiselect-options-list input[type="checkbox"]');
+    const checkboxes = dropdownMenu.querySelectorAll(`.multiselect-options-list input[name="${inputName}"]`);
     checkboxes.forEach(cb => {
-      if (cb.closest('.multiselect-item').style.display !== 'none') {
+      const itemWrapper = cb.closest('.multiselect-item');
+      if (!itemWrapper || itemWrapper.style.display !== 'none') {
         cb.checked = selectAll;
       }
     });
-    const fallbackName = prefix === 'Assignments' ? 'assignment_ids[]' : (prefix === 'Sections' ? 'section_ids[]' : 'participant_ids[]');
-    const inputName = checkboxes[0]?.name || fallbackName;
     updateDropdownCounter(labelId, prefix, inputName);
   }
 
@@ -934,6 +1506,23 @@
       if (btn) btn.classList.remove('filter-active');
     } else {
       labelEl.innerText = `${prefix} (${checkedBoxes.length})`;
+      if (btn) btn.classList.add('filter-active');
+    }
+  }
+
+  function updateTypeCounter() {
+    const checked = document.querySelectorAll('input[name="participant_types[]"]:checked');
+    const labelEl = document.getElementById('typeLabel');
+    if (!labelEl) return;
+
+    const btn = labelEl.closest('.filter-dropdown-btn');
+
+    if (checked.length === 0 || checked.length === 3) {
+      labelEl.innerText = 'Type (All)';
+      if (btn) btn.classList.remove('filter-active');
+    } else {
+      const types = Array.from(checked).map(c => c.value.charAt(0).toUpperCase() + c.value.slice(1)).join(', ');
+      labelEl.innerText = `Type (${types})`;
       if (btn) btn.classList.add('filter-active');
     }
   }
@@ -965,6 +1554,9 @@
     }
   }
 
+  // =========================================================
+  // ASYNC EXPORT ENGINE
+  // =========================================================
   function showAsyncModal() {
     const modalElement = document.getElementById('asyncExportModal');
     if (!modalElement) return;
@@ -1019,9 +1611,9 @@
     if (widget) widget.classList.add('d-none');
   }
 
-  let exportPollTimer = null;
-  let isExportRunning = false;
-  let exportDownloaded = false;
+  var exportPollTimer = null;
+  var isExportRunning = false;
+  var exportDownloaded = false;
 
   function startAsyncExport(exportType) {
     if (isExportRunning) {
@@ -1059,7 +1651,6 @@
     formData.delete('_method');
     formData.append('export_type', exportType);
 
-    // Merge any active query parameters from the URL that may not be present in form
     const urlParams = new URLSearchParams(window.location.search);
     for (const [key, value] of urlParams.entries()) {
       if (key !== 'page' && key !== 'format' && !formData.has(key)) {
@@ -1178,11 +1769,21 @@
     }, 15000);
   }
 
+  // Initialize Scroll Pagination and cleanup on Turbo navigation
+  document.addEventListener('turbo:load', initMatrixScrollPagination);
+  document.addEventListener('DOMContentLoaded', initMatrixScrollPagination);
+
   document.addEventListener('turbo:before-cache', function() {
     if (exportPollTimer) {
       clearTimeout(exportPollTimer);
       exportPollTimer = null;
     }
     isExportRunning = false;
+    if (matrixScrollObserver) {
+      matrixScrollObserver.disconnect();
+    }
+    if (typeof window.exitTableFullscreen === 'function') {
+      window.exitTableFullscreen();
+    }
   });
 </script>
