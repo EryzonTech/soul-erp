@@ -616,9 +616,9 @@
       <table class="table align-middle mb-0 table-hover" id="responseDataTable">
         <thead class="table-light">
           <tr>
-            <th style="width: 50px;" class="text-center">#</th>
+            <th class="sticky-col sticky-col-num text-center">#</th>
+            <th class="sticky-col sticky-col-part">Participant</th>
             <th style="min-width: 110px;">Date</th>
-            <th style="min-width: 200px;">Participant</th>
             <th style="min-width: 120px;">Section</th>
             <th style="min-width: 190px;">Assignment Title</th>
             <th style="min-width: 220px;">Question</th>
@@ -783,6 +783,103 @@
     flex-grow: 1 !important;
   }
 
+  /* ========================================================= */
+  /* FROZEN QUESTION/ROW HEADERS & PARTICIPANT COLUMN STYLES */
+  /* ========================================================= */
+  .response-table-container table,
+  #responseDataTable {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+  }
+
+  /* 1. VERTICAL FROZEN QUESTION ROW HEADERS (Sticky at Top) */
+  .response-table-container thead th,
+  #responseDataTable thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    border-top: 1px solid #e2e8f0 !important;
+    font-weight: 600 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    vertical-align: middle !important;
+  }
+
+  /* 2. HORIZONTAL FROZEN COLUMNS (Sticky on Left) */
+  .sticky-col {
+    position: sticky !important;
+  }
+
+  /* Column 1: Row Number # */
+  .sticky-col-num {
+    left: 0 !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    text-align: center;
+  }
+
+  /* Column 2: Participant Name */
+  .sticky-col-part {
+    left: 44px !important;
+    min-width: 175px !important;
+    max-width: 210px !important;
+    box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* 3. CORNER INTERSECTION HEADERS (Frozen BOTH Vertically & Horizontally) */
+  #responseDataTable thead th.sticky-col-num,
+  .response-table-container thead th.sticky-col-num {
+    position: sticky !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 30 !important;
+    background-color: #f8fafc !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+  }
+
+  #responseDataTable thead th.sticky-col-part,
+  .response-table-container thead th.sticky-col-part {
+    position: sticky !important;
+    top: 0 !important;
+    left: 44px !important;
+    z-index: 30 !important;
+    background-color: #f8fafc !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* 4. BODY FROZEN CELLS */
+  #responseDataTable tbody td.sticky-col-num,
+  .response-table-container tbody td.sticky-col-num {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 5 !important;
+    background-color: #ffffff !important;
+  }
+
+  #responseDataTable tbody td.sticky-col-part,
+  .response-table-container tbody td.sticky-col-part {
+    position: sticky !important;
+    left: 44px !important;
+    z-index: 5 !important;
+    background-color: #ffffff !important;
+    box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* Hover & Active Row states for Sticky Cells (ensures opacity) */
+  #responseDataTable tbody tr:hover td.sticky-col {
+    background-color: #f1f5f9 !important;
+  }
+  #responseDataTable tbody tr.row-today-active td.sticky-col {
+    background-color: #fbfdff !important;
+  }
+  #responseDataTable tbody tr.row-today-active:hover td.sticky-col {
+    background-color: #f1f5f9 !important;
+  }
+
   .response-table-container,
   #responseScrollContainer {
     max-height: 720px;
@@ -829,6 +926,31 @@
   }
 
   @media (max-width: 576px) {
+    .sticky-col-num {
+      width: 36px !important;
+      min-width: 36px !important;
+      padding-left: 4px !important;
+      padding-right: 4px !important;
+      font-size: 0.78rem !important;
+    }
+
+    .sticky-col-part {
+      left: 36px !important;
+      min-width: 145px !important;
+      max-width: 165px !important;
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+    }
+
+    #responseDataTable thead th.sticky-col-part,
+    .response-table-container thead th.sticky-col-part {
+      left: 36px !important;
+    }
+
+    .sticky-col-part .text-truncate {
+      max-width: 105px !important;
+    }
+
     .page-header-card h3 {
       font-size: 1.15rem !important;
     }
