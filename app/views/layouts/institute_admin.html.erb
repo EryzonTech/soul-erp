@@ -686,13 +686,34 @@
         }
 
         .topbar {
-          padding: 0 1rem;
+          padding: 0 0.75rem;
           position: relative;
           z-index: 10;
         }
 
         .hamburger-btn {
           display: flex;
+        }
+
+        .topbar-institute-name {
+          font-size: 0.88rem;
+          max-width: 100%;
+          min-width: 0;
+        }
+
+        .content-wrapper {
+          padding: 0.75rem !important;
+        }
+
+        .topbar-inst-logo {
+          height: 24px !important;
+          max-width: 48px !important;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 992px) {
+        .content-wrapper {
+          padding: 1.25rem !important;
         }
 
         .topbar-institute-name {
@@ -1164,33 +1185,38 @@
       <div id="main-content" class="main-content" data-sidebar-target="mainContent">
         <!-- Topbar -->
         <div class="topbar d-flex justify-content-between align-items-center">
-          <div class="topbar-left d-flex align-items-center gap-3">
-            <button class="hamburger-btn mobile-toggle" data-action="click->sidebar#toggle">
+          <div class="topbar-left d-flex align-items-center gap-2 gap-sm-3" style="min-width: 0; flex: 1 1 auto; overflow: hidden;">
+            <button class="hamburger-btn mobile-toggle flex-shrink-0" data-action="click->sidebar#toggle">
               <i class="bi bi-list"></i>
             </button>
-            <span class="topbar-institute-name d-flex align-items-center gap-2">
+            <span class="topbar-institute-name d-flex align-items-center gap-2" style="min-width: 0; overflow: hidden;">
               <% if current_institute&.logo&.attached? && ActiveStorage::Blob.service.exist?(current_institute.logo.key) %>
                 <%= image_tag rails_blob_path(current_institute.logo, only_path: true),
                       alt: "#{current_institute.name} logo",
+                      class: "topbar-inst-logo flex-shrink-0",
                       style: "height:32px;max-width:80px;object-fit:contain;border-radius:4px;" %>
               <% end %>
-              <%= current_institute&.name.presence || "Institute Admin Portal" %>
+              <span class="text-truncate" title="<%= current_institute&.name %>">
+                <%= current_institute&.name.presence || "Institute Admin Portal" %>
+              </span>
             </span>
           </div>
           
           <!-- Right side: Admin return button if in impersonation mode -->
           <% if current_user&.master_admin? && session[:admin_institute_id].present? && session[:admin_return_to].present? %>
-            <div class="d-flex align-items-center gap-3">
-              <div class="alert alert-warning py-1 px-3 mb-0 me-3 d-none d-md-block">
-                <small>You are viewing as institute admin for <%= current_institute&.name %></small>
+            <div class="topbar-right d-flex align-items-center gap-2 flex-shrink-0 ms-2">
+              <div class="alert alert-warning py-1 px-3 mb-0 me-2 d-none d-lg-block text-truncate">
+                <small>Viewing as institute admin for <%= current_institute&.name %></small>
               </div>
-              <%= link_to session[:admin_return_to], class: "btn btn-outline-primary", method: :get, data: { admin_return: true } do %>
-                <i class="bi bi-arrow-return-left"></i> Return to Admin
+              <%= link_to session[:admin_return_to], class: "btn btn-outline-primary btn-sm px-2.5 py-1.5 d-inline-flex align-items-center gap-1 shadow-xs fw-medium text-nowrap", method: :get, data: { admin_return: true } do %>
+                <i class="bi bi-arrow-return-left"></i>
+                <span class="d-none d-sm-inline">Return to Admin</span>
+                <span class="d-inline d-sm-none">Exit</span>
               <% end %>
             </div>
           <% else %>
-            <div class="d-flex align-items-center gap-3">
-              <span class="text-secondary small fw-500">Welcome back!</span>
+            <div class="topbar-right d-flex align-items-center gap-2 flex-shrink-0 ms-2">
+              <span class="text-secondary small fw-500 d-none d-sm-inline">Welcome back!</span>
             </div>
           <% end %>
         </div>
