@@ -24,19 +24,7 @@
         <%= row_num %>
       </td>
 
-      <td class="sticky-col sticky-col-date bg-white" style="background-color: #ffffff !important;">
-        <% if is_today %>
-          <div class="d-flex flex-column gap-0.5">
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.72rem; width: fit-content;">
-              <i class="bi bi-clock-history me-1"></i>Today
-            </span>
-            <span class="small text-muted" style="font-size: 0.72rem;"><%= row[:date].strftime("%b %d") %></span>
-          </div>
-        <% else %>
-          <span class="fw-medium text-dark"><%= row[:date].present? ? row[:date].strftime("%b %d, %Y") : "-" %></span>
-        <% end %>
-      </td>
-
+      <!-- FROZEN PARTICIPANT COLUMN -->
       <td class="sticky-col sticky-col-part bg-white" style="background-color: #ffffff !important;">
         <div class="d-flex align-items-center justify-content-between gap-1">
           <div class="fw-semibold text-dark text-truncate" style="max-width: 160px;" title="<%= row[:participant_name] %>">
@@ -64,6 +52,20 @@
         <div class="text-muted text-truncate" style="font-size: 0.74rem; max-width: 170px;" title="<%= row[:participant_email] %>">
           <%= row[:participant_email] %>
         </div>
+      </td>
+
+      <!-- DATE COLUMN (SCROLLABLE) -->
+      <td>
+        <% if is_today %>
+          <div class="d-flex flex-column gap-0.5">
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.72rem; width: fit-content;">
+              <i class="bi bi-clock-history me-1"></i>Today
+            </span>
+            <span class="small text-muted" style="font-size: 0.72rem;"><%= row[:date].strftime("%b %d") %></span>
+          </div>
+        <% else %>
+          <span class="fw-medium text-dark"><%= row[:date].present? ? row[:date].strftime("%b %d, %Y") : "-" %></span>
+        <% end %>
       </td>
 
       <td>

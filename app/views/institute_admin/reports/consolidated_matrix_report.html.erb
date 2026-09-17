@@ -623,10 +623,10 @@
       <table class="table align-middle mb-0 table-hover table-bordered border-light-subtle" id="matrixDataTable">
         <thead class="table-light">
           <tr>
-            <!-- STICKY INFO HEADERS (explicit light background to fix dark device bug) -->
-            <th style="min-width: 50px; width: 50px;" class="text-center sticky-col sticky-col-num">#</th>
-            <th style="min-width: 100px;" class="sticky-col sticky-col-date">Date</th>
-            <th style="min-width: 190px;" class="sticky-col sticky-col-part">Participant</th>
+            <!-- STICKY INFO HEADERS (frozen horizontally & vertically) -->
+            <th style="width: 44px; min-width: 44px;" class="text-center sticky-col sticky-col-num">#</th>
+            <th style="min-width: 175px;" class="sticky-col sticky-col-part">Participant</th>
+            <th style="min-width: 95px;">Date</th>
             <th style="min-width: 110px;">Section</th>
             <th style="min-width: 160px;">Assignment</th>
             <th style="min-width: 95px;" class="text-center">Status</th>
@@ -768,17 +768,27 @@
 
 <style>
   /* ========================================================= */
-  /* TABLE HEADER SPECIFICITY FIX FOR DARK BACKGROUND IN CERTAIN DEVICES */
+  /* FROZEN QUESTION ROW HEADERS & PARTICIPANT COLUMN STYLES */
   /* ========================================================= */
+  .matrix-table-container table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+  }
+
+  /* 1. VERTICAL FROZEN QUESTION ROW HEADERS (Sticky at Top) */
   .matrix-table-container thead th,
   .table thead th,
   .table-responsive thead th,
   thead.table-light th,
   .table-light th,
   #matrixDataTable thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
     background-color: #f8fafc !important;
     color: #1e293b !important;
-    border-bottom: 2px solid #e2e8f0 !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    border-top: 1px solid #e2e8f0 !important;
     font-weight: 600 !important;
     letter-spacing: normal !important;
     text-transform: none !important;
@@ -790,7 +800,7 @@
     background-color: #f8fafc !important;
     color: #0f172a !important;
     border-top: 2px solid #0284c7 !important;
-    border-bottom: 2px solid #e2e8f0 !important;
+    border-bottom: 2px solid #cbd5e1 !important;
   }
 
   .question-header-th.active-today-header {
@@ -798,58 +808,80 @@
     border-top: 3px solid #0284c7 !important;
   }
 
-  /* Sticky Info Column Headers */
-  thead th.sticky-col,
-  thead th.sticky-col-num,
-  thead th.sticky-col-date,
-  thead th.sticky-col-part {
-    background-color: #f8fafc !important;
-    color: #1e293b !important;
-    z-index: 4 !important;
+  /* 2. HORIZONTAL FROZEN COLUMNS (Sticky on Left) */
+  .sticky-col {
+    position: sticky !important;
   }
 
-  tbody td.sticky-col {
+  /* Column 1: Row Number # */
+  .sticky-col-num {
+    left: 0 !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    text-align: center;
+  }
+
+  /* Column 2: Participant Name */
+  .sticky-col-part {
+    left: 44px !important;
+    min-width: 175px !important;
+    max-width: 210px !important;
+    box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* 3. CORNER INTERSECTION HEADERS (Frozen BOTH Vertically & Horizontally) */
+  #matrixDataTable thead th.sticky-col-num,
+  .matrix-table-container thead th.sticky-col-num {
+    position: sticky !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 30 !important;
+    background-color: #f8fafc !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+  }
+
+  #matrixDataTable thead th.sticky-col-part,
+  .matrix-table-container thead th.sticky-col-part {
+    position: sticky !important;
+    top: 0 !important;
+    left: 44px !important;
+    z-index: 30 !important;
+    background-color: #f8fafc !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* 4. BODY FROZEN CELLS */
+  #matrixDataTable tbody td.sticky-col-num,
+  .matrix-table-container tbody td.sticky-col-num {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 5 !important;
     background-color: #ffffff !important;
   }
 
-  /* Desktop Sticky Column Offsets (>= 992px) */
-  @media (min-width: 992px) {
-    .sticky-col-num {
-      left: 0;
-    }
-    .sticky-col-date {
-      left: 50px;
-    }
-    .sticky-col-part {
-      left: 150px;
-      box-shadow: 3px 0 6px rgba(0, 0, 0, 0.04);
-    }
+  #matrixDataTable tbody td.sticky-col-part,
+  .matrix-table-container tbody td.sticky-col-part {
+    position: sticky !important;
+    left: 44px !important;
+    z-index: 5 !important;
+    background-color: #ffffff !important;
+    box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* Hover & Active Row states for Sticky Cells (ensures opacity) */
+  #matrixDataTable tbody tr:hover td.sticky-col {
+    background-color: #f1f5f9 !important;
+  }
+  #matrixDataTable tbody tr.row-today-active td.sticky-col {
+    background-color: #fbfdff !important;
+  }
+  #matrixDataTable tbody tr.row-today-active:hover td.sticky-col {
+    background-color: #f1f5f9 !important;
   }
 
   /* Mobile & Tablet Responsive Optimizations (< 992px) */
   @media (max-width: 991.98px) {
-    /* Unstick Date and Participant columns so they do NOT freeze 90% of screen width */
-    .matrix-table-container thead th.sticky-col-date,
-    .matrix-table-container tbody td.sticky-col-date,
-    .matrix-table-container thead th.sticky-col-part,
-    .matrix-table-container tbody td.sticky-col-part {
-      position: static !important;
-      left: auto !important;
-      box-shadow: none !important;
-      z-index: 1 !important;
-    }
-
-    /* Keep row index sticky or static */
-    .matrix-table-container thead th.sticky-col-num,
-    .matrix-table-container tbody td.sticky-col-num {
-      position: sticky !important;
-      left: 0 !important;
-      min-width: 44px !important;
-      width: 44px !important;
-      z-index: 3 !important;
-      box-shadow: 2px 0 4px rgba(0, 0, 0, 0.04) !important;
-    }
-
     .page-header-card .card-body {
       padding: 1rem !important;
     }
@@ -874,13 +906,31 @@
     }
   }
 
+  /* Small Phones (< 576px): Compact Frozen Column Sizing */
   @media (max-width: 576px) {
-    /* On small phones, unstick # as well for 100% fluid touch scroll across all columns */
-    .matrix-table-container thead th.sticky-col-num,
-    .matrix-table-container tbody td.sticky-col-num {
-      position: static !important;
-      left: auto !important;
-      box-shadow: none !important;
+    .sticky-col-num {
+      width: 36px !important;
+      min-width: 36px !important;
+      padding-left: 4px !important;
+      padding-right: 4px !important;
+      font-size: 0.78rem !important;
+    }
+
+    .sticky-col-part {
+      left: 36px !important;
+      min-width: 145px !important;
+      max-width: 165px !important;
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+    }
+
+    #matrixDataTable thead th.sticky-col-part,
+    .matrix-table-container thead th.sticky-col-part {
+      left: 36px !important;
+    }
+
+    .sticky-col-part .text-truncate {
+      max-width: 105px !important;
     }
 
     .page-header-card h3 {
