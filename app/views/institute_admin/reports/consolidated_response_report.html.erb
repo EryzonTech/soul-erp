@@ -3,16 +3,16 @@
   <div class="card border-0 shadow-sm rounded-4 mb-4 page-header-card">
     <div class="card-body p-3 p-md-4">
       <!-- Top Breadcrumb Bar -->
-      <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-light-subtle">
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb breadcrumb-modern mb-0">
+      <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 pb-2 border-bottom border-light-subtle gap-2">
+        <nav aria-label="breadcrumb" class="flex-grow-1" style="min-width: 0;">
+          <ol class="breadcrumb breadcrumb-modern mb-0 flex-wrap" style="row-gap: 0.25rem;">
             <li class="breadcrumb-item"><%= link_to institute_admin_root_path do %><i class="bi bi-house-door-fill"></i><% end %></li>
             <li class="breadcrumb-item"><%= link_to "Reports", institute_admin_reports_path %></li>
             <li class="breadcrumb-item"><%= link_to "Assignment Reports", assignment_reports_menu_institute_admin_reports_path %></li>
-            <li class="breadcrumb-item active" aria-current="page">Consolidated Response Report</li>
+            <li class="breadcrumb-item active text-truncate" aria-current="page">Consolidated Response Report</li>
           </ol>
         </nav>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
           <% if @date_range == 'today' %>
             <span class="badge bg-indigo text-white px-2.5 py-1 small fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs" style="background-color: #6366f1;">
               <i class="bi bi-clock-history"></i>
@@ -239,7 +239,7 @@
 
         <!-- Action Buttons (Reset & Apply Filters) -->
         <div class="col-12 col-md-5 col-lg-4 d-flex align-items-center justify-content-md-end gap-2">
-          <%= link_to consolidated_response_report_institute_admin_reports_path(view: :detailed, date_range: :today), class: "btn btn-filter-reset px-3 rounded-3 d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-md-grow-0", title: "Reset All Filters to Default (Today)" do %>
+          <%= link_to consolidated_response_report_institute_admin_reports_path(view: :detailed, date_range: :today), class: "btn btn-filter-reset px-3 rounded-3 d-inline-flex align-items-center justify-content-center gap-1.5 w-50 w-md-auto flex-md-grow-0", title: "Reset All Filters to Default (Today)" do %>
             <i class="bi bi-arrow-counterclockwise"></i>
             <span>Reset</span>
             <% if active_filters_count > 0 %>
@@ -247,7 +247,7 @@
             <% end %>
           <% end %>
 
-          <button type="submit" class="btn btn-filter-apply-indigo px-4 rounded-3 d-inline-flex align-items-center justify-content-center gap-1.5 fw-semibold shadow-sm flex-grow-1 flex-md-grow-0">
+          <button type="submit" class="btn btn-filter-apply-indigo px-3 px-sm-4 rounded-3 d-inline-flex align-items-center justify-content-center gap-1.5 fw-semibold shadow-sm w-50 w-md-auto flex-md-grow-0">
             <i class="bi bi-funnel-fill"></i>
             <span>Apply Filters</span>
           </button>
@@ -573,9 +573,9 @@
 
   <!-- CONSOLIDATED RESPONSE DATA TABLE CARD (Supports Full Screen Mode) -->
   <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4" id="responseTableCard">
-    <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="card-header bg-white py-3 px-3 px-md-4 border-bottom d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2.5">
       <div class="d-flex align-items-center gap-2">
-        <i class="bi bi-table text-indigo fs-5"></i>
+        <i class="bi bi-table text-indigo fs-5 flex-shrink-0"></i>
         <h6 class="fw-bold mb-0 text-dark">Consolidated Participant Responses</h6>
         <% if @date_range == 'today' %>
           <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 small fw-semibold">
@@ -584,14 +584,14 @@
         <% end %>
       </div>
 
-      <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-light text-secondary border px-3 py-2 fw-medium rounded-3" id="responseRecordsBadge" style="font-size: 0.78rem;">
+      <div class="d-flex align-items-center justify-content-between justify-content-md-end gap-2 w-100 w-md-auto flex-wrap">
+        <span class="badge bg-light text-secondary border px-2.5 px-sm-3 py-2 fw-medium rounded-3" id="responseRecordsBadge" style="font-size: 0.78rem;">
           Showing <span id="responseLoadedCount" class="fw-semibold text-dark"><%= @paginated_rows&.size || 0 %></span> of <span id="responseTotalCount" class="fw-semibold text-dark"><%= @total_report_count || 0 %></span> Records
         </span>
 
         <!-- FULLSCREEN TOGGLE BUTTON -->
         <button type="button" 
-                class="btn btn-table-fullscreen" 
+                class="btn btn-table-fullscreen flex-shrink-0" 
                 id="toggleFullscreenBtn" 
                 onclick="toggleResponseTableFullscreen();" 
                 title="Expand table to full screen">
@@ -603,7 +603,16 @@
       </div>
     </div>
 
-    <div class="table-responsive" id="responseScrollContainer" style="max-height: 720px; overflow-y: auto;">
+    <!-- MOBILE / TABLET SWIPE HINT BANNER -->
+    <div class="d-lg-none px-3 py-1.5 bg-light-subtle border-bottom d-flex align-items-center justify-content-between text-muted" style="font-size: 0.74rem;">
+      <span class="d-inline-flex align-items-center">
+        <i class="bi bi-arrow-left-right text-indigo me-1.5"></i>
+        <span>Swipe table horizontally to view all columns &rarr;</span>
+      </span>
+      <span class="badge bg-secondary-subtle text-secondary rounded-pill" style="font-size: 0.65rem;">Scrollable</span>
+    </div>
+
+    <div class="table-responsive response-table-container" id="responseScrollContainer">
       <table class="table align-middle mb-0 table-hover" id="responseDataTable">
         <thead class="table-light">
           <tr>
@@ -625,7 +634,7 @@
     </div>
 
     <!-- SCROLL PAGINATION / INFINITE SCROLL BAR -->
-    <div id="scrollPaginationWrapper" class="py-3 px-4 bg-white border-top d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div id="scrollPaginationWrapper" class="py-3 px-3 px-md-4 bg-white border-top d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div class="text-muted small">
         Showing <strong id="footerLoadedCount"><%= @paginated_rows&.size || 0 %></strong> of <strong id="footerTotalCount"><%= @total_report_count || 0 %></strong> records
       </div>
@@ -772,6 +781,67 @@
   .table-card-fullscreen .table-responsive {
     max-height: calc(100vh - 125px) !important;
     flex-grow: 1 !important;
+  }
+
+  .response-table-container,
+  #responseScrollContainer {
+    max-height: 720px;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x pan-y !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    overscroll-behavior-x: contain;
+  }
+
+  #responseDataTable {
+    width: max-content !important;
+    min-width: 100% !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Mobile & Tablet Responsive Optimizations (< 992px) */
+  @media (max-width: 991.98px) {
+    .page-header-card .card-body {
+      padding: 1rem !important;
+    }
+
+    .header-actions {
+      width: 100% !important;
+      justify-content: flex-start !important;
+    }
+
+    .header-actions .btn {
+      font-size: 0.8125rem !important;
+      padding: 0.38rem 0.65rem !important;
+    }
+
+    .report-kpi-card {
+      padding: 0.85rem 1rem !important;
+    }
+
+    .table-card-fullscreen #responseScrollContainer {
+      max-height: calc(100vh - 145px) !important;
+      max-height: calc(100dvh - 145px) !important;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .page-header-card h3 {
+      font-size: 1.15rem !important;
+    }
+
+    .btn-table-fullscreen {
+      padding: 0.35rem 0.65rem !important;
+      font-size: 0.76rem !important;
+    }
+
+    #responseRecordsBadge {
+      font-size: 0.72rem !important;
+      padding: 0.35rem 0.6rem !important;
+    }
   }
 
   /* ========================================================= */
