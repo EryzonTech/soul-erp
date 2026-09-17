@@ -96,7 +96,7 @@
     <!-- Consolidated Response Report Card -->
     <div class="col-12 col-md-6 col-xl-3">
       <div class="report-menu-card card-purple">
-        <%= link_to consolidated_response_report_institute_admin_reports_path, class: "card-overlay-link", title: "Open Consolidated Response Report" do %><% end %>
+        <%= link_to consolidated_response_report_institute_admin_reports_path(view: :detailed, date_range: :today), class: "card-overlay-link", title: "Open Consolidated Response Report" do %><% end %>
         
         <div class="d-flex align-items-start justify-content-between mb-3">
           <div class="report-icon-wrapper icon-purple">
@@ -129,7 +129,7 @@
     <!-- Consolidated Question Matrix Report Card -->
     <div class="col-12 col-md-6 col-xl-3">
       <div class="report-menu-card card-sky">
-        <%= link_to consolidated_matrix_report_institute_admin_reports_path, class: "card-overlay-link", title: "Open Question Matrix Report" do %><% end %>
+        <%= link_to consolidated_matrix_report_institute_admin_reports_path(date_range: :today), class: "card-overlay-link", title: "Open Question Matrix Report" do %><% end %>
         
         <div class="d-flex align-items-start justify-content-between mb-3">
           <div class="report-icon-wrapper icon-sky">
