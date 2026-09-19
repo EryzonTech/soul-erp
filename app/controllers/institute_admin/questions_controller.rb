@@ -365,7 +365,8 @@ module InstituteAdmin
       )
 
       browser = Ferrum::Browser.new(
-        timeout: 15,
+        timeout: 30,
+        process_timeout: 30,
         window_size: [ 1200, 1600 ],
         browser_options: {
           "no-sandbox": nil,
