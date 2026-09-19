@@ -1204,6 +1204,7 @@ module InstituteAdmin
     def self.ferrum_browser
       @ferrum_browser ||= Ferrum::Browser.new(
         timeout: 45,
+        process_timeout: 30,
         window_size: [ 1200, 1600 ],
         browser_options: {
           "no-sandbox": nil,
@@ -3051,20 +3052,34 @@ module InstituteAdmin
       require "base64"
 
       pdf_data = nil
-      browser = Ferrum::Browser.new(headless: true, window_size: [ 1024, 768 ])
+      browser = self.class.ferrum_browser
       begin
         base64_html = Base64.strict_encode64(html)
         data_uri = "data:text/html;base64,#{base64_html}"
         browser.go_to(data_uri)
         pdf_data = browser.pdf(
           format: :A4,
+          print_background: true,
           margin_top: 0.4,
           margin_bottom: 0.4,
           margin_left: 0.4,
           margin_right: 0.4
         )
-      ensure
-        browser.quit
+      rescue StandardError => e
+        Rails.logger.error("Ferrum PDF error: #{e.message}. Re-initializing Chrome instance...")
+        self.class.reset_ferrum_browser!
+        browser = self.class.ferrum_browser
+        base64_html = Base64.strict_encode64(html)
+        data_uri = "data:text/html;base64,#{base64_html}"
+        browser.go_to(data_uri)
+        pdf_data = browser.pdf(
+          format: :A4,
+          print_background: true,
+          margin_top: 0.4,
+          margin_bottom: 0.4,
+          margin_left: 0.4,
+          margin_right: 0.4
+        )
       end
 
       # Decode Base64 if needed (Ferrum returns Base64 encoded string)
@@ -3127,20 +3142,34 @@ module InstituteAdmin
       require "base64"
 
       pdf_data = nil
-      browser = Ferrum::Browser.new(headless: true, window_size: [ 1024, 768 ])
+      browser = self.class.ferrum_browser
       begin
         base64_html = Base64.strict_encode64(html)
         data_uri = "data:text/html;base64,#{base64_html}"
         browser.go_to(data_uri)
         pdf_data = browser.pdf(
           format: :A4,
+          print_background: true,
           margin_top: 0.4,
           margin_bottom: 0.4,
           margin_left: 0.4,
           margin_right: 0.4
         )
-      ensure
-        browser.quit
+      rescue StandardError => e
+        Rails.logger.error("Ferrum PDF error: #{e.message}. Re-initializing Chrome instance...")
+        self.class.reset_ferrum_browser!
+        browser = self.class.ferrum_browser
+        base64_html = Base64.strict_encode64(html)
+        data_uri = "data:text/html;base64,#{base64_html}"
+        browser.go_to(data_uri)
+        pdf_data = browser.pdf(
+          format: :A4,
+          print_background: true,
+          margin_top: 0.4,
+          margin_bottom: 0.4,
+          margin_left: 0.4,
+          margin_right: 0.4
+        )
       end
 
       # Decode Base64 if needed (Ferrum returns Base64 encoded string)

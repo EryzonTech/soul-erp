@@ -78,11 +78,27 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
       training_program_id: @training_program.id,
       commit: "Generate Report"
     )
-    
-    # We skip testing ferrum external fonts in offline environments if ferrum fails
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
   rescue Ferrum::PendingConnectionsError
     skip "Ferrum pending connections error in test environment"
   end
+
+  test "should get section feedback reports pdf successfully" do
+    get section_feedback_reports_institute_admin_reports_url(
+      format: :pdf,
+      submission_status: "submitted",
+      date_range: "all",
+      section_id: @section.id,
+      training_program_id: @training_program.id,
+      commit: "Generate Report"
+    )
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
+  rescue Ferrum::PendingConnectionsError
+    skip "Ferrum pending connections error in test environment"
+  end
+
 
   test "should get consolidated_response_report html successfully" do
     assignment = Assignment.create!(
