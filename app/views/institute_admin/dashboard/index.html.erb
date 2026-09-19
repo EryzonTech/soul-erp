@@ -6,7 +6,7 @@
       position: relative;
       overflow: hidden;
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      min-height: 120px; /* Reduced from 160px */
+      min-height: 140px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -193,9 +193,43 @@
       transition: all 0.2s;
     }
 
-    .action-btn:hover {
-      background-color: #e2e8f0;
-      color: #0f172a;
+    .stat-breakdown {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      margin-top: 0.65rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-breakdown-pill {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+      backdrop-filter: blur(4px);
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+
+    .chart-controls-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .chart-nav-btn {
+      padding: 0.25rem 0.65rem;
+      font-size: 0.78rem;
+      border-radius: 8px;
+    }
+
+    .pointer-events-none {
+      pointer-events: none;
     }
   </style>
 <% end %>
@@ -205,18 +239,21 @@
   <!-- KPI Cards Row 1 -->
   <div class="row g-4 mb-4">
     <!-- Total Participants -->
-    <!-- Total Participants -->
     <div class="col-xl-3 col-md-6">
       <div class="stat-card stat-card-participants">
         <div class="card-body">
           <div class="stat-title">Total Participants</div>
           <h2 class="stat-value"><%= @total_participants %></h2>
           <i class="bi bi-people-fill stat-icon"></i>
+          <div class="stat-breakdown">
+            <span class="stat-breakdown-pill">Students: <%= @participant_type_distribution["student"] || 0 %></span>
+            <span class="stat-breakdown-pill">Guardians: <%= @participant_type_distribution["guardian"] || 0 %></span>
+            <span class="stat-breakdown-pill">Employees: <%= @participant_type_distribution["employee"] || 0 %></span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Total Questions -->
     <!-- Total Questions -->
     <div class="col-xl-3 col-md-6">
       <div class="stat-card stat-card-questions">
@@ -229,18 +266,21 @@
     </div>
 
     <!-- Total Assignments -->
-    <!-- Total Assignments -->
     <div class="col-xl-3 col-md-6">
       <div class="stat-card stat-card-assignments">
         <div class="card-body">
           <div class="stat-title">Total Assignments</div>
           <h2 class="stat-value"><%= @total_assignments %></h2>
           <i class="bi bi-clipboard-check-fill stat-icon"></i>
+          <div class="stat-breakdown">
+            <span class="stat-breakdown-pill">Students: <%= @assignment_type_distribution["student"] || 0 %></span>
+            <span class="stat-breakdown-pill">Guardians: <%= @assignment_type_distribution["guardian"] || 0 %></span>
+            <span class="stat-breakdown-pill">Employees: <%= @assignment_type_distribution["employee"] || 0 %></span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Total Sections -->
     <!-- Total Sections -->
     <div class="col-xl-3 col-md-6">
       <div class="stat-card stat-card-sections">
@@ -253,95 +293,278 @@
     </div>
   </div>
 
-  <!-- Submissions Over Time (14 days) -->
+  <!-- Assignment submission (Submissions Over Time & Backlog Trend) -->
   <div class="row g-4 mb-4">
     <div class="col-12">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3 d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">Submissions Over Time (14 days)</h5>
-          <small class="text-muted">Distinct submissions per assignment & participant</small>
+      <div class="card card-custom h-100 shadow-sm border-0">
+        <div class="card-header border-0 pt-3 pb-2 bg-white d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h5 class="card-title mb-0 fw-bold text-dark">Assignment submission</h5>
+              <span id="submission-date-range-badge" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1">
+                <%= @submission_start_date.strftime("%b %d") %> – <%= @submission_end_date.strftime("%b %d, %Y") %>
+              </span>
+              <span id="submission-active-series-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill px-2.5 py-1">
+                Viewing: Combined (Total &amp; Backlog)
+              </span>
+            </div>
+            <small class="text-muted">Multi-series submission trends & backlog analysis</small>
+          </div>
+
+          <div class="chart-controls-toolbar">
+            <!-- View Mode Pills -->
+            <div class="btn-group btn-group-sm" role="group" aria-label="View Mode">
+              <button type="button" class="btn btn-outline-primary active fw-semibold" id="btn-sub-view-combined" onclick="setSubmissionViewMode('combined')">Combined</button>
+              <button type="button" class="btn btn-outline-primary fw-semibold" id="btn-sub-view-submissions" onclick="setSubmissionViewMode('submissions')">Submissions Only</button>
+              <button type="button" class="btn btn-outline-primary fw-semibold" id="btn-sub-view-backlog" onclick="setSubmissionViewMode('backlog')">Backlog Only</button>
+            </div>
+
+            <!-- Participant Type Filter (Active in Submissions Only mode) -->
+            <div class="btn-group btn-group-sm" role="group" id="sub-ptype-group" aria-label="Participant Type Filter" style="display: none;">
+              <button type="button" class="btn btn-outline-secondary active btn-sm" id="btn-sub-ptype-all" onclick="filterSubmissionType('all')">All</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-sub-ptype-student" onclick="filterSubmissionType('student')">Students</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-sub-ptype-guardian" onclick="filterSubmissionType('guardian')">Guardians</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-sub-ptype-employee" onclick="filterSubmissionType('employee')">Employees</button>
+            </div>
+
+            <!-- Date Nav Controls -->
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftAssignmentSubmission(false)" title="Previous 14 Days">
+                <i class="bi bi-chevron-left"></i> Prev 14d
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftAssignmentSubmission(true)" title="Next 14 Days">
+                Next 14d <i class="bi bi-chevron-right"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-light border chart-nav-btn" onclick="resetAssignmentSubmissionLatest()" title="Latest 14 Days">
+                Latest
+              </button>
+            </div>
+
+            <!-- Flatpickr Custom Range -->
+            <div style="min-width: 215px;">
+              <input type="text" id="assignment_submission_range_picker" class="form-control form-control-sm bg-light border-secondary-subtle text-center"
+                     placeholder="Custom Date Range" readonly>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
-          <div id="submissions-over-time-chart" style="height: 320px;"></div>
+        <div class="card-body pt-1">
+          <div id="submission-zero-notice" class="alert alert-light border border-secondary-subtle text-muted py-2 px-3 mb-2 small d-none align-items-center gap-2 rounded-3">
+            <i class="bi bi-info-circle text-primary fs-6"></i>
+            <span>No submissions recorded in this date range. Use <strong>&lt; Prev 14d</strong> or pick a custom date range to view earlier activity.</span>
+          </div>
+          <div id="submissions-over-time-chart" style="height: 330px;"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Submissions by Assignment (Today) -->
+  <!-- Backlog Trend (14 days) - Placed directly below Assignment submission -->
   <div class="row g-4 mb-4">
-    <div class="col-xl-6">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3 d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">Submissions by Assignment (Today)</h5>
-          <small class="text-muted">Top 10 assignments by participants submitted</small>
+    <div class="col-12">
+      <div class="card card-custom h-100 shadow-sm border-0">
+        <div class="card-header border-0 pt-3 pb-2 bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h5 class="card-title mb-0 fw-bold text-dark">Backlog Trend (14 days)</h5>
+              <span id="backlog-date-range-badge" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
+                <%= @submission_start_date.strftime("%b %d") %> – <%= @submission_end_date.strftime("%b %d, %Y") %>
+              </span>
+            </div>
+            <small class="text-muted">Unsubmitted daily assignments over the 14-day window</small>
+          </div>
+          <div class="chart-controls-toolbar">
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftBacklogDays(false)" title="Previous 14 Days">
+                <i class="bi bi-chevron-left"></i> Prev 14d
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftBacklogDays(true)" title="Next 14 Days">
+                Next 14d <i class="bi bi-chevron-right"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-light border chart-nav-btn" onclick="resetBacklogLatest()" title="Latest 14 Days">
+                Latest
+              </button>
+            </div>
+            <div style="min-width: 215px;">
+              <input type="text" id="backlog_range_picker" class="form-control form-control-sm bg-light border-secondary-subtle text-center"
+                     placeholder="Custom Date Range" readonly>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
+        <div class="card-body pt-1">
+          <div id="backlog-trend-chart" style="height: 240px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submissions by Assignment & Submissions by Section -->
+  <div class="row g-4 mb-4">
+    <!-- Submissions by Assignment -->
+    <div class="col-xl-6">
+      <div class="card card-custom h-100 shadow-sm border-0">
+        <div class="card-header border-0 pt-3 pb-2 bg-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h5 class="card-title mb-0 fw-bold text-dark">Submissions by Assignment</h5>
+              <span id="by-assignment-date-badge" class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1">
+                <%= @assignment_date.strftime("%b %d, %Y") %>
+              </span>
+            </div>
+            <small class="text-muted">Top assignments by distinct participants submitted</small>
+          </div>
+          <div class="chart-controls-toolbar">
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftAssignmentDay(false)" title="Previous Day">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-light border chart-nav-btn fw-semibold" onclick="resetAssignmentDayToday()" title="Jump to Today">
+                Today
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftAssignmentDay(true)" title="Next Day">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+            <div style="width: 170px;">
+              <input type="text" id="by_assignment_picker" class="form-control form-control-sm bg-light border-secondary-subtle text-center"
+                     placeholder="Pick Date / Range" readonly>
+            </div>
+          </div>
+        </div>
+        <div class="card-body pt-1">
           <div id="submissions-by-assignment-chart" style="height: 360px;"></div>
-          <!-- Chart UI cleaned: debug block removed -->
         </div>
       </div>
     </div>
+
+    <!-- Submissions by Section -->
     <div class="col-xl-6">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3 d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">Submissions by Section (Today)</h5>
-          <small class="text-muted">Top sections by distinct submissions</small>
+      <div class="card card-custom h-100 shadow-sm border-0">
+        <div class="card-header border-0 pt-3 pb-2 bg-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h5 class="card-title mb-0 fw-bold text-dark">Submissions by Section</h5>
+              <span id="by-section-date-badge" class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2.5 py-1">
+                <%= @section_date.strftime("%b %d, %Y") %>
+              </span>
+            </div>
+            <small class="text-muted">Top sections by distinct submissions</small>
+          </div>
+          <div class="chart-controls-toolbar">
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftSectionDay(false)" title="Previous Day">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-light border chart-nav-btn fw-semibold" onclick="resetSectionDayToday()" title="Jump to Today">
+                Today
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftSectionDay(true)" title="Next Day">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+            <div style="width: 170px;">
+              <input type="text" id="by_section_picker" class="form-control form-control-sm bg-light border-secondary-subtle text-center"
+                     placeholder="Pick Date / Range" readonly>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
-          <div id="submissions-by-section-chart" style="height:360px;"></div>
+        <div class="card-body pt-1">
+          <div id="submissions-by-section-chart" style="height: 360px;"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- KPI Cards Row 2 -->
-  <!-- Charts: Not-submitted (full width), Pending by Section (full width), Backlog Trend (full width) -->
+  <!-- Charts: Not-submitted & Pending by Section -->
   <div class="row g-4 mb-4">
+    <!-- Not Submitted by Assignment -->
     <div class="col-xl-6">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Not Submitted by Assignment (Top 10)</h5>
+      <div class="card card-custom h-100 shadow-sm border-0">
+        <div class="card-header border-0 pt-3 pb-2 bg-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h5 class="card-title mb-0 fw-bold text-dark">Not Submitted by Assignment</h5>
+              <span id="not-submitted-date-badge" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
+                <%= @not_submitted_date.strftime("%b %d, %Y") %>
+              </span>
+            </div>
+            <small class="text-muted">Top 10 assignments with highest pending participant count</small>
+          </div>
+          <div class="chart-controls-toolbar">
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftNotSubmittedDay(false)" title="Previous Day">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-light border chart-nav-btn fw-semibold" onclick="resetNotSubmittedToday()" title="Jump to Today">
+                Today
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftNotSubmittedDay(true)" title="Next Day">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+            <div style="width: 145px;">
+              <input type="text" id="not_submitted_picker" class="form-control form-control-sm bg-light border-secondary-subtle text-center"
+                     placeholder="Pick Date" readonly>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
+        <div class="card-body pt-1">
           <div id="not-submitted-assignment-chart" style="height:320px;"></div>
         </div>
       </div>
     </div>
+
+    <!-- Pending by Section -->
     <div class="col-xl-6">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Pending by Section (Top 10)</h5>
+      <div class="card card-custom h-100 shadow-sm border-0">
+        <div class="card-header border-0 pt-3 pb-2 bg-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h5 class="card-title mb-0 fw-bold text-dark">Pending by Section</h5>
+              <span id="pending-section-date-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill px-2.5 py-1">
+                <%= @pending_section_date.strftime("%b %d, %Y") %>
+              </span>
+            </div>
+            <small class="text-muted">Top 10 sections with pending submissions</small>
+          </div>
+          <div class="chart-controls-toolbar">
+            <div class="d-flex align-items-center gap-1">
+              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftPendingSectionDay(false)" title="Previous Day">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-light border chart-nav-btn fw-semibold" onclick="resetPendingSectionToday()" title="Jump to Today">
+                Today
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftPendingSectionDay(true)" title="Next Day">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+            <div style="width: 145px;">
+              <input type="text" id="pending_section_picker" class="form-control form-control-sm bg-light border-secondary-subtle text-center"
+                     placeholder="Pick Date" readonly>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
+        <div class="card-body pt-1">
           <div id="pending-section-chart" style="height:320px;"></div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- KPI Cards Row 2 -->
   <div class="row g-4 mb-4">
-    <div class="col-12">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Backlog Trend (14 days)</h5>
-        </div>
-        <div class="card-body">
-          <div id="backlog-trend-chart" style="height:320px;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4 mb-4">
-    <!-- Today Responses (moved to row 2 first column) -->
-    <!-- Today Responses (moved to row 2 first column) -->
+    <!-- Today Responses -->
     <div class="col-xl-3 col-md-6">
       <div class="stat-card stat-card-responses">
         <div class="card-body">
           <div class="stat-title">Today Responses</div>
           <h2 class="stat-value"><%= @today_responses_count || 0 %></h2>
           <i class="bi bi-file-earmark-check-fill stat-icon"></i>
+          <div class="stat-breakdown">
+            <span class="stat-breakdown-pill">Students: <%= @today_responses_by_type["student"] || 0 %></span>
+            <span class="stat-breakdown-pill">Guardians: <%= @today_responses_by_type["guardian"] || 0 %></span>
+            <span class="stat-breakdown-pill">Employees: <%= @today_responses_by_type["employee"] || 0 %></span>
+          </div>
         </div>
       </div>
     </div>
@@ -364,6 +587,11 @@
           <div class="stat-title">Training Programs</div>
           <h2 class="stat-value"><%= @total_training_programs %></h2>
           <i class="bi bi-mortarboard-fill stat-icon"></i>
+          <div class="stat-breakdown">
+            <span class="stat-breakdown-pill">Students: <%= @training_programs_by_type["student"] || 0 %></span>
+            <span class="stat-breakdown-pill">Guardians: <%= @training_programs_by_type["guardian"] || 0 %></span>
+            <span class="stat-breakdown-pill">Employees: <%= @training_programs_by_type["employee"] || 0 %></span>
+          </div>
         </div>
       </div>
     </div>
@@ -375,6 +603,11 @@
           <div class="stat-title">Feedback Received</div>
           <h2 class="stat-value"><%= @total_feedback_received || 0 %></h2>
           <i class="bi bi-chat-square-text-fill stat-icon"></i>
+          <div class="stat-breakdown">
+            <span class="stat-breakdown-pill">Students: <%= @feedback_by_type["student"] || 0 %></span>
+            <span class="stat-breakdown-pill">Guardians: <%= @feedback_by_type["guardian"] || 0 %></span>
+            <span class="stat-breakdown-pill">Employees: <%= @feedback_by_type["employee"] || 0 %></span>
+          </div>
         </div>
       </div>
     </div>
@@ -536,6 +769,27 @@
 <script>
   // Track if we're on the dashboard page
   let isDashboardPage = true;
+
+  // Global state variables for dates and multi-series datasets
+  let currentSubStartDate = new Date("<%= @submission_start_date.iso8601 %>T00:00:00");
+  let currentSubEndDate = new Date("<%= @submission_end_date.iso8601 %>T00:00:00");
+  let currentBacklogStartDate = new Date("<%= @submission_start_date.iso8601 %>T00:00:00");
+  let currentBacklogEndDate = new Date("<%= @submission_end_date.iso8601 %>T00:00:00");
+  let currentAssignDate = new Date("<%= @assignment_date.iso8601 %>T00:00:00");
+  let currentSectionDate = new Date("<%= @section_date.iso8601 %>T00:00:00");
+  let currentNotSubDate = new Date("<%= @not_submitted_date.iso8601 %>T00:00:00");
+  let currentPendSecDate = new Date("<%= @pending_section_date.iso8601 %>T00:00:00");
+
+  let submissionRawData = {
+    labels: <%= raw @submissions_time_labels.to_json %>,
+    student: <%= @student_submissions_data.to_json %>,
+    guardian: <%= @guardian_submissions_data.to_json %>,
+    employee: <%= @employee_submissions_data.to_json %>,
+    total: <%= @submissions_time_data.to_json %>,
+    backlog: <%= @backlog_data.to_json %>
+  };
+  let submissionViewMode = 'combined'; // 'combined', 'submissions', 'backlog'
+  let submissionPTypeFilter = 'all'; // 'all', 'student', 'guardian', 'employee'
   
   // Function to initialize dashboard charts
   function initializeDashboardCharts() {
@@ -765,28 +1019,80 @@
       window.sectionChart = new ApexCharts(sectionChartContainer, sectionChartOptions);
       window.sectionChart.render();
     }
-      // Submissions over time chart (Apex)
+      // State variables for dates and multi-series datasets
+      currentSubStartDate = new Date("<%= @submission_start_date.iso8601 %>T00:00:00");
+      currentSubEndDate = new Date("<%= @submission_end_date.iso8601 %>T00:00:00");
+      currentBacklogStartDate = new Date("<%= @submission_start_date.iso8601 %>T00:00:00");
+      currentBacklogEndDate = new Date("<%= @submission_end_date.iso8601 %>T00:00:00");
+      currentAssignDate = new Date("<%= @assignment_date.iso8601 %>T00:00:00");
+      currentSectionDate = new Date("<%= @section_date.iso8601 %>T00:00:00");
+      currentNotSubDate = new Date("<%= @not_submitted_date.iso8601 %>T00:00:00");
+      currentPendSecDate = new Date("<%= @pending_section_date.iso8601 %>T00:00:00");
+
+      submissionRawData = {
+        labels: <%= raw @submissions_time_labels.to_json %>,
+        student: <%= @student_submissions_data.to_json %>,
+        guardian: <%= @guardian_submissions_data.to_json %>,
+        employee: <%= @employee_submissions_data.to_json %>,
+        total: <%= @submissions_time_data.to_json %>,
+        backlog: <%= @backlog_data.to_json %>
+      };
+      submissionViewMode = 'combined'; // 'combined', 'submissions', 'backlog'
+      submissionPTypeFilter = 'all'; // 'all', 'student', 'guardian', 'employee'
+
+      // Assignment Submission Chart (Apex)
       var submissionsContainer = document.querySelector('#submissions-over-time-chart');
       if (window.submissionsChart) {
         try { window.submissionsChart.destroy(); } catch(e) { /* ignore */ }
       }
       if (submissionsContainer) {
-  // initializing Submissions Over Time Chart
         var submissionsOptions = {
-          chart: { type: 'area', height: 320, toolbar: { show: true }, animations: { enabled: true, easing: 'easeinout', speed: 700 } },
-          series: [{ name: 'Submissions', data: <%= @submissions_time_data.to_json.html_safe %> }],
-          stroke: { curve: 'smooth', width: 3 },
+          chart: {
+            type: 'area',
+            height: 330,
+            toolbar: { show: true },
+            animations: { enabled: true, easing: 'easeinout', speed: 600 }
+          },
+          series: [
+            { name: 'Total Submissions', data: submissionRawData.total },
+            { name: 'Backlog', data: submissionRawData.backlog }
+          ],
+          stroke: { curve: 'smooth', width: [2.5, 2.5] },
           markers: { size: 4, strokeColors: '#ffffff', hover: { sizeOffset: 2 } },
-          colors: ['#0d6efd'],
-          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.04 } },
-          xaxis: { categories: <%= raw @submissions_time_labels.to_json %>, labels: { rotate: -35, style: { fontSize: '12px' } } },
-          yaxis: { title: { text: 'Submissions' }, min: 0 },
-          tooltip: { x: { format: 'dd MMM' }, y: { formatter: function(val){ return val + ' submissions'; } } },
-          legend: { show: false },
+          colors: ['#4f46e5', '#ef4444'],
+          fill: {
+            type: 'gradient',
+            gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.8, opacityFrom: 0.5, opacityTo: 0.05 }
+          },
+          xaxis: {
+            categories: submissionRawData.labels,
+            labels: { rotate: -35, style: { fontSize: '12px' } }
+          },
+          yaxis: {
+            title: { text: 'Count' },
+            min: 0,
+            forceNiceScale: true,
+            labels: { formatter: function(val) { return Math.round(val); } }
+          },
+          tooltip: {
+            shared: true,
+            intersect: false,
+            y: { formatter: function(val) { return val + (val === 1 ? ' item' : ' items'); } }
+          },
+          legend: {
+            show: true,
+            position: 'top',
+            horizontalAlign: 'left',
+            offsetY: -5,
+            fontSize: '13px',
+            fontWeight: 500,
+            markers: { width: 10, height: 10, radius: 10 },
+            itemMargin: { horizontal: 8, vertical: 0 }
+          },
           grid: { borderColor: '#eef2f6' },
           responsive: [{
             breakpoint: 768,
-            options: { chart: { height: 260 }, xaxis: { labels: { rotate: -20 } } }
+            options: { chart: { height: 260 }, xaxis: { labels: { rotate: -25 } } }
           }]
         };
 
@@ -794,11 +1100,28 @@
         window.submissionsChart.render();
       }
 
-      // Submissions by Assignment (bar)
+      // Backlog Trend Chart (Apex - Row 2.5)
+      var backlogContainer = document.querySelector('#backlog-trend-chart');
+      if (window.backlogChart) { try { window.backlogChart.destroy(); } catch(e) {} }
+      if (backlogContainer) {
+        var backlogOptions = {
+          chart: { type: 'area', height: 240, toolbar: { show: true } },
+          series: [{ name: 'Backlog', data: <%= raw @backlog_data.to_json %> }],
+          xaxis: { categories: <%= raw @backlog_labels.to_json %>, labels: { rotate: -35, style: { fontSize: '11px' } } },
+          stroke: { curve: 'smooth', width: 2.5 },
+          colors: ['#ef4444'],
+          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', opacityFrom: 0.5, opacityTo: 0.05 } },
+          tooltip: { y: { formatter: function(val){ return val + ' pending'; } } },
+          grid: { borderColor: '#eef2f6' }
+        };
+        window.backlogChart = new ApexCharts(backlogContainer, backlogOptions);
+        window.backlogChart.render();
+      }
+
+      // Submissions by Assignment (bar) - Full Name in x-axis
       var byAssignmentContainer = document.querySelector('#submissions-by-assignment-chart');
       if (window.byAssignmentChart) { try { window.byAssignmentChart.destroy(); } catch(e) {} }
-  if (byAssignmentContainer) {
-        // nicer visuals: gradient fill, rounded bars, adaptive label truncation
+      if (byAssignmentContainer) {
         var assignOptions = {
           chart: { type: 'bar', height: 360, toolbar: { show: true } },
           series: [{ name: 'Participants', data: <%= raw @assignment_data.to_json %> }],
@@ -806,7 +1129,7 @@
             bar: { 
               horizontal: false, 
               columnWidth: '55%', 
-              borderRadius: 0, 
+              borderRadius: 4, 
               distributed: false 
             } 
           },
@@ -814,14 +1137,15 @@
           xaxis: { 
             categories: <%= raw @assignment_labels.to_json %>, 
             labels: { 
-              rotate: -35, 
-              style: { fontSize: '12px' },
-              formatter: function(val) { return val.length > 24 ? val.substring(0,21) + '...' : val; }
+              rotate: -40,
+              rotateAlways: true,
+              trim: false,
+              style: { fontSize: '12px', fontWeight: 500 }
             } 
           },
           yaxis: { title: { text: 'Participants' }, min: 0 },
-          colors: [function({ value, seriesIndex, w }){ return '#06b6d4' }],
-          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#06b6d4'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.6, stops: [0, 100] } },
+          colors: ['#06b6d4'],
+          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#3b82f6'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.7, stops: [0, 100] } },
           tooltip: { y: { formatter: function(val){ return val + ' participants'; } }, x: { formatter: function(val){ return val; } } },
           legend: { show: false },
           responsive: [{
@@ -829,7 +1153,7 @@
             options: {
               chart: { height: 300 },
               plotOptions: { bar: { columnWidth: '70%' } },
-              xaxis: { labels: { rotate: -20 } }
+              xaxis: { labels: { rotate: -25 } }
             }
           }]
         };
@@ -838,251 +1162,585 @@
         window.byAssignmentChart.render();
       }
 
-      // Submissions by Section (today) - placed beside assignments
+      // Submissions by Section (today) - Full Name in x-axis
       var bySectionContainer = document.querySelector('#submissions-by-section-chart');
       if (window.bySectionChart) { try { window.bySectionChart.destroy(); } catch(e) {} }
       if (bySectionContainer) {
         var sectionOptions = {
           chart: { type: 'bar', height: 360, toolbar: { show: true } },
           series: [{ name: 'Submissions', data: <%= raw @submissions_section_data.to_json %> }],
-          plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 0 } },
+          plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 4 } },
           dataLabels: { enabled: true, style: { fontSize: '12px' }, formatter: function(val){ return val; } },
-          xaxis: { categories: <%= raw @submissions_section_labels.to_json %>, labels: { rotate: -35, style: { fontSize: '12px' }, formatter: function(val){ return val.length > 24 ? val.substring(0,21) + '...' : val; } } },
+          xaxis: { 
+            categories: <%= raw @submissions_section_labels.to_json %>, 
+            labels: { 
+              rotate: -40,
+              rotateAlways: true,
+              trim: false,
+              style: { fontSize: '12px', fontWeight: 500 }
+            } 
+          },
           yaxis: { title: { text: 'Submissions' }, min: 0 },
           colors: ['#f97316'],
-          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#fb923c'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.6, stops: [0, 100] } },
+          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#fb923c'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.7, stops: [0, 100] } },
           tooltip: { y: { formatter: function(val){ return val + ' submissions'; } } },
           legend: { show: false },
-          responsive: [{ breakpoint: 768, options: { chart: { height: 300 }, xaxis: { labels: { rotate: -20 } } } }]
+          responsive: [{ breakpoint: 768, options: { chart: { height: 300 }, xaxis: { labels: { rotate: -25 } } } }]
         };
 
         window.bySectionChart = new ApexCharts(bySectionContainer, sectionOptions);
         window.bySectionChart.render();
       }
 
-    if (typeChartContainer) {
-  // initializing Participants by Type Pie Chart
-      var optionsType = {
-        chart: { 
-          type: 'pie', 
-          height: 350,
-          animations: {
+      if (typeChartContainer) {
+        var optionsType = {
+          chart: { 
+            type: 'pie', 
+            height: 350,
+            animations: { enabled: true, easing: 'easeinout', speed: 800 }
+          },
+          series: <%= @type_data %>,
+          labels: <%= raw @type_labels.to_json %>,
+          colors: ['#10b981', '#ec4899', '#8b5cf6'],
+          fill: {
+            type: 'gradient',
+            gradient: { shade: 'dark', type: 'vertical', shadeIntensity: 0.5, gradientToColors: ['#059669', '#db2777', '#7c3aed'], inverseColors: false, opacityFrom: 1, opacityTo: 0.9, stops: [0, 100] }
+          },
+          stroke: { show: true, width: 2, colors: ['#ffffff'] },
+          dataLabels: {
             enabled: true,
-            easing: 'easeinout',
-            speed: 800,
-            animateGradually: {
-              enabled: true,
-              delay: 150
-            },
-            dynamicAnimation: {
-              enabled: true,
-              speed: 350
-            }
+            formatter: function(val) { return val.toFixed(1) + '%'; },
+            style: { fontSize: '14px', fontWeight: 600, colors: ['#ffffff'] }
+          },
+          legend: { position: 'right', fontSize: '13px', fontWeight: 500 },
+          tooltip: { theme: 'light', y: { formatter: function(val) { return val; } } }
+        };
+        window.typeChart = new ApexCharts(typeChartContainer, optionsType);
+        window.typeChart.render();
+      }
+
+      if (feedbackChartContainer) {
+        var feedbackChartOptions = {
+          chart: { type: 'bar', height: 300 },
+          series: [{
+            name: 'Received',
+            data: <%= @program_feedback_data.map { |d| d[:received].to_i } %>
+          }, {
+            name: 'Pending',
+            data: <%= @program_feedback_data.map { |d| d[:pending].to_i } %>
+          }],
+          xaxis: { categories: <%= raw @program_feedback_data.map { |d| d[:name] }.to_json %> },
+          colors: ['#8b5cf6', '#fb7185'],
+          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#06b6d4', '#fb923c'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.6, stops: [0, 100] } },
+          tooltip: { y: { formatter: function(val){ return val + ' responses'; } } }
+        };
+        window.feedbackChart = new ApexCharts(feedbackChartContainer, feedbackChartOptions);
+        window.feedbackChart.render();
+      }
+
+      // Not-submitted by Assignment (Top 10) - bar with full name
+      var notSubmittedContainer = document.querySelector('#not-submitted-assignment-chart');
+      if (window.notSubmittedChart) { try { window.notSubmittedChart.destroy(); } catch(e) {} }
+      if (notSubmittedContainer) {
+        var notSubmittedOptions = {
+          chart: { type: 'bar', height: 320 },
+          series: [{ name: 'Pending', data: <%= raw @not_submitted_assignment_data.to_json %> }],
+          xaxis: { 
+            categories: <%= raw @not_submitted_assignment_labels.to_json %>, 
+            labels: { 
+              rotate: -40,
+              rotateAlways: true,
+              trim: false,
+              style: { fontSize: '12px', fontWeight: 500 }
+            } 
+          },
+          plotOptions: { bar: { horizontal: false, columnWidth: '60%', borderRadius: 4 } },
+          dataLabels: { enabled: true, style: { fontSize: '12px' } },
+          colors: ['#ef4444'],
+          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#f43f5e'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.7, stops: [0,100] } },
+          tooltip: { y: { formatter: function(val){ return val + ' pending'; } } },
+          legend: { show: false }
+        };
+        window.notSubmittedChart = new ApexCharts(notSubmittedContainer, notSubmittedOptions);
+        window.notSubmittedChart.render();
+      }
+
+      // Pending by Section (Top 10) - bar with full name
+      var pendingSectionContainer = document.querySelector('#pending-section-chart');
+      if (window.pendingSectionChart) { try { window.pendingSectionChart.destroy(); } catch(e) {} }
+      if (pendingSectionContainer) {
+        var pendingSectionOptions = {
+          chart: { type: 'bar', height: 320 },
+          series: [{ name: 'Pending', data: <%= raw @pending_section_data.to_json %> }],
+          xaxis: { 
+            categories: <%= raw @pending_section_labels.to_json %>, 
+            labels: { 
+              rotate: -40,
+              rotateAlways: true,
+              trim: false,
+              style: { fontSize: '12px', fontWeight: 500 }
+            } 
+          },
+          plotOptions: { bar: { horizontal: false, columnWidth: '60%', borderRadius: 4 } },
+          dataLabels: { enabled: true, style: { fontSize: '12px' } },
+          colors: ['#8b5cf6'],
+          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#ec4899'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.7, stops: [0,100] } },
+          tooltip: { y: { formatter: function(val){ return val + ' pending'; } } },
+          legend: { show: false }
+        };
+        window.pendingSectionChart = new ApexCharts(pendingSectionContainer, pendingSectionOptions);
+        window.pendingSectionChart.render();
+      }
+
+      // Initialize Flatpickr instances
+      initDashboardDatepickers();
+    }
+
+    // Date formatting helper functions
+    function formatDateIso(d) {
+      if (!d) return '';
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatDayDisplay(d) {
+      if (!d) return '';
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function formatRangeDisplay(d1, d2) {
+      if (!d1 || !d2) return '';
+      const opt1 = { month: 'short', day: 'numeric' };
+      const opt2 = { month: 'short', day: 'numeric', year: 'numeric' };
+      return `${d1.toLocaleDateString('en-US', opt1)} – ${d2.toLocaleDateString('en-US', opt2)}`;
+    }
+
+    // Dynamic series update for Assignment submission chart
+    function updateAssignmentSubmissionSeries() {
+      if (!window.submissionsChart) return;
+      
+      let series = [];
+      let colors = [];
+      
+      if (submissionViewMode === 'combined') {
+        series = [
+          { name: 'Total Submissions', data: submissionRawData.total },
+          { name: 'Backlog', data: submissionRawData.backlog }
+        ];
+        colors = ['#4f46e5', '#ef4444'];
+      } else if (submissionViewMode === 'submissions') {
+        if (submissionPTypeFilter === 'all') {
+          series = [
+            { name: 'Students', data: submissionRawData.student },
+            { name: 'Guardians', data: submissionRawData.guardian },
+            { name: 'Employees', data: submissionRawData.employee }
+          ];
+          colors = ['#06b6d4', '#f59e0b', '#10b981'];
+        } else if (submissionPTypeFilter === 'student') {
+          series = [{ name: 'Students', data: submissionRawData.student }];
+          colors = ['#06b6d4'];
+        } else if (submissionPTypeFilter === 'guardian') {
+          series = [{ name: 'Guardians', data: submissionRawData.guardian }];
+          colors = ['#f59e0b'];
+        } else if (submissionPTypeFilter === 'employee') {
+          series = [{ name: 'Employees', data: submissionRawData.employee }];
+          colors = ['#10b981'];
+        }
+      } else if (submissionViewMode === 'backlog') {
+        series = [{ name: 'Backlog', data: submissionRawData.backlog }];
+        colors = ['#ef4444'];
+      }
+      
+      // Update badge label
+      const activeBadge = document.getElementById('submission-active-series-badge');
+      if (activeBadge) {
+        if (submissionViewMode === 'combined') {
+          activeBadge.textContent = 'Viewing: Combined (Total & Backlog)';
+        } else if (submissionViewMode === 'submissions') {
+          if (submissionPTypeFilter === 'all') {
+            activeBadge.textContent = 'Viewing: Submissions (All Types)';
+          } else if (submissionPTypeFilter === 'student') {
+            activeBadge.textContent = 'Viewing: Submissions (Students)';
+          } else if (submissionPTypeFilter === 'guardian') {
+            activeBadge.textContent = 'Viewing: Submissions (Guardians)';
+          } else if (submissionPTypeFilter === 'employee') {
+            activeBadge.textContent = 'Viewing: Submissions (Employees)';
           }
-        },
-        series: <%= @type_data %>,
-        labels: <%= raw @type_labels.to_json %>,
-        colors: ['#10b981', '#ec4899', '#8b5cf6'],
-        fill: {
-          type: 'gradient',
-          gradient: {
-            shade: 'dark',
-            type: 'vertical',
-            shadeIntensity: 0.5,
-            gradientToColors: ['#059669', '#db2777', '#7c3aed'],
-            inverseColors: false,
-            opacityFrom: 1,
-            opacityTo: 0.9,
-            stops: [0, 100]
-          }
-        },
+        } else if (submissionViewMode === 'backlog') {
+          activeBadge.textContent = 'Viewing: Backlog Only';
+        }
+      }
+
+      // Check if all series data points are 0
+      const isAllZero = series.every(s => !s.data || s.data.every(v => Number(v) === 0));
+      const zeroNotice = document.getElementById('submission-zero-notice');
+      if (zeroNotice) {
+        if (isAllZero) {
+          zeroNotice.classList.remove('d-none');
+          zeroNotice.classList.add('d-flex');
+        } else {
+          zeroNotice.classList.add('d-none');
+          zeroNotice.classList.remove('d-flex');
+        }
+      }
+
+      window.submissionsChart.updateOptions({
+        series: series,
+        xaxis: { categories: submissionRawData.labels },
+        colors: colors,
         stroke: {
-          show: true,
-          width: 2,
-          colors: ['#ffffff']
-        },
-        dataLabels: {
-          enabled: true,
-          formatter: function(val) {
-            return val.toFixed(1) + '%';
-          },
-          style: {
-            fontSize: '14px',
-            fontWeight: 600,
-            colors: ['#ffffff']
-          },
-          dropShadow: {
-            enabled: true,
-            top: 1,
-            left: 1,
-            blur: 1,
-            opacity: 0.5
-          }
-        },
-        legend: {
-          position: 'right',
-          fontSize: '13px',
-          fontWeight: 500,
-          labels: {
-            colors: '#475569'
-          },
-          markers: {
-            width: 12,
-            height: 12,
-            radius: 3
-          },
-          itemMargin: {
-            horizontal: 5,
-            vertical: 5
-          }
-        },
-        plotOptions: {
-          pie: {
-            expandOnClick: true,
-            donut: {
-              size: '0%'
-            }
-          }
-        },
-        tooltip: {
-          theme: 'light',
-          y: {
-            formatter: function(val) {
-              return val;
-            }
-          },
-          style: {
-            fontSize: '13px',
-            fontFamily: 'inherit'
-          }
-        },
-        responsive: [{
-          breakpoint: 768,
-          options: {
-            chart: {
-              height: 300
-            },
-            legend: {
-              position: 'bottom'
-            }
-          }
-        }]
-      };
-      window.typeChart = new ApexCharts(typeChartContainer, optionsType);
-      window.typeChart.render();
+          curve: 'smooth',
+          width: series.map(() => 2.5)
+        }
+      }, true, true);
     }
 
-    if (feedbackChartContainer) {
-  // initializing Feedback by Training Program Chart
-      var feedbackChartOptions = {
-        chart: { type: 'bar', height: 300 },
-        series: [{
-          name: 'Received',
-          data: <%= @program_feedback_data.map { |d| d[:received].to_i } %>
-        }, {
-          name: 'Pending',
-          data: <%= @program_feedback_data.map { |d| d[:pending].to_i } %>
-        }],
-        xaxis: { categories: <%= raw @program_feedback_data.map { |d| d[:name] }.to_json %> },
-        colors: ['#8b5cf6', '#fb7185'],
-        fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#06b6d4', '#fb923c'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.6, stops: [0, 100] } },
-        tooltip: { y: { formatter: function(val){ return val + ' responses'; } } }
-      };
-      window.feedbackChart = new ApexCharts(feedbackChartContainer, feedbackChartOptions);
-      window.feedbackChart.render();
+    function setSubmissionViewMode(mode) {
+      submissionViewMode = mode;
+      document.querySelectorAll('#btn-sub-view-combined, #btn-sub-view-submissions, #btn-sub-view-backlog').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`btn-sub-view-${mode}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const ptypeGroup = document.getElementById('sub-ptype-group');
+      if (ptypeGroup) {
+        ptypeGroup.style.display = (mode === 'submissions' ? 'inline-flex' : 'none');
+      }
+      updateAssignmentSubmissionSeries();
     }
 
-  // Completion chart removed
-
-    // Not-submitted by Assignment (Top 10) - bar
-    var notSubmittedContainer = document.querySelector('#not-submitted-assignment-chart');
-    if (window.notSubmittedChart) { try { window.notSubmittedChart.destroy(); } catch(e) {} }
-    if (notSubmittedContainer) {
-      var notSubmittedOptions = {
-        chart: { type: 'bar', height: 320 },
-        series: [{ name: 'Pending', data: <%= raw @not_submitted_assignment_data.to_json %> }],
-        xaxis: { categories: <%= raw @not_submitted_assignment_labels.to_json %>, labels: { rotate: -30, style: { fontSize: '12px' } } },
-        plotOptions: { bar: { horizontal: false, columnWidth: '60%', borderRadius: 4 } },
-        dataLabels: { enabled: true, style: { fontSize: '12px' } },
-  colors: ['#FF5E62'],
-  fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#FF2D95'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.6, stops: [0,100] } },
-        tooltip: { y: { formatter: function(val){ return val + ' pending'; } } },
-        legend: { show: false }
-      };
-      window.notSubmittedChart = new ApexCharts(notSubmittedContainer, notSubmittedOptions);
-      window.notSubmittedChart.render();
+    function filterSubmissionType(type) {
+      submissionPTypeFilter = type;
+      document.querySelectorAll('#sub-ptype-group button').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`btn-sub-ptype-${type}`);
+      if (activeBtn) activeBtn.classList.add('active');
+      updateAssignmentSubmissionSeries();
     }
 
-    // Pending by Section (Top 10) - bar
-    var pendingSectionContainer = document.querySelector('#pending-section-chart');
-    if (window.pendingSectionChart) { try { window.pendingSectionChart.destroy(); } catch(e) {} }
-    if (pendingSectionContainer) {
-      var pendingSectionOptions = {
-        chart: { type: 'bar', height: 320 },
-        series: [{ name: 'Pending', data: <%= raw @pending_section_data.to_json %> }],
-        xaxis: { categories: <%= raw @pending_section_labels.to_json %>, labels: { rotate: -30, style: { fontSize: '12px' } } },
-        plotOptions: { bar: { horizontal: false, columnWidth: '60%', borderRadius: 4 } },
-        dataLabels: { enabled: true, style: { fontSize: '12px' } },
-        colors: ['#8b5cf6'],
-        fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#ec4899'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.6, stops: [0,100] } },
-        tooltip: { y: { formatter: function(val){ return val + ' pending'; } } },
-        legend: { show: false }
-      };
-      window.pendingSectionChart = new ApexCharts(pendingSectionContainer, pendingSectionOptions);
-      window.pendingSectionChart.render();
+    // 14-day shift navigation for Assignment submission
+    function shiftAssignmentSubmission(forward) {
+      const delta = forward ? 14 : -14;
+      currentSubStartDate.setDate(currentSubStartDate.getDate() + delta);
+      currentSubEndDate.setDate(currentSubEndDate.getDate() + delta);
+      fetchAssignmentSubmissionData();
     }
 
-    // Backlog Trend (14 days)
-    var backlogContainer = document.querySelector('#backlog-trend-chart');
-    if (window.backlogChart) { try { window.backlogChart.destroy(); } catch(e) {} }
-    if (backlogContainer) {
-      var backlogOptions = {
-        chart: { type: 'area', height: 220 },
-        series: [{ name: 'Backlog', data: <%= raw @backlog_data.to_json %> }],
-        xaxis: { categories: <%= raw @backlog_labels.to_json %>, labels: { rotate: -35, style: { fontSize: '11px' } } },
-        stroke: { curve: 'smooth', width: 2 },
-        colors: ['#ef4444'],
-        fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', opacityFrom: 0.45, opacityTo: 0.04 } },
-        tooltip: { y: { formatter: function(val){ return val + ' pending'; } } },
-        grid: { borderColor: '#eef2f6' }
-      };
-      window.backlogChart = new ApexCharts(backlogContainer, backlogOptions);
-      window.backlogChart.render();
+    function resetAssignmentSubmissionLatest() {
+      currentSubEndDate = new Date();
+      currentSubStartDate = new Date();
+      currentSubStartDate.setDate(currentSubEndDate.getDate() - 13);
+      fetchAssignmentSubmissionData();
     }
-  }
 
-  // Initialize on first load
-  document.addEventListener('DOMContentLoaded', initializeDashboardCharts);
-  
-  // Handle navigation to/from dashboard page
-  document.addEventListener('turbo:load', function() {
-    // Check if we're on the dashboard page by looking for chart containers
-    isDashboardPage = document.querySelector("#participants-section-chart") !== null;
+    function fetchAssignmentSubmissionData(startStr = null, endStr = null) {
+      const sStr = startStr || formatDateIso(currentSubStartDate);
+      const eStr = endStr || formatDateIso(currentSubEndDate);
+      if (!startStr) {
+        const badge = document.getElementById('submission-date-range-badge');
+        if (badge) badge.textContent = formatRangeDisplay(currentSubStartDate, currentSubEndDate);
+      }
+
+      fetch(`/institute_admin/dashboard/chart_data?chart=assignment_submission&start_date=${sStr}&end_date=${eStr}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success) {
+            submissionRawData = {
+              labels: res.labels,
+              student: res.student_data,
+              guardian: res.guardian_data,
+              employee: res.employee_data,
+              total: res.total_data,
+              backlog: res.backlog_data
+            };
+            updateAssignmentSubmissionSeries();
+          }
+        })
+        .catch(err => console.error('Failed to update assignment submission chart:', err));
+    }
+
+    // Backlog Trend 14-day navigation
+    function shiftBacklogDays(forward) {
+      const delta = forward ? 14 : -14;
+      currentBacklogStartDate.setDate(currentBacklogStartDate.getDate() + delta);
+      currentBacklogEndDate.setDate(currentBacklogEndDate.getDate() + delta);
+      fetchBacklogTrendData();
+    }
+
+    function resetBacklogLatest() {
+      currentBacklogEndDate = new Date();
+      currentBacklogStartDate = new Date();
+      currentBacklogStartDate.setDate(currentBacklogEndDate.getDate() - 13);
+      fetchBacklogTrendData();
+    }
+
+    function fetchBacklogTrendData(startStr = null, endStr = null) {
+      const sStr = startStr || formatDateIso(currentBacklogStartDate);
+      const eStr = endStr || formatDateIso(currentBacklogEndDate);
+      if (!startStr) {
+        const badge = document.getElementById('backlog-date-range-badge');
+        if (badge) badge.textContent = formatRangeDisplay(currentBacklogStartDate, currentBacklogEndDate);
+      }
+
+      fetch(`/institute_admin/dashboard/chart_data?chart=backlog_trend&start_date=${sStr}&end_date=${eStr}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && window.backlogChart) {
+            window.backlogChart.updateOptions({ xaxis: { categories: res.labels } });
+            window.backlogChart.updateSeries([{ name: 'Backlog', data: res.data }]);
+          }
+        })
+        .catch(err => console.error('Failed to update backlog trend chart:', err));
+    }
+
+    // Submissions by Assignment navigation
+    function shiftAssignmentDay(forward) {
+      currentAssignDate.setDate(currentAssignDate.getDate() + (forward ? 1 : -1));
+      fetchSubmissionsByAssignment();
+    }
+
+    function resetAssignmentDayToday() {
+      currentAssignDate = new Date();
+      fetchSubmissionsByAssignment();
+    }
+
+    function fetchSubmissionsByAssignment(startDate = null, endDate = null) {
+      const sStr = startDate || formatDateIso(currentAssignDate);
+      const eStr = endDate || sStr;
+      const isRange = sStr !== eStr;
+      const badge = document.getElementById('by-assignment-date-badge');
+      if (badge) {
+        badge.textContent = isRange ? `${sStr} – ${eStr}` : formatDayDisplay(currentAssignDate);
+      }
+
+      fetch(`/institute_admin/dashboard/chart_data?chart=submissions_by_assignment&start_date=${sStr}&end_date=${eStr}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && window.byAssignmentChart) {
+            window.byAssignmentChart.updateOptions({
+              xaxis: { 
+                categories: res.labels,
+                labels: { rotate: -40, rotateAlways: true, trim: false, style: { fontSize: '12px' } }
+              }
+            });
+            window.byAssignmentChart.updateSeries([{ name: 'Participants', data: res.data }]);
+          }
+        })
+        .catch(err => console.error('Failed to update by assignment chart:', err));
+    }
+
+    // Submissions by Section navigation
+    function shiftSectionDay(forward) {
+      currentSectionDate.setDate(currentSectionDate.getDate() + (forward ? 1 : -1));
+      fetchSubmissionsBySection();
+    }
+
+    function resetSectionDayToday() {
+      currentSectionDate = new Date();
+      fetchSubmissionsBySection();
+    }
+
+    function fetchSubmissionsBySection(startDate = null, endDate = null) {
+      const sStr = startDate || formatDateIso(currentSectionDate);
+      const eStr = endDate || sStr;
+      const isRange = sStr !== eStr;
+      const badge = document.getElementById('by-section-date-badge');
+      if (badge) {
+        badge.textContent = isRange ? `${sStr} – ${eStr}` : formatDayDisplay(currentSectionDate);
+      }
+
+      fetch(`/institute_admin/dashboard/chart_data?chart=submissions_by_section&start_date=${sStr}&end_date=${eStr}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && window.bySectionChart) {
+            window.bySectionChart.updateOptions({
+              xaxis: { 
+                categories: res.labels,
+                labels: { rotate: -40, rotateAlways: true, trim: false, style: { fontSize: '12px' } }
+              }
+            });
+            window.bySectionChart.updateSeries([{ name: 'Submissions', data: res.data }]);
+          }
+        })
+        .catch(err => console.error('Failed to update by section chart:', err));
+    }
+
+    // Not Submitted by Assignment navigation
+    function shiftNotSubmittedDay(forward) {
+      currentNotSubDate.setDate(currentNotSubDate.getDate() + (forward ? 1 : -1));
+      fetchNotSubmittedByAssignment();
+    }
+
+    function resetNotSubmittedToday() {
+      currentNotSubDate = new Date();
+      fetchNotSubmittedByAssignment();
+    }
+
+    function fetchNotSubmittedByAssignment(dateStr = null) {
+      const dStr = dateStr || formatDateIso(currentNotSubDate);
+      const badge = document.getElementById('not-submitted-date-badge');
+      if (badge) badge.textContent = formatDayDisplay(currentNotSubDate);
+
+      fetch(`/institute_admin/dashboard/chart_data?chart=not_submitted_assignment&date=${dStr}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && window.notSubmittedChart) {
+            window.notSubmittedChart.updateOptions({
+              xaxis: { 
+                categories: res.labels,
+                labels: { rotate: -40, rotateAlways: true, trim: false, style: { fontSize: '12px' } }
+              }
+            });
+            window.notSubmittedChart.updateSeries([{ name: 'Pending', data: res.data }]);
+          }
+        })
+        .catch(err => console.error('Failed to update not submitted chart:', err));
+    }
+
+    // Pending by Section navigation
+    function shiftPendingSectionDay(forward) {
+      currentPendSecDate.setDate(currentPendSecDate.getDate() + (forward ? 1 : -1));
+      fetchPendingBySection();
+    }
+
+    function resetPendingSectionToday() {
+      currentPendSecDate = new Date();
+      fetchPendingBySection();
+    }
+
+    function fetchPendingBySection(dateStr = null) {
+      const dStr = dateStr || formatDateIso(currentPendSecDate);
+      const badge = document.getElementById('pending-section-date-badge');
+      if (badge) badge.textContent = formatDayDisplay(currentPendSecDate);
+
+      fetch(`/institute_admin/dashboard/chart_data?chart=pending_section&date=${dStr}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && window.pendingSectionChart) {
+            window.pendingSectionChart.updateOptions({
+              xaxis: { 
+                categories: res.labels,
+                labels: { rotate: -40, rotateAlways: true, trim: false, style: { fontSize: '12px' } }
+              }
+            });
+            window.pendingSectionChart.updateSeries([{ name: 'Pending', data: res.data }]);
+          }
+        })
+        .catch(err => console.error('Failed to update pending section chart:', err));
+    }
+
+    // Flatpickr initialization
+    function initDashboardDatepickers() {
+      if (typeof flatpickr === "undefined") return;
+
+      flatpickr("#assignment_submission_range_picker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        defaultDate: ["<%= @submission_start_date.iso8601 %>", "<%= @submission_end_date.iso8601 %>"],
+        onClose: function(selectedDates) {
+          if (selectedDates.length === 2) {
+            currentSubStartDate = selectedDates[0];
+            currentSubEndDate = selectedDates[1];
+            const sStr = formatDateIso(selectedDates[0]);
+            const eStr = formatDateIso(selectedDates[1]);
+            const badge = document.getElementById('submission-date-range-badge');
+            if (badge) badge.textContent = formatRangeDisplay(selectedDates[0], selectedDates[1]);
+            fetchAssignmentSubmissionData(sStr, eStr);
+          }
+        }
+      });
+
+      flatpickr("#backlog_range_picker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        defaultDate: ["<%= @submission_start_date.iso8601 %>", "<%= @submission_end_date.iso8601 %>"],
+        onClose: function(selectedDates) {
+          if (selectedDates.length === 2) {
+            currentBacklogStartDate = selectedDates[0];
+            currentBacklogEndDate = selectedDates[1];
+            const sStr = formatDateIso(selectedDates[0]);
+            const eStr = formatDateIso(selectedDates[1]);
+            const badge = document.getElementById('backlog-date-range-badge');
+            if (badge) badge.textContent = formatRangeDisplay(selectedDates[0], selectedDates[1]);
+            fetchBacklogTrendData(sStr, eStr);
+          }
+        }
+      });
+
+      flatpickr("#by_assignment_picker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        defaultDate: ["<%= @assignment_date.iso8601 %>"],
+        onClose: function(selectedDates) {
+          if (selectedDates.length >= 1) {
+            currentAssignDate = selectedDates[0];
+            const sStr = formatDateIso(selectedDates[0]);
+            const eStr = selectedDates.length === 2 ? formatDateIso(selectedDates[1]) : sStr;
+            fetchSubmissionsByAssignment(sStr, eStr);
+          }
+        }
+      });
+
+      flatpickr("#by_section_picker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        defaultDate: ["<%= @section_date.iso8601 %>"],
+        onClose: function(selectedDates) {
+          if (selectedDates.length >= 1) {
+            currentSectionDate = selectedDates[0];
+            const sStr = formatDateIso(selectedDates[0]);
+            const eStr = selectedDates.length === 2 ? formatDateIso(selectedDates[1]) : sStr;
+            fetchSubmissionsBySection(sStr, eStr);
+          }
+        }
+      });
+
+      flatpickr("#not_submitted_picker", {
+        dateFormat: "Y-m-d",
+        defaultDate: "<%= @not_submitted_date.iso8601 %>",
+        onClose: function(selectedDates) {
+          if (selectedDates.length === 1) {
+            currentNotSubDate = selectedDates[0];
+            fetchNotSubmittedByAssignment(formatDateIso(selectedDates[0]));
+          }
+        }
+      });
+
+      flatpickr("#pending_section_picker", {
+        dateFormat: "Y-m-d",
+        defaultDate: "<%= @pending_section_date.iso8601 %>",
+        onClose: function(selectedDates) {
+          if (selectedDates.length === 1) {
+            currentPendSecDate = selectedDates[0];
+            fetchPendingBySection(formatDateIso(selectedDates[0]));
+          }
+        }
+      });
+    }
+
+    // Initialize on first load
+    document.addEventListener('DOMContentLoaded', initializeDashboardCharts);
     
-    if (isDashboardPage) {
-  // dashboard page detected, initializing charts
-      initializeDashboardCharts();
-    } else {
-  // not on dashboard page, skipping chart initialization
-    }
-  });
+    // Handle navigation to/from dashboard page
+    document.addEventListener('turbo:load', function() {
+      isDashboardPage = document.querySelector("#participants-section-chart") !== null;
+      if (isDashboardPage) {
+        initializeDashboardCharts();
+      }
+    });
 
-  // Clean up only when leaving dashboard page
-  document.addEventListener('turbo:before-visit', function() {
-    if (isDashboardPage) {
-  // leaving dashboard page, cleaning up charts
-      if (window.sectionChart) {
-        window.sectionChart.destroy();
-        window.sectionChart = null;
+    // Clean up only when leaving dashboard page
+    document.addEventListener('turbo:before-visit', function() {
+      if (isDashboardPage) {
+        if (window.sectionChart) { window.sectionChart.destroy(); window.sectionChart = null; }
+        if (window.typeChart) { window.typeChart.destroy(); window.typeChart = null; }
+        if (window.feedbackChart) { window.feedbackChart.destroy(); window.feedbackChart = null; }
+        if (window.submissionsChart) { window.submissionsChart.destroy(); window.submissionsChart = null; }
+        if (window.byAssignmentChart) { window.byAssignmentChart.destroy(); window.byAssignmentChart = null; }
+        if (window.bySectionChart) { window.bySectionChart.destroy(); window.bySectionChart = null; }
+        if (window.notSubmittedChart) { window.notSubmittedChart.destroy(); window.notSubmittedChart = null; }
+        if (window.pendingSectionChart) { window.pendingSectionChart.destroy(); window.pendingSectionChart = null; }
+        if (window.backlogChart) { window.backlogChart.destroy(); window.backlogChart = null; }
       }
-      if (window.typeChart) {
-        window.typeChart.destroy();
-        window.typeChart = null;
-      }
-      if (window.feedbackChart) {
-        window.feedbackChart.destroy();
-        window.feedbackChart = null;
-      }
-    }
-  });
-</script>
+    });
+  </script>

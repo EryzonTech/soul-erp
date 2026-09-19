@@ -113,6 +113,7 @@ Rails.application.routes.draw do
   authenticate :user, lambda { |u| u.institute_admin? || u.master_admin? } do
     namespace :institute_admin do
       root "dashboard#index"
+      get "dashboard/chart_data", to: "dashboard#chart_data"
 
       # Add profile routes
       get "profile", to: "profile#show"
