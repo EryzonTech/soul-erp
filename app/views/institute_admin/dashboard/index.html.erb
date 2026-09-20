@@ -76,30 +76,28 @@
       box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25);
     }
 
-    /* Operational Metric Cards (Row 2 - Distinguished Identity) */
+    /* ── Operational KPI Cards (Row 2) — Vivid Gradient Redesign ── */
     .op-stat-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 16px;
+      border: none;
+      border-radius: 20px;
       position: relative;
       overflow: hidden;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      min-height: 128px;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      min-height: 148px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.02);
+      justify-content: center;
     }
 
     .op-stat-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-      border-color: #cbd5e1;
+      transform: translateY(-5px);
+      box-shadow: 0 16px 32px rgba(0,0,0,0.18);
     }
 
     .op-stat-card .card-body {
-      padding: 1.1rem 1.25rem;
+      padding: 1.35rem 1.4rem;
       position: relative;
+      z-index: 1;
       display: flex;
       flex-direction: column;
       height: 100%;
@@ -114,106 +112,127 @@
     }
 
     .op-stat-title {
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: #64748b;
-      margin-bottom: 0.35rem;
+      letter-spacing: 0.8px;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 0.25rem;
     }
 
     .op-stat-value {
-      font-size: 1.85rem;
-      font-weight: 700;
-      color: #0f172a;
-      line-height: 1.1;
-      letter-spacing: -0.5px;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1;
+      letter-spacing: -1px;
     }
 
     .op-stat-icon-box {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
+      font-size: 1.4rem;
       flex-shrink: 0;
-      transition: transform 0.2s ease;
+      background: rgba(255,255,255,0.2);
+      color: #ffffff;
+      backdrop-filter: blur(4px);
+      transition: transform 0.25s ease;
     }
 
     .op-stat-card:hover .op-stat-icon-box {
-      transform: scale(1.08);
+      transform: scale(1.12) rotate(-4deg);
     }
 
-    /* Distinct Card Identity & Border Top Accents */
-    .op-stat-card-responses {
-      border-top: 3.5px solid #06b6d4;
-      background: linear-gradient(180deg, #ffffff 65%, rgba(6, 182, 212, 0.04) 100%);
-    }
-    .op-stat-card-responses .op-stat-icon-box {
-      background: rgba(6, 182, 212, 0.12);
-      color: #0891b2;
-    }
-
-    .op-stat-card-trainers {
-      border-top: 3.5px solid #8b5cf6;
-      background: linear-gradient(180deg, #ffffff 65%, rgba(139, 92, 246, 0.04) 100%);
-    }
-    .op-stat-card-trainers .op-stat-icon-box {
-      background: rgba(139, 92, 246, 0.12);
-      color: #7c3aed;
+    /* Decorative watermark icon behind the value */
+    .op-stat-watermark {
+      position: absolute;
+      right: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 7rem;
+      color: rgba(255,255,255,0.08);
+      pointer-events: none;
+      z-index: 0;
     }
 
-    .op-stat-card-programs {
-      border-top: 3.5px solid #10b981;
-      background: linear-gradient(180deg, #ffffff 65%, rgba(16, 185, 129, 0.04) 100%);
-    }
-    .op-stat-card-programs .op-stat-icon-box {
-      background: rgba(16, 185, 129, 0.12);
-      color: #059669;
-    }
-
-    .op-stat-card-feedback {
-      border-top: 3.5px solid #ec4899;
-      background: linear-gradient(180deg, #ffffff 65%, rgba(236, 72, 153, 0.04) 100%);
-    }
-    .op-stat-card-feedback .op-stat-icon-box {
-      background: rgba(236, 72, 153, 0.12);
-      color: #db2777;
-    }
-
-    /* Breakdown in Operational Cards */
+    /* Breakdown row on colored background */
     .op-stat-card .stat-breakdown,
     .op-stat-breakdown {
       display: flex;
       align-items: center;
       gap: 0.35rem;
       flex-wrap: wrap;
-      margin-top: 0.65rem;
-      padding-top: 0.5rem;
-      border-top: 1px dashed #e2e8f0;
+      margin-top: 0.75rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid rgba(255,255,255,0.2);
     }
 
     .op-stat-card .stat-breakdown-pill,
     .op-stat-breakdown-pill {
-      font-size: 0.72rem;
-      font-weight: 500;
-      padding: 0.2rem 0.55rem;
+      font-size: 0.71rem;
+      font-weight: 600;
+      padding: 0.22rem 0.6rem;
       border-radius: 9999px;
-      background: #f1f5f9;
-      color: #334155 !important;
-      border: 1px solid #e2e8f0;
-      backdrop-filter: none;
+      background: rgba(255,255,255,0.18);
+      color: #ffffff !important;
+      border: 1px solid rgba(255,255,255,0.25);
       white-space: nowrap;
       letter-spacing: 0.1px;
+      backdrop-filter: blur(4px);
     }
 
     .op-stat-card .stat-breakdown-pill strong,
     .op-stat-breakdown-pill strong {
-      color: #0f172a !important;
-      font-weight: 700;
+      color: #ffffff !important;
+      font-weight: 800;
     }
+
+    /* Card gradient variants */
+    .op-stat-card-responses {
+      background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #0891b2 100%);
+      box-shadow: 0 8px 20px rgba(6,182,212,0.35);
+    }
+
+    .op-stat-card-trainers {
+      background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%);
+      box-shadow: 0 8px 20px rgba(139,92,246,0.35);
+    }
+
+    .op-stat-card-programs {
+      background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+      box-shadow: 0 8px 20px rgba(16,185,129,0.35);
+    }
+
+    .op-stat-card-feedback {
+      background: linear-gradient(135deg, #db2777 0%, #ec4899 50%, #f472b6 100%);
+      box-shadow: 0 8px 20px rgba(236,72,153,0.35);
+    }
+
+    /* Coloured participant type pill variants */
+    .tpf-pill-students {
+      background: rgba(14, 165, 233, 0.10);
+      color: #0369a1 !important;
+      border-color: rgba(14, 165, 233, 0.30) !important;
+    }
+    .tpf-pill-students strong { color: #0c4a6e !important; }
+
+    .tpf-pill-guardians {
+      background: rgba(139, 92, 246, 0.10);
+      color: #6d28d9 !important;
+      border-color: rgba(139, 92, 246, 0.30) !important;
+    }
+    .tpf-pill-guardians strong { color: #4c1d95 !important; }
+
+    .tpf-pill-employees {
+      background: rgba(245, 158, 11, 0.10);
+      color: #b45309 !important;
+      border-color: rgba(245, 158, 11, 0.30) !important;
+    }
+    .tpf-pill-employees strong { color: #78350f !important; }
 
     /* Modern Table Styles with mobile touch momentum */
     .table-responsive {
@@ -227,7 +246,7 @@
 
     .modern-table {
       width: 100%;
-      min-width: 540px;
+      min-width: 700px;
       border-collapse: separate;
       border-spacing: 0 0.75rem;
       margin-top: -0.75rem;
@@ -282,6 +301,203 @@
       border-top-right-radius: 8px;
       border-bottom-right-radius: 8px;
     }
+
+    /* Leaderboard container, scroll area, & margins */
+    .leaderboard-card-body {
+      padding: 1.1rem 1.25rem;
+    }
+
+    .leaderboard-table-scroll {
+      height: 520px;
+      min-height: 520px;
+      max-height: 520px;
+      overflow-y: auto;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
+      overscroll-behavior-x: contain;
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .leaderboard-table {
+      width: 100%;
+      min-width: 680px;
+      border-collapse: separate;
+      border-spacing: 0 0.65rem;
+      margin-top: 0.15rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .leaderboard-table thead th {
+      padding: 0.9rem 1rem;
+      background: #1e293b;
+      white-space: nowrap;
+    }
+
+    .leaderboard-table tbody td {
+      padding: 0.95rem 1rem;
+      vertical-align: middle;
+      border: none;
+      font-size: 0.95rem;
+      color: #475569;
+      background: #fff;
+    }
+
+    /* Remove transform on hover to maintain sticky column stacking context */
+    .leaderboard-table tbody tr {
+      background: #fff;
+      box-shadow: 0 3px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .leaderboard-table tbody tr:hover {
+      transform: none !important;
+      box-shadow: 0 8px 16px -2px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+    }
+
+    .leaderboard-table tbody tr:hover td {
+      background-color: #f8fafc !important;
+    }
+
+    /* ── Frozen Sticky Columns (Rank & Participant Name) ───────── */
+    .leaderboard-table .sticky-col {
+      position: sticky !important;
+    }
+
+    /* Column 1: Rank */
+    .leaderboard-table .sticky-col-rank {
+      left: 0 !important;
+      width: 68px !important;
+      min-width: 68px !important;
+      max-width: 68px !important;
+      text-align: center;
+    }
+
+    /* Column 2: Participant Name */
+    .leaderboard-table .sticky-col-name {
+      left: 68px !important;
+      min-width: 155px !important;
+      max-width: 220px !important;
+      box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    /* Intersection Headers (Sticky Top & Left) */
+    .leaderboard-table thead th.sticky-col-rank {
+      position: sticky !important;
+      top: 0 !important;
+      left: 0 !important;
+      z-index: 25 !important;
+      background: #1e293b !important;
+      color: #fff !important;
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+
+    .leaderboard-table thead th.sticky-col-name {
+      position: sticky !important;
+      top: 0 !important;
+      left: 68px !important;
+      z-index: 25 !important;
+      background: #1e293b !important;
+      color: #fff !important;
+      box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    .leaderboard-table thead th:first-child:not(.sticky-col-rank) {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+
+    .leaderboard-table thead th:last-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+
+    /* Body Frozen Cells */
+    .leaderboard-table tbody td.sticky-col-rank {
+      position: sticky !important;
+      left: 0 !important;
+      z-index: 6 !important;
+      background-color: #ffffff !important;
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+
+    .leaderboard-table tbody td.sticky-col-name {
+      position: sticky !important;
+      left: 68px !important;
+      z-index: 6 !important;
+      background-color: #ffffff !important;
+      box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .leaderboard-table tbody td:first-child:not(.sticky-col-rank) {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+
+    .leaderboard-table tbody td:last-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+
+    /* Hover State for Sticky Cells */
+    .leaderboard-table tbody tr:hover td.sticky-col-rank,
+    .leaderboard-table tbody tr:hover td.sticky-col-name {
+      background-color: #f8fafc !important;
+    }
+
+    /* Mobile unpinning for narrow phone viewports (< 576px) */
+    @media (max-width: 575.98px) {
+      .leaderboard-table .sticky-col-name {
+        position: static !important;
+        left: auto !important;
+        box-shadow: none !important;
+      }
+      .leaderboard-table thead th.sticky-col-name {
+        position: sticky !important;
+        top: 0 !important;
+        left: auto !important;
+        box-shadow: none !important;
+        z-index: 20 !important;
+      }
+    }
+
+    /* Bronze rank badge (rank #3) */
+    .bg-bronze {
+      background-color: #cd7f32 !important;
+    }
+
+    /* Prevent column headers from truncating in leaderboard */
+    .leaderboard-sticky-head th {
+      white-space: nowrap;
+    }
+
+    .leaderboard-table-scroll .leaderboard-sticky-head th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #1e293b; /* must repeat here so thead stays opaque when scrolling */
+    }
+
+    /* Custom thin scrollbar for the leaderboard */
+    .leaderboard-table-scroll::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .leaderboard-table-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 99px;
+    }
+    .leaderboard-table-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 99px;
+    }
+    .leaderboard-table-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
 
     .status-badge {
       padding: 0.35em 0.85em;
@@ -338,21 +554,315 @@
       white-space: nowrap;
     }
 
+    /* ── Responsive Controls Toolbar & Modern Segmented Controls ────────── */
     .chart-controls-toolbar {
       display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+    }
+
+    .chart-controls-toolbar .chart-toolbar-row {
+      display: flex;
       align-items: center;
-      gap: 0.4rem;
+      justify-content: flex-end;
+      gap: 0.5rem;
       flex-wrap: wrap;
     }
 
-    .chart-nav-btn {
-      padding: 0.25rem 0.65rem;
-      font-size: 0.78rem;
+    /* Modern Segmented Control Pills */
+    .chart-segmented-control {
+      display: inline-flex;
+      align-items: center;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 3px;
+      gap: 2px;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .chart-segmented-control .btn-segment {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #64748b;
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 0.32rem 0.72rem;
+      border-radius: 7px;
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+      cursor: pointer;
+      line-height: 1.25;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      text-decoration: none;
+    }
+
+    .chart-segmented-control .btn-segment:hover:not(.active) {
+      color: #1e293b;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .chart-segmented-control .btn-segment.active {
+      background: #4f46e5;
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3), 0 1px 2px rgba(79, 70, 229, 0.18);
+    }
+
+    /* Secondary sub-segmented control (Participant Type Filter) */
+    .chart-segmented-control.sub-segmented-control {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+
+    .sub-segmented-control .btn-sub-segment {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #64748b;
+      font-size: 0.74rem;
+      font-weight: 500;
+      padding: 0.28rem 0.62rem;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      cursor: pointer;
+      line-height: 1.25;
+    }
+
+    .sub-segmented-control .btn-sub-segment:hover:not(.active) {
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    .sub-segmented-control .btn-sub-segment.active {
+      background: #ffffff;
+      color: #0f172a;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 1px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Date Navigation Group */
+    .chart-nav-group {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #e2e8f0;
       border-radius: 8px;
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      flex-shrink: 0;
+      height: 33px;
+    }
+
+    .chart-nav-group .chart-nav-btn {
+      border: none;
+      border-right: 1px solid #e2e8f0;
+      background: #ffffff;
+      color: #475569;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.35rem 0.65rem;
+      height: 100%;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      line-height: 1;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .chart-nav-group .chart-nav-btn:last-child {
+      border-right: none;
+    }
+
+    .chart-nav-group .chart-nav-btn:hover {
+      background: #f8fafc;
+      color: #0f172a;
+    }
+
+    .chart-nav-group .chart-nav-btn:active {
+      background: #f1f5f9;
+    }
+
+    .chart-nav-group .chart-nav-btn.chart-nav-today {
+      font-weight: 600;
+      color: #4f46e5;
+    }
+
+    /* Datepicker Wrapper & Input */
+    .chart-datepicker-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      min-width: 200px;
+      height: 33px;
+      flex-shrink: 0;
+    }
+
+    .chart-datepicker-input {
+      padding-left: 0.85rem !important;
+      padding-right: 2.35rem !important;
+      font-size: 0.76rem !important;
+      font-weight: 500 !important;
+      height: 33px !important;
+      border-radius: 8px !important;
+      border: 1px solid #e2e8f0 !important;
+      background-color: #ffffff !important;
+      color: #1e293b !important;
+      cursor: pointer !important;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+      text-align: center;
+    }
+
+    .chart-datepicker-input:focus,
+    .chart-datepicker-input:hover {
+      border-color: #cbd5e1 !important;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
     }
 
     .pointer-events-none {
       pointer-events: none;
+    }
+
+    /* ── Chart & Graph Card Shading Border System ──────────────────────── */
+    .card-custom {
+      background: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 16px !important;
+      overflow: hidden;
+      box-shadow: 
+        0 1px 3px 0 rgba(15, 23, 42, 0.04),
+        0 6px 18px -3px rgba(15, 23, 42, 0.07),
+        0 0 0 1px rgba(226, 232, 240, 0.6) !important;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                  box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                  border-color 0.25s ease !important;
+    }
+
+    .card-custom:hover {
+      transform: translateY(-3px);
+      border-color: #cbd5e1 !important;
+      box-shadow: 
+        0 4px 8px 0 rgba(15, 23, 42, 0.04),
+        0 14px 28px -4px rgba(15, 23, 42, 0.12),
+        0 0 0 1px rgba(199, 210, 254, 0.6) !important;
+    }
+
+    .card-custom .card-body {
+      background: #ffffff;
+    }
+
+    /* ── Unified Chart Card Header ────────────────────────────── */
+    .chart-card-header {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+      border-bottom: 1.5px solid #e2e8f0 !important;
+      border-top-left-radius: 15px !important;
+      border-top-right-radius: 15px !important;
+      padding: 1rem 1.25rem 0.85rem;
+    }
+
+    /* Override Bootstrap's border-0 helper — keep the separator even when border-0 is applied */
+    .chart-card-header.border-0 {
+      border-bottom: 1.5px solid #e2e8f0 !important;
+    }
+
+    /* Icon accent box shared across chart headers */
+    .chart-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover .chart-icon-box,
+    .card-custom:hover .chart-icon-box {
+      transform: scale(1.08);
+    }
+
+    .chart-header-title {
+      font-size: 0.975rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.1rem;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+    }
+
+    .chart-header-subtitle {
+      font-size: 0.77rem;
+      color: #94a3b8;
+      font-weight: 400;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    /* ── Media Queries for Chart Headers & Toolbars ─────────────── */
+    @media (max-width: 1199.98px) {
+      .chart-card-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.85rem !important;
+      }
+
+      .chart-controls-toolbar {
+        align-items: stretch !important;
+        width: 100% !important;
+      }
+
+      .chart-controls-toolbar .chart-toolbar-row {
+        justify-content: flex-start !important;
+        width: 100% !important;
+      }
+    }
+
+    @media (max-width: 767.98px) {
+      .chart-card-header {
+        padding: 0.85rem 1rem !important;
+      }
+
+      .chart-controls-toolbar .chart-toolbar-row.scrollable-row {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 3px;
+        flex-wrap: nowrap !important;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .chart-controls-toolbar .chart-toolbar-row.scrollable-row::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    @media (max-width: 575.98px) {
+      .chart-datepicker-wrapper {
+        min-width: 100%;
+        width: 100%;
+      }
+
+      .chart-nav-group {
+        width: 100%;
+        display: flex;
+      }
+
+      .chart-nav-group .chart-nav-btn {
+        flex: 1;
+        justify-content: center;
+      }
     }
   </style>
 <% end %>
@@ -416,11 +926,12 @@
     </div>
   </div>
 
-  <!-- KPI Cards Row 2: Operational & Activity Metrics (Distinguished Identity) -->
+  <!-- KPI Cards Row 2: Operational & Activity Metrics -->
   <div class="row g-4 mb-4">
     <!-- Today Responses -->
     <div class="col-12 col-sm-6 col-xl-3">
       <div class="op-stat-card op-stat-card-responses">
+        <i class="bi bi-file-earmark-check-fill op-stat-watermark"></i>
         <div class="card-body">
           <div class="op-stat-header">
             <div>
@@ -443,6 +954,7 @@
     <!-- Total Trainers -->
     <div class="col-12 col-sm-6 col-xl-3">
       <div class="op-stat-card op-stat-card-trainers">
+        <i class="bi bi-person-workspace op-stat-watermark"></i>
         <div class="card-body">
           <div class="op-stat-header">
             <div>
@@ -454,7 +966,7 @@
             </div>
           </div>
           <div class="op-stat-breakdown stat-breakdown">
-            <span class="op-stat-breakdown-pill"><i class="bi bi-person-badge me-1" style="color: #7c3aed;"></i>Active Staff</span>
+            <span class="op-stat-breakdown-pill"><i class="bi bi-person-badge me-1"></i>Active Staff</span>
           </div>
         </div>
       </div>
@@ -463,6 +975,7 @@
     <!-- Training Programs -->
     <div class="col-12 col-sm-6 col-xl-3">
       <div class="op-stat-card op-stat-card-programs">
+        <i class="bi bi-mortarboard-fill op-stat-watermark"></i>
         <div class="card-body">
           <div class="op-stat-header">
             <div>
@@ -485,6 +998,7 @@
     <!-- Feedback Received -->
     <div class="col-12 col-sm-6 col-xl-3">
       <div class="op-stat-card op-stat-card-feedback">
+        <i class="bi bi-chat-square-text-fill op-stat-watermark"></i>
         <div class="card-body">
           <div class="op-stat-header">
             <div>
@@ -508,54 +1022,76 @@
   <!-- Assignment submission (Submissions Over Time & Backlog Trend) -->
   <div class="row g-4 mb-4">
     <div class="col-12">
-      <div class="card card-custom h-100 shadow-sm border-0">
-        <div class="card-header border-0 pt-3 pb-2 bg-white d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-2">
-          <div>
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-              <h5 class="card-title mb-0 fw-bold text-dark">Assignment submission</h5>
-              <span id="submission-date-range-badge" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1">
-                <%= @submission_start_date.strftime("%b %d") %> – <%= @submission_end_date.strftime("%b %d, %Y") %>
-              </span>
-              <span id="submission-active-series-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill px-2.5 py-1">
-                Viewing: Combined (Total &amp; Backlog)
-              </span>
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-xl-row justify-content-between align-items-start align-items-xl-center gap-3">
+          <div class="d-flex align-items-start align-items-sm-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(79,70,229,0.1); color: #4f46e5;">
+              <i class="bi bi-graph-up-arrow"></i>
             </div>
-            <small class="text-muted">Multi-series submission trends & backlog analysis</small>
+            <div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h5 class="chart-header-title mb-0">Assignment Submissions</h5>
+                <span id="submission-date-range-badge" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+                  <%= @submission_start_date.strftime("%b %d") %> – <%= @submission_end_date.strftime("%b %d, %Y") %>
+                </span>
+                <span id="submission-active-series-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+                  Viewing: Combined (Total &amp; Backlog)
+                </span>
+              </div>
+              <p class="chart-header-subtitle">Multi-series submission trends &amp; backlog analysis</p>
+              <!-- Custom Legend -->
+              <div class="d-flex align-items-center gap-3 mt-2 flex-wrap" id="submission-chart-legend">
+                <div class="d-flex align-items-center gap-2">
+                  <span style="display:inline-block; width:28px; height:4px; border-radius:9999px; background:#4f46e5;"></span>
+                  <span style="font-size:0.8rem; font-weight:600; color:#334155; letter-spacing:0.01em;">Total Submissions</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span style="display:inline-block; width:28px; height:4px; border-radius:9999px; background:#ef4444;"></span>
+                  <span style="font-size:0.8rem; font-weight:600; color:#334155; letter-spacing:0.01em;">Backlog</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="chart-controls-toolbar">
-            <!-- View Mode Pills -->
-            <div class="btn-group btn-group-sm" role="group" aria-label="View Mode">
-              <button type="button" class="btn btn-outline-primary active fw-semibold" id="btn-sub-view-combined" onclick="setSubmissionViewMode('combined')">Combined</button>
-              <button type="button" class="btn btn-outline-primary fw-semibold" id="btn-sub-view-submissions" onclick="setSubmissionViewMode('submissions')">Submissions Only</button>
-              <button type="button" class="btn btn-outline-primary fw-semibold" id="btn-sub-view-backlog" onclick="setSubmissionViewMode('backlog')">Backlog Only</button>
+            <!-- Row 1: Filters (View Mode & Participant Type) -->
+            <div class="chart-toolbar-row scrollable-row">
+              <!-- View Mode Pills -->
+              <div class="chart-segmented-control" role="group" aria-label="View Mode">
+                <button type="button" class="btn-segment active" id="btn-sub-view-combined" onclick="setSubmissionViewMode('combined')">Combined</button>
+                <button type="button" class="btn-segment" id="btn-sub-view-submissions" onclick="setSubmissionViewMode('submissions')">Submissions Only</button>
+                <button type="button" class="btn-segment" id="btn-sub-view-backlog" onclick="setSubmissionViewMode('backlog')">Backlog Only</button>
+              </div>
+
+              <!-- Participant Type Filter (Active in Submissions Only mode) -->
+              <div class="chart-segmented-control sub-segmented-control" id="sub-ptype-group" role="group" aria-label="Participant Type Filter" style="display: none;">
+                <button type="button" class="btn-sub-segment active" id="btn-sub-ptype-all" onclick="filterSubmissionType('all')">All</button>
+                <button type="button" class="btn-sub-segment" id="btn-sub-ptype-student" onclick="filterSubmissionType('student')">Students</button>
+                <button type="button" class="btn-sub-segment" id="btn-sub-ptype-guardian" onclick="filterSubmissionType('guardian')">Guardians</button>
+                <button type="button" class="btn-sub-segment" id="btn-sub-ptype-employee" onclick="filterSubmissionType('employee')">Employees</button>
+              </div>
             </div>
 
-            <!-- Participant Type Filter (Active in Submissions Only mode) -->
-            <div class="btn-group btn-group-sm" role="group" id="sub-ptype-group" aria-label="Participant Type Filter" style="display: none;">
-              <button type="button" class="btn btn-outline-secondary active btn-sm" id="btn-sub-ptype-all" onclick="filterSubmissionType('all')">All</button>
-              <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-sub-ptype-student" onclick="filterSubmissionType('student')">Students</button>
-              <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-sub-ptype-guardian" onclick="filterSubmissionType('guardian')">Guardians</button>
-              <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-sub-ptype-employee" onclick="filterSubmissionType('employee')">Employees</button>
-            </div>
+            <!-- Row 2: Date Nav & Range Picker -->
+            <div class="chart-toolbar-row">
+              <!-- Date Nav Controls -->
+              <div class="chart-nav-group" role="group" aria-label="Date Navigation">
+                <button type="button" class="chart-nav-btn" onclick="shiftAssignmentSubmission(false)" title="Previous 14 Days">
+                  <i class="bi bi-chevron-left"></i> Prev 14d
+                </button>
+                <button type="button" class="chart-nav-btn" onclick="shiftAssignmentSubmission(true)" title="Next 14 Days">
+                  Next 14d <i class="bi bi-chevron-right"></i>
+                </button>
+                <button type="button" class="chart-nav-btn chart-nav-today" onclick="resetAssignmentSubmissionLatest()" title="Latest 14 Days">
+                  Latest
+                </button>
+              </div>
 
-            <!-- Date Nav Controls -->
-            <div class="d-flex align-items-center gap-1">
-              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftAssignmentSubmission(false)" title="Previous 14 Days">
-                <i class="bi bi-chevron-left"></i> Prev 14d
-              </button>
-              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftAssignmentSubmission(true)" title="Next 14 Days">
-                Next 14d <i class="bi bi-chevron-right"></i>
-              </button>
-              <button type="button" class="btn btn-sm btn-light border chart-nav-btn" onclick="resetAssignmentSubmissionLatest()" title="Latest 14 Days">
-                Latest
-              </button>
-            </div>
-
-            <!-- Flatpickr Custom Range -->
-            <div style="min-width: 215px;">
-              <input type="text" id="assignment_submission_range_picker" class="form-control form-control-sm bg-light border-secondary-subtle text-center"
-                     placeholder="Custom Date Range" readonly>
+              <!-- Flatpickr Custom Range -->
+              <div class="chart-datepicker-wrapper">
+                <input type="text" id="assignment_submission_range_picker" class="form-control form-control-sm chart-datepicker-input"
+                       placeholder="Custom Date Range" readonly>
+              </div>
             </div>
           </div>
         </div>
@@ -574,32 +1110,39 @@
   <div class="row g-4 mb-4">
     <!-- Submissions by Assignment -->
     <div class="col-xl-6">
-      <div class="card card-custom h-100 shadow-sm border-0">
-        <div class="card-header border-0 pt-3 pb-2 bg-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-          <div>
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-              <h5 class="card-title mb-0 fw-bold text-dark">Submissions by Assignment</h5>
-              <span id="by-assignment-date-badge" class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1">
-                <%= @assignment_date.strftime("%b %d, %Y") %>
-              </span>
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(6,182,212,0.1); color: #0891b2;">
+              <i class="bi bi-bar-chart-fill"></i>
             </div>
-            <small class="text-muted">Top assignments by distinct participants submitted</small>
+            <div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h5 class="chart-header-title mb-0">Submissions by Assignment</h5>
+                <span id="by-assignment-date-badge" class="badge bg-info-subtle text-info border border-info-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+                  <%= @assignment_date.strftime("%b %d, %Y") %>
+                </span>
+              </div>
+              <p class="chart-header-subtitle">Top assignments by distinct participants submitted</p>
+            </div>
           </div>
           <div class="chart-controls-toolbar">
-            <div class="d-flex align-items-center gap-1">
-              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftAssignmentDay(false)" title="Previous Day">
-                <i class="bi bi-chevron-left"></i>
-              </button>
-              <button type="button" class="btn btn-sm btn-light border chart-nav-btn fw-semibold" onclick="resetAssignmentDayToday()" title="Jump to Today">
-                Today
-              </button>
-              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftAssignmentDay(true)" title="Next Day">
-                <i class="bi bi-chevron-right"></i>
-              </button>
-            </div>
-            <div style="width: 170px;">
-              <input type="text" id="by_assignment_picker" class="form-control form-control-sm bg-light border-secondary-subtle text-center"
-                     placeholder="Pick Date / Range" readonly>
+            <div class="chart-toolbar-row">
+              <div class="chart-nav-group" role="group" aria-label="Day Navigation">
+                <button type="button" class="chart-nav-btn" onclick="shiftAssignmentDay(false)" title="Previous Day">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="chart-nav-btn chart-nav-today" onclick="resetAssignmentDayToday()" title="Jump to Today">
+                  Today
+                </button>
+                <button type="button" class="chart-nav-btn" onclick="shiftAssignmentDay(true)" title="Next Day">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="chart-datepicker-wrapper" style="min-width: 175px;">
+                <input type="text" id="by_assignment_picker" class="form-control form-control-sm chart-datepicker-input"
+                       placeholder="Pick Date / Range" readonly>
+              </div>
             </div>
           </div>
         </div>
@@ -611,32 +1154,39 @@
 
     <!-- Submissions by Section -->
     <div class="col-xl-6">
-      <div class="card card-custom h-100 shadow-sm border-0">
-        <div class="card-header border-0 pt-3 pb-2 bg-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-          <div>
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-              <h5 class="card-title mb-0 fw-bold text-dark">Submissions by Section</h5>
-              <span id="by-section-date-badge" class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2.5 py-1">
-                <%= @section_date.strftime("%b %d, %Y") %>
-              </span>
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(217,119,6,0.1); color: #d97706;">
+              <i class="bi bi-grid-1x2-fill"></i>
             </div>
-            <small class="text-muted">Top sections by distinct submissions</small>
+            <div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h5 class="chart-header-title mb-0">Submissions by Section</h5>
+                <span id="by-section-date-badge" class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+                  <%= @section_date.strftime("%b %d, %Y") %>
+                </span>
+              </div>
+              <p class="chart-header-subtitle">Top sections by distinct submissions</p>
+            </div>
           </div>
           <div class="chart-controls-toolbar">
-            <div class="d-flex align-items-center gap-1">
-              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftSectionDay(false)" title="Previous Day">
-                <i class="bi bi-chevron-left"></i>
-              </button>
-              <button type="button" class="btn btn-sm btn-light border chart-nav-btn fw-semibold" onclick="resetSectionDayToday()" title="Jump to Today">
-                Today
-              </button>
-              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftSectionDay(true)" title="Next Day">
-                <i class="bi bi-chevron-right"></i>
-              </button>
-            </div>
-            <div style="width: 170px;">
-              <input type="text" id="by_section_picker" class="form-control form-control-sm bg-light border-secondary-subtle text-center"
-                     placeholder="Pick Date / Range" readonly>
+            <div class="chart-toolbar-row">
+              <div class="chart-nav-group" role="group" aria-label="Day Navigation">
+                <button type="button" class="chart-nav-btn" onclick="shiftSectionDay(false)" title="Previous Day">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="chart-nav-btn chart-nav-today" onclick="resetSectionDayToday()" title="Jump to Today">
+                  Today
+                </button>
+                <button type="button" class="chart-nav-btn" onclick="shiftSectionDay(true)" title="Next Day">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="chart-datepicker-wrapper" style="min-width: 175px;">
+                <input type="text" id="by_section_picker" class="form-control form-control-sm chart-datepicker-input"
+                       placeholder="Pick Date / Range" readonly>
+              </div>
             </div>
           </div>
         </div>
@@ -651,32 +1201,39 @@
   <div class="row g-4 mb-4">
     <!-- Not Submitted by Assignment -->
     <div class="col-xl-6">
-      <div class="card card-custom h-100 shadow-sm border-0">
-        <div class="card-header border-0 pt-3 pb-2 bg-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-          <div>
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-              <h5 class="card-title mb-0 fw-bold text-dark">Not Submitted by Assignment</h5>
-              <span id="not-submitted-date-badge" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
-                <%= @not_submitted_date.strftime("%b %d, %Y") %>
-              </span>
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(225,29,72,0.1); color: #e11d48;">
+              <i class="bi bi-clipboard-x-fill"></i>
             </div>
-            <small class="text-muted">Top 10 assignments with highest pending participant count</small>
+            <div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h5 class="chart-header-title mb-0">Not Submitted by Assignment</h5>
+                <span id="not-submitted-date-badge" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+                  <%= @not_submitted_date.strftime("%b %d, %Y") %>
+                </span>
+              </div>
+              <p class="chart-header-subtitle">Top 10 assignments with highest pending participant count</p>
+            </div>
           </div>
           <div class="chart-controls-toolbar">
-            <div class="d-flex align-items-center gap-1">
-              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftNotSubmittedDay(false)" title="Previous Day">
-                <i class="bi bi-chevron-left"></i>
-              </button>
-              <button type="button" class="btn btn-sm btn-light border chart-nav-btn fw-semibold" onclick="resetNotSubmittedToday()" title="Jump to Today">
-                Today
-              </button>
-              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftNotSubmittedDay(true)" title="Next Day">
-                <i class="bi bi-chevron-right"></i>
-              </button>
-            </div>
-            <div style="width: 145px;">
-              <input type="text" id="not_submitted_picker" class="form-control form-control-sm bg-light border-secondary-subtle text-center"
-                     placeholder="Pick Date" readonly>
+            <div class="chart-toolbar-row">
+              <div class="chart-nav-group" role="group" aria-label="Day Navigation">
+                <button type="button" class="chart-nav-btn" onclick="shiftNotSubmittedDay(false)" title="Previous Day">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="chart-nav-btn chart-nav-today" onclick="resetNotSubmittedToday()" title="Jump to Today">
+                  Today
+                </button>
+                <button type="button" class="chart-nav-btn" onclick="shiftNotSubmittedDay(true)" title="Next Day">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="chart-datepicker-wrapper" style="min-width: 155px;">
+                <input type="text" id="not_submitted_picker" class="form-control form-control-sm chart-datepicker-input"
+                       placeholder="Pick Date" readonly>
+              </div>
             </div>
           </div>
         </div>
@@ -688,32 +1245,39 @@
 
     <!-- Pending by Section -->
     <div class="col-xl-6">
-      <div class="card card-custom h-100 shadow-sm border-0">
-        <div class="card-header border-0 pt-3 pb-2 bg-white d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-          <div>
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-              <h5 class="card-title mb-0 fw-bold text-dark">Pending by Section</h5>
-              <span id="pending-section-date-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill px-2.5 py-1">
-                <%= @pending_section_date.strftime("%b %d, %Y") %>
-              </span>
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(100,116,139,0.1); color: #475569;">
+              <i class="bi bi-hourglass-split"></i>
             </div>
-            <small class="text-muted">Top 10 sections with pending submissions</small>
+            <div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h5 class="chart-header-title mb-0">Pending by Section</h5>
+                <span id="pending-section-date-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+                  <%= @pending_section_date.strftime("%b %d, %Y") %>
+                </span>
+              </div>
+              <p class="chart-header-subtitle">Top 10 sections with pending submissions</p>
+            </div>
           </div>
           <div class="chart-controls-toolbar">
-            <div class="d-flex align-items-center gap-1">
-              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftPendingSectionDay(false)" title="Previous Day">
-                <i class="bi bi-chevron-left"></i>
-              </button>
-              <button type="button" class="btn btn-sm btn-light border chart-nav-btn fw-semibold" onclick="resetPendingSectionToday()" title="Jump to Today">
-                Today
-              </button>
-              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftPendingSectionDay(true)" title="Next Day">
-                <i class="bi bi-chevron-right"></i>
-              </button>
-            </div>
-            <div style="width: 145px;">
-              <input type="text" id="pending_section_picker" class="form-control form-control-sm bg-light border-secondary-subtle text-center"
-                     placeholder="Pick Date" readonly>
+            <div class="chart-toolbar-row">
+              <div class="chart-nav-group" role="group" aria-label="Day Navigation">
+                <button type="button" class="chart-nav-btn" onclick="shiftPendingSectionDay(false)" title="Previous Day">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="chart-nav-btn chart-nav-today" onclick="resetPendingSectionToday()" title="Jump to Today">
+                  Today
+                </button>
+                <button type="button" class="chart-nav-btn" onclick="shiftPendingSectionDay(true)" title="Next Day">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="chart-datepicker-wrapper" style="min-width: 155px;">
+                <input type="text" id="pending_section_picker" class="form-control form-control-sm chart-datepicker-input"
+                       placeholder="Pick Date" readonly>
+              </div>
             </div>
           </div>
         </div>
@@ -729,8 +1293,16 @@
     <!-- Participants by Section -->
     <div class="col-xl-6">
       <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Participants by Section</h5>
+        <div class="card-header chart-card-header border-0 d-flex align-items-center justify-content-between gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(79,70,229,0.1); color: #4f46e5;">
+              <i class="bi bi-pie-chart-fill"></i>
+            </div>
+            <div>
+              <p class="chart-header-title mb-0">Participants by Section</p>
+              <p class="chart-header-subtitle">Distribution of participants across all sections</p>
+            </div>
+          </div>
         </div>
         <div class="card-body">
           <!-- Participants by Section Chart Container -->
@@ -742,8 +1314,16 @@
     <!-- Participants by Type -->
     <div class="col-xl-6">
       <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Participants by Type</h5>
+        <div class="card-header chart-card-header border-0 d-flex align-items-center justify-content-between gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(5,150,105,0.1); color: #059669;">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+              <h5 class="chart-header-title mb-0">Participants by Type</h5>
+              <p class="chart-header-subtitle">Students, guardians &amp; employees breakdown</p>
+            </div>
+          </div>
         </div>
         <div class="card-body">
           <!-- Participants by Type Chart Container -->
@@ -757,82 +1337,87 @@
   <div class="row mb-4">
     <div class="col-12">
       <div class="card card-custom">
-        <div class="card-header border-0 pt-3 pb-2 d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
-          <div>
-            <div class="d-flex align-items-center gap-2">
-              <div class="p-2 rounded-3 bg-purple-subtle text-purple">
-                <i class="bi bi-bar-chart-line-fill fs-5" style="color: #8b5cf6;"></i>
+        <div class="card-header chart-card-header border-0">
+
+          <!-- Row 1: Icon + Title + Controls -->
+          <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-2">
+            <div class="d-flex align-items-center gap-3">
+              <div class="chart-icon-box" style="background: rgba(139,92,246,0.1); color: #7c3aed;">
+                <i class="bi bi-bar-chart-line-fill"></i>
               </div>
               <div>
-                <h5 class="card-title mb-0 fw-bold">Feedback by Training Program</h5>
-                <small class="text-muted">Combined received & pending responses by program and audience</small>
+                <h5 class="chart-header-title mb-0">Feedback by Training Program</h5>
+                <p class="chart-header-subtitle">Combined received &amp; pending responses by program and audience</p>
               </div>
             </div>
-            <!-- Overview Summary KPI Banner -->
-            <div class="d-flex flex-wrap align-items-center gap-2 mt-2 pt-1">
-              <span class="badge border px-2.5 py-1.5 fw-semibold" id="tpf-received-summary" style="background: rgba(139, 92, 246, 0.12); color: #6d28d9; border-color: rgba(139, 92, 246, 0.25) !important;">
-                <i class="bi bi-check2-circle me-1"></i>Received: <%= @feedback_received_percentage || 0 %>% (<%= @total_feedback_received || 0 %>)
-              </span>
-              <span class="badge border px-2.5 py-1.5 fw-semibold" id="tpf-pending-summary" style="background: rgba(251, 113, 133, 0.12); color: #be123c; border-color: rgba(251, 113, 133, 0.25) !important;">
-                <i class="bi bi-hourglass-split me-1"></i>Pending: <%= @feedback_pending_percentage || 0 %>% (<%= @total_feedback_pending || 0 %>)
-              </span>
-              <span class="op-stat-breakdown-pill" id="tpf-students-summary">
-                Students: <strong><%= @feedback_by_type['student'] || 0 %></strong>
-              </span>
-              <span class="op-stat-breakdown-pill" id="tpf-guardians-summary">
-                Guardians: <strong><%= @feedback_by_type['guardian'] || 0 %></strong>
-              </span>
-              <span class="op-stat-breakdown-pill" id="tpf-employees-summary">
-                Employees: <strong><%= @feedback_by_type['employee'] || 0 %></strong>
-              </span>
-            </div>
-          </div>
 
-          <!-- Header Toolbar: Multi-select Filter & View Mode Switcher -->
-          <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-lg-auto justify-content-between justify-content-lg-end">
-            <!-- Multi-Select Training Program Dropdown -->
-            <div class="dropdown">
-              <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1.5 rounded-3 px-3 py-1.5" 
-                      type="button" 
-                      id="tpfProgramDropdown" 
-                      data-bs-toggle="dropdown" 
-                      data-bs-display="static"
-                      data-bs-auto-close="outside" 
-                      aria-expanded="false">
-                <i class="bi bi-funnel-fill text-primary"></i>
-                <span id="tpfSelectedProgramLabel">All Programs (<%= @program_feedback_data.size %>)</span>
-              </button>
-              <div class="dropdown-menu dropdown-menu-end p-2.5 shadow-lg rounded-3 border" style="min-width: 280px; max-height: 340px; overflow-y: auto;" aria-labelledby="tpfProgramDropdown">
-                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
-                  <div class="form-check mb-0">
-                    <input class="form-check-input" type="checkbox" id="tpfSelectAll" checked onchange="toggleAllFeedbackPrograms(this)">
-                    <label class="form-check-label fw-bold small" for="tpfSelectAll">Select All</label>
-                  </div>
-                  <small class="text-muted" id="tpfCounterText"><%= @program_feedback_data.size %> selected</small>
-                </div>
-                <div id="tpfProgramCheckboxes">
-                  <% @program_feedback_data.each do |p| %>
-                    <div class="form-check py-1 px-1 rounded hover-bg-light">
-                      <input class="form-check-input tpf-program-cb me-2" type="checkbox" value="<%= p[:id] %>" id="tpf_prog_<%= p[:id] %>" checked onchange="handleFeedbackProgramChange()">
-                      <label class="form-check-label small text-truncate d-block cursor-pointer" for="tpf_prog_<%= p[:id] %>" title="<%= p[:name] %>">
-                        <%= p[:name] %>
-                      </label>
+            <!-- Header Toolbar: Multi-select Filter & View Mode Switcher -->
+            <div class="d-flex flex-wrap align-items-center gap-2 flex-shrink-0">
+              <!-- Multi-Select Training Program Dropdown -->
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1 rounded-3" 
+                        type="button" 
+                        id="tpfProgramDropdown" 
+                        data-bs-toggle="dropdown" 
+                        data-bs-display="static"
+                        data-bs-auto-close="outside" 
+                        aria-expanded="false">
+                  <i class="bi bi-funnel-fill text-primary"></i>
+                  <span id="tpfSelectedProgramLabel">All Programs (<%= @program_feedback_data.size %>)</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow-lg rounded-3 border" style="min-width: 280px; max-height: 340px; overflow-y: auto; padding: 0.625rem 0.75rem;" aria-labelledby="tpfProgramDropdown">
+                  <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2 px-1">
+                    <div class="form-check mb-0">
+                      <input class="form-check-input" type="checkbox" id="tpfSelectAll" checked onchange="toggleAllFeedbackPrograms(this)">
+                      <label class="form-check-label fw-bold small" for="tpfSelectAll">Select All</label>
                     </div>
-                  <% end %>
+                    <small class="text-muted" id="tpfCounterText"><%= @program_feedback_data.size %> selected</small>
+                  </div>
+                  <div id="tpfProgramCheckboxes">
+                    <% @program_feedback_data.each do |p| %>
+                      <div class="form-check rounded hover-bg-light" style="padding: 0.375rem 0.5rem 0.375rem 1.75rem; margin-bottom: 2px;">
+                        <input class="form-check-input tpf-program-cb" type="checkbox" value="<%= p[:id] %>" id="tpf_prog_<%= p[:id] %>" checked onchange="handleFeedbackProgramChange()" style="margin-left: -1.25rem;">
+                        <label class="form-check-label small text-truncate d-block cursor-pointer" for="tpf_prog_<%= p[:id] %>" title="<%= p[:name] %>">
+                          <%= p[:name] %>
+                        </label>
+                      </div>
+                    <% end %>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- View Mode Switcher -->
-            <div class="btn-group btn-group-sm rounded-3 shadow-none border" role="group">
-              <button type="button" class="btn btn-outline-primary active px-2.5 py-1.5" id="tpfModeReceivedPending" onclick="switchFeedbackViewMode('received_pending')">
-                Received vs Pending
-              </button>
-              <button type="button" class="btn btn-outline-primary px-2.5 py-1.5" id="tpfModeParticipantType" onclick="switchFeedbackViewMode('participant_type')">
-                By Participant Type
-              </button>
+              <!-- View Mode Switcher -->
+              <div class="chart-segmented-control" role="group" aria-label="Feedback View Mode">
+                <button type="button" class="btn-segment active" id="tpfModeReceivedPending" onclick="switchFeedbackViewMode('received_pending')">
+                  Received vs Pending
+                </button>
+                <button type="button" class="btn-segment" id="tpfModeParticipantType" onclick="switchFeedbackViewMode('participant_type')">
+                  By Participant Type
+                </button>
+              </div>
             </div>
           </div>
+
+          <!-- Row 2: KPI Summary Badges (full width, nicely separated) -->
+          <div class="d-flex flex-wrap align-items-center gap-2 mt-2 pt-2" style="border-top: 1px dashed #e2e8f0;">
+            <span class="badge border fw-semibold" id="tpf-received-summary" style="font-size:0.74rem; padding: 0.28rem 0.65rem; background: rgba(139,92,246,0.1); color: #6d28d9; border-color: rgba(139,92,246,0.25) !important;">
+              <i class="bi bi-check2-circle me-1"></i>Received: <%= @feedback_received_percentage || 0 %>% (<%= @total_feedback_received || 0 %>)
+            </span>
+            <span class="badge border fw-semibold" id="tpf-pending-summary" style="font-size:0.74rem; padding: 0.28rem 0.65rem; background: rgba(251,113,133,0.1); color: #be123c; border-color: rgba(251,113,133,0.25) !important;">
+              <i class="bi bi-hourglass-split me-1"></i>Pending: <%= @feedback_pending_percentage || 0 %>% (<%= @total_feedback_pending || 0 %>)
+            </span>
+            <span class="text-muted" style="font-size: 0.7rem;">|</span>
+            <span class="op-stat-breakdown-pill tpf-pill-students" id="tpf-students-summary">
+              <i class="bi bi-person-fill me-1"></i>Students: <strong><%= @feedback_by_type['student'] || 0 %></strong>
+            </span>
+            <span class="op-stat-breakdown-pill tpf-pill-guardians" id="tpf-guardians-summary">
+              <i class="bi bi-shield-fill-check me-1"></i>Guardians: <strong><%= @feedback_by_type['guardian'] || 0 %></strong>
+            </span>
+            <span class="op-stat-breakdown-pill tpf-pill-employees" id="tpf-employees-summary">
+              <i class="bi bi-briefcase-fill me-1"></i>Employees: <strong><%= @feedback_by_type['employee'] || 0 %></strong>
+            </span>
+          </div>
+
         </div>
         <div class="card-body pt-2">
           <!-- Feedback by Training Program Chart Container -->
@@ -844,14 +1429,14 @@
 
   <!-- Recent Feedback Accordion Section (Item 20) -->
   <div class="card card-custom mb-4">
-    <div class="card-header border-0 pt-3 pb-2 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2.5">
-      <div class="d-flex align-items-center gap-2">
-        <div class="p-2 rounded-3 bg-purple-subtle text-purple">
-          <i class="bi bi-chat-square-quote-fill fs-5" style="color: #8b5cf6;"></i>
+    <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2.5">
+      <div class="d-flex align-items-center gap-3">
+        <div class="chart-icon-box" style="background: rgba(139,92,246,0.1); color: #7c3aed;">
+          <i class="bi bi-chat-square-quote-fill"></i>
         </div>
         <div>
-          <h5 class="card-title mb-0 fw-bold">Recent Feedback</h5>
-          <small class="text-muted">User reviews and rating distributions by training program</small>
+          <p class="chart-header-title mb-0">Recent Feedback</p>
+          <p class="chart-header-subtitle">User reviews and rating distributions by training program</p>
         </div>
       </div>
       <div>
@@ -993,14 +1578,14 @@
     <!-- Top Submitting Participants (Streak without break) -->
     <div class="col-xl-6 col-12">
       <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3 pb-2 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2.5">
-          <div class="d-flex align-items-center gap-2">
-            <div class="p-2 rounded-3 bg-warning-subtle text-warning">
-              <i class="bi bi-trophy-fill fs-5"></i>
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(217,119,6,0.1); color: #d97706;">
+              <i class="bi bi-trophy-fill"></i>
             </div>
             <div>
-              <h5 class="card-title mb-0 fw-bold">Top Submitting Participants</h5>
-              <small class="text-muted">Follows streak without break</small>
+              <p class="chart-header-title mb-0">Top Submitting Participants</p>
+              <p class="chart-header-subtitle">Follows streak without break</p>
             </div>
           </div>
           
@@ -1026,16 +1611,16 @@
             </div>
           </div>
         </div>
-        <div class="card-body p-0">
-          <div class="d-lg-none px-3 pt-2 text-muted small">
+        <div class="card-body leaderboard-card-body">
+          <div class="d-lg-none pb-2 text-muted small">
             <i class="bi bi-arrow-left-right me-1"></i> Swipe table horizontally to view all columns &rarr;
           </div>
-          <div class="table-responsive">
-            <table class="table modern-table mb-0" id="topLeaderboardTable">
-              <thead>
+          <div class="leaderboard-table-scroll table-responsive">
+            <table class="table modern-table leaderboard-table mb-0" id="topLeaderboardTable">
+              <thead class="leaderboard-sticky-head">
                 <tr>
-                  <th style="width: 60px;">Rank</th>
-                  <th>Name</th>
+                  <th class="sticky-col sticky-col-rank" style="width: 68px;">Rank</th>
+                  <th class="sticky-col sticky-col-name">Name</th>
                   <th>Section</th>
                   <th>Assignment</th>
                   <th class="text-center">Streak</th>
@@ -1045,12 +1630,12 @@
                 <% if @top_submitting_participants.present? %>
                   <% @top_submitting_participants.each do |p| %>
                     <tr>
-                      <td>
+                      <td class="sticky-col sticky-col-rank">
                         <span class="badge <%= p[:rank] == 1 ? 'bg-warning text-dark' : (p[:rank] == 2 ? 'bg-secondary text-white' : (p[:rank] == 3 ? 'bg-bronze text-white' : 'bg-light text-dark border')) %> rounded-pill fw-bold">
                           #<%= p[:rank] %>
                         </span>
                       </td>
-                      <td class="fw-semibold text-dark"><%= p[:name] %></td>
+                      <td class="sticky-col sticky-col-name fw-semibold text-dark"><%= p[:name] %></td>
                       <td><span class="badge bg-light text-secondary border"><%= p[:section] %></span></td>
                       <td class="text-muted small text-truncate" style="max-width: 150px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
                       <td class="text-center">
@@ -1073,14 +1658,14 @@
     <!-- Bottom Submitting Participants (Never follows streak) -->
     <div class="col-xl-6 col-12">
       <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3 pb-2 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2.5">
-          <div class="d-flex align-items-center gap-2">
-            <div class="p-2 rounded-3 bg-danger-subtle text-danger">
-              <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(225,29,72,0.1); color: #e11d48;">
+              <i class="bi bi-exclamation-triangle-fill"></i>
             </div>
             <div>
-              <h5 class="card-title mb-0 fw-bold">Bottom Submitting Participants</h5>
-              <small class="text-muted">Never follows streak / broken streak</small>
+              <p class="chart-header-title mb-0">Bottom Submitting Participants</p>
+              <p class="chart-header-subtitle">Never follows streak / broken streak</p>
             </div>
           </div>
 
@@ -1106,16 +1691,16 @@
             </div>
           </div>
         </div>
-        <div class="card-body p-0">
-          <div class="d-lg-none px-3 pt-2 text-muted small">
+        <div class="card-body leaderboard-card-body">
+          <div class="d-lg-none pb-2 text-muted small">
             <i class="bi bi-arrow-left-right me-1"></i> Swipe table horizontally to view all columns &rarr;
           </div>
-          <div class="table-responsive">
-            <table class="table modern-table mb-0" id="bottomLeaderboardTable">
-              <thead>
+          <div class="leaderboard-table-scroll table-responsive">
+            <table class="table modern-table leaderboard-table mb-0" id="bottomLeaderboardTable">
+              <thead class="leaderboard-sticky-head">
                 <tr>
-                  <th style="width: 60px;">Rank</th>
-                  <th>Name</th>
+                  <th class="sticky-col sticky-col-rank" style="width: 68px;">Rank</th>
+                  <th class="sticky-col sticky-col-name">Name</th>
                   <th>Section</th>
                   <th>Participant Type</th>
                   <th>Assignment</th>
@@ -1126,12 +1711,12 @@
                 <% if @bottom_submitting_participants.present? %>
                   <% @bottom_submitting_participants.each do |p| %>
                     <tr>
-                      <td>
+                      <td class="sticky-col sticky-col-rank">
                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">
                           #<%= p[:rank] %>
                         </span>
                       </td>
-                      <td class="fw-semibold text-dark"><%= p[:name] %></td>
+                      <td class="sticky-col sticky-col-name fw-semibold text-dark"><%= p[:name] %></td>
                       <td><span class="badge bg-light text-secondary border"><%= p[:section] %></span></td>
                       <td>
                         <% p_badge = case p[:raw_participant_type]
@@ -1162,12 +1747,20 @@
   </div>
 
   <!-- Recent Training Programs Table (Item 13 with Duration Column) -->
-  <div class="card card-custom border-0 bg-transparent shadow-none">
-    <div class="card-header border-0 pt-0 px-0 pb-4 bg-transparent">
-      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h5 class="card-title mb-0 fw-bold">Recent Training Programs</h5>
-        <%= link_to "View All", institute_admin_training_programs_path, class: "btn btn-primary" %>
+  <div class="card card-custom">
+    <div class="card-header chart-card-header border-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div class="d-flex align-items-center gap-3">
+        <div class="chart-icon-box" style="background: rgba(16,185,129,0.1); color: #059669;">
+          <i class="bi bi-mortarboard-fill"></i>
+        </div>
+        <div>
+          <p class="chart-header-title mb-0">Recent Training Programs</p>
+          <p class="chart-header-subtitle">Latest programs with feedback rate and status</p>
+        </div>
       </div>
+      <%= link_to institute_admin_training_programs_path, class: "btn btn-sm btn-outline-success rounded-3 px-3" do %>
+        <i class="bi bi-arrow-right-circle me-1"></i> View All
+      <% end %>
     </div>
     <div class="card-body p-0">
       <div class="d-lg-none px-3 pt-2 text-muted small">
@@ -1268,28 +1861,54 @@
   
   // Function to initialize dashboard charts
   function initializeDashboardCharts() {
+    isDashboardPage = document.querySelector("#participants-section-chart") !== null;
     if (!isDashboardPage) return;
     
-  // initializing dashboard charts
-    
-    // Check if chart containers exist before initializing
+    // Ensure ApexCharts library is loaded before attempting initialization
+    if (typeof ApexCharts === 'undefined') {
+      var existingApexScript = document.querySelector('script[src*="apexcharts"]');
+      if (existingApexScript) {
+        existingApexScript.addEventListener('load', function() {
+          initializeDashboardCharts();
+        });
+      } else {
+        var script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/apexcharts';
+        script.onload = function() {
+          initializeDashboardCharts();
+        };
+        document.head.appendChild(script);
+      }
+      // Poll briefly to catch when script execution finishes
+      var apexPollCount = 0;
+      var apexPollInterval = setInterval(function() {
+        apexPollCount++;
+        if (typeof ApexCharts !== 'undefined') {
+          clearInterval(apexPollInterval);
+          initializeDashboardCharts();
+        } else if (apexPollCount > 80) { // 4 seconds timeout
+          clearInterval(apexPollInterval);
+        }
+      }, 50);
+      return;
+    }
+
+    // Safely destroy all existing charts before creating new instances
+    var allChartKeys = [
+      'sectionChart', 'submissionsChart', 'byAssignmentChart', 
+      'bySectionChart', 'typeChart', 'feedbackChart', 
+      'notSubmittedChart', 'pendingSectionChart'
+    ];
+    allChartKeys.forEach(function(key) {
+      if (window[key] && typeof window[key].destroy === 'function') {
+        try { window[key].destroy(); } catch (e) {}
+        window[key] = null;
+      }
+    });
+
     var sectionChartContainer = document.querySelector("#participants-section-chart");
     var typeChartContainer = document.querySelector("#participants-type-chart");
     var feedbackChartContainer = document.querySelector("#feedback-training-chart");
-
-    // Only destroy and recreate charts if we're on the dashboard page
-    if (window.sectionChart) {
-  // destroying existing section chart
-      window.sectionChart.destroy();
-    }
-    if (window.typeChart) {
-  // destroying existing type chart
-      window.typeChart.destroy();
-    }
-    if (window.feedbackChart) {
-  // destroying existing feedback chart
-      window.feedbackChart.destroy();
-    }
 
     if (sectionChartContainer) {
   // initializing Participants by Section Chart
@@ -1554,16 +2173,7 @@
             intersect: false,
             y: { formatter: function(val) { return val + (val === 1 ? ' item' : ' items'); } }
           },
-          legend: {
-            show: true,
-            position: 'top',
-            horizontalAlign: 'left',
-            offsetY: -5,
-            fontSize: '13px',
-            fontWeight: 500,
-            markers: { width: 10, height: 10, radius: 10 },
-            itemMargin: { horizontal: 8, vertical: 0 }
-          },
+          legend: { show: false },
           grid: { borderColor: '#eef2f6' },
           responsive: [{
             breakpoint: 768,
@@ -1708,22 +2318,37 @@
         var feedbackChartOptions = {
           chart: {
             type: 'bar',
-            height: 350,
+            height: Math.max(280, window.programFeedbackRawData.length * 72 + 60),
             stacked: true,
-            toolbar: { show: false }
+            toolbar: { show: false },
+            dropShadow: {
+              enabled: true,
+              top: 4,
+              left: 0,
+              blur: 8,
+              color: '#8b5cf6',
+              opacity: 0.08
+            },
+            animations: {
+              enabled: true,
+              easing: 'easeinout',
+              speed: 700,
+              animateGradually: { enabled: true, delay: 80 }
+            }
           },
           plotOptions: {
             bar: {
-              horizontal: false,
-              columnWidth: '55%',
-              borderRadius: 4,
+              horizontal: true,
+              barHeight: '52%',
+              borderRadius: 6,
+              borderRadiusApplication: 'end',
+              borderRadiusWhenStacked: 'last',
               dataLabels: {
                 total: {
                   enabled: true,
-                  style: { fontSize: '12px', fontWeight: 600, color: '#475569' },
-                  formatter: function(val) {
-                    return val > 0 ? val : '';
-                  }
+                  offsetX: 8,
+                  style: { fontSize: '12px', fontWeight: 700, color: '#334155' },
+                  formatter: function(val) { return val > 0 ? val : ''; }
                 }
               }
             }
@@ -1737,30 +2362,49 @@
               var prog = filtered[pIdx];
               var total = prog ? prog.total : 0;
               var pct = total > 0 ? Math.round((val / total) * 100) : 0;
-              return pct + '% (' + val + ')';
+              return pct + '%';
             },
             style: {
               fontSize: '11px',
-              fontWeight: 600,
+              fontWeight: 700,
               colors: ['#ffffff']
-            }
+            },
+            dropShadow: { enabled: false }
           },
           series: buildFeedbackSeries(),
           xaxis: {
             categories: window.programFeedbackRawData.map(function(p) { return p.name; }),
             labels: {
-              rotate: -25,
-              rotateAlways: false,
-              trim: true,
-              maxHeight: 80,
-              style: { fontSize: '12px', fontWeight: 500 }
-            }
+              style: { fontSize: '12px', fontWeight: 500, colors: '#64748b' },
+              formatter: function(val) { return Math.round(val); }
+            },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
           },
           yaxis: {
-            title: { text: 'Responses / Participants' },
-            forceNiceScale: true,
             labels: {
-              formatter: function(val) { return Math.round(val); }
+              style: { fontSize: '13px', fontWeight: 600, colors: '#1e293b' },
+              maxWidth: 220,
+              offsetX: 5
+            }
+          },
+          grid: {
+            borderColor: '#f1f5f9',
+            xaxis: { lines: { show: true } },
+            yaxis: { lines: { show: false } },
+            padding: { left: 0, right: 20 }
+          },
+          fill: {
+            type: 'gradient',
+            gradient: {
+              shade: 'light',
+              type: 'horizontal',
+              shadeIntensity: 0.25,
+              gradientToColors: ['#a78bfa', '#fda4af'],
+              inverseColors: false,
+              opacityFrom: 1,
+              opacityTo: 0.85,
+              stops: [0, 100]
             }
           },
           colors: ['#8b5cf6', '#fb7185'],
@@ -1776,7 +2420,7 @@
                 var prog = filtered[pIdx];
                 var total = prog ? prog.total : 0;
                 var pct = total > 0 ? Math.round((val / total) * 100) : 0;
-                return pct + '% (' + val + ') [Total: ' + total + ']';
+                return pct + '% (' + val + ')';
               }
             }
           },
@@ -1784,26 +2428,20 @@
             position: 'top',
             horizontalAlign: 'right',
             fontSize: '12px',
-            itemMargin: { horizontal: 8, vertical: 4 }
+            fontWeight: 600,
+            itemMargin: { horizontal: 10, vertical: 4 },
+            markers: { radius: 4, width: 12, height: 12 }
+          },
+          states: {
+            hover: { filter: { type: 'lighten', value: 0.08 } },
+            active: { filter: { type: 'darken', value: 0.1 } }
           },
           responsive: [{
             breakpoint: 768,
             options: {
-              chart: {
-                height: 320
-              },
-              legend: {
-                position: 'bottom',
-                horizontalAlign: 'center',
-                fontSize: '11px',
-                itemMargin: { horizontal: 6, vertical: 4 }
-              },
-              xaxis: {
-                labels: {
-                  rotate: -35,
-                  style: { fontSize: '10px' }
-                }
-              }
+              chart: { height: Math.max(220, window.programFeedbackRawData.length * 60 + 40) },
+              legend: { position: 'bottom', horizontalAlign: 'center', fontSize: '11px' },
+              yaxis: { labels: { maxWidth: 130, style: { fontSize: '11px' } } }
             }
           }]
         };
@@ -1943,6 +2581,30 @@
           }
         } else if (submissionViewMode === 'backlog') {
           activeBadge.textContent = 'Viewing: Backlog Only';
+        }
+      }
+
+      // Update custom HTML legend pills
+      const legendEl = document.getElementById('submission-chart-legend');
+      if (legendEl) {
+        var seriesColor = colors[0] || '#4f46e5';
+        var seriesName  = (series[0] && series[0].name) || 'Total Submissions';
+        if (submissionViewMode === 'combined') {
+          legendEl.innerHTML =
+            '<div class="d-flex align-items-center gap-2">' +
+              '<span style="display:inline-block;width:28px;height:4px;border-radius:9999px;background:#4f46e5;"></span>' +
+              '<span style="font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.01em;">Total Submissions</span>' +
+            '</div>' +
+            '<div class="d-flex align-items-center gap-2">' +
+              '<span style="display:inline-block;width:28px;height:4px;border-radius:9999px;background:#ef4444;"></span>' +
+              '<span style="font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.01em;">Backlog</span>' +
+            '</div>';
+        } else {
+          legendEl.innerHTML =
+            '<div class="d-flex align-items-center gap-2">' +
+              '<span style="display:inline-block;width:28px;height:4px;border-radius:9999px;background:' + seriesColor + ';"></span>' +
+              '<span style="font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.01em;">' + seriesName + '</span>' +
+            '</div>';
         }
       }
 
@@ -2303,11 +2965,11 @@
       var pendEl = document.getElementById('tpf-pending-summary');
       if (pendEl) pendEl.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Pending: ' + pendPct + '% (' + totalPending + ')';
       var stuEl = document.getElementById('tpf-students-summary');
-      if (stuEl) stuEl.innerHTML = 'Students: <strong>' + totalStudents + '</strong>';
+      if (stuEl) stuEl.innerHTML = '<i class="bi bi-person-fill me-1"></i>Students: <strong>' + totalStudents + '</strong>';
       var guarEl = document.getElementById('tpf-guardians-summary');
-      if (guarEl) guarEl.innerHTML = 'Guardians: <strong>' + totalGuardians + '</strong>';
+      if (guarEl) guarEl.innerHTML = '<i class="bi bi-shield-fill-check me-1"></i>Guardians: <strong>' + totalGuardians + '</strong>';
       var empEl = document.getElementById('tpf-employees-summary');
-      if (empEl) empEl.innerHTML = 'Employees: <strong>' + totalEmployees + '</strong>';
+      if (empEl) empEl.innerHTML = '<i class="bi bi-briefcase-fill me-1"></i>Employees: <strong>' + totalEmployees + '</strong>';
 
       var labelEl = document.getElementById('tpfSelectedProgramLabel');
       if (labelEl) {
@@ -2321,20 +2983,40 @@
       if (counterTextEl) counterTextEl.textContent = window.selectedFeedbackProgramIds.length + ' selected';
 
       if (window.feedbackChart) {
-        var colors = window.feedbackViewMode === 'participant_type' ? ['#0ea5e9', '#a855f7', '#f59e0b', '#fb7185'] : ['#8b5cf6', '#fb7185'];
+        var colors = window.feedbackViewMode === 'participant_type'
+          ? ['#0ea5e9', '#a855f7', '#f59e0b', '#fb7185']
+          : ['#8b5cf6', '#fb7185'];
+        var gradientTo = window.feedbackViewMode === 'participant_type'
+          ? ['#38bdf8', '#c084fc', '#fcd34d', '#fda4af']
+          : ['#a78bfa', '#fda4af'];
+        var newHeight = Math.max(280, filtered.length * 72 + 60);
         window.feedbackChart.updateOptions({
+          chart: { height: newHeight },
           colors: colors,
+          fill: {
+            type: 'gradient',
+            gradient: {
+              shade: 'light',
+              type: 'horizontal',
+              shadeIntensity: 0.25,
+              gradientToColors: gradientTo,
+              inverseColors: false,
+              opacityFrom: 1,
+              opacityTo: 0.85,
+              stops: [0, 100]
+            }
+          },
           xaxis: { categories: filtered.map(function(p) { return p.name; }) }
         }, false, true);
 
         var newSeries = window.feedbackViewMode === 'participant_type' ? [
-          { name: 'Students', data: filtered.map(function(p) { return p.student || 0; }) },
+          { name: 'Students',  data: filtered.map(function(p) { return p.student  || 0; }) },
           { name: 'Guardians', data: filtered.map(function(p) { return p.guardian || 0; }) },
           { name: 'Employees', data: filtered.map(function(p) { return p.employee || 0; }) },
-          { name: 'Pending', data: filtered.map(function(p) { return p.pending || 0; }) }
+          { name: 'Pending',   data: filtered.map(function(p) { return p.pending  || 0; }) }
         ] : [
           { name: 'Received', data: filtered.map(function(p) { return p.received || 0; }) },
-          { name: 'Pending', data: filtered.map(function(p) { return p.pending || 0; }) }
+          { name: 'Pending',  data: filtered.map(function(p) { return p.pending  || 0; }) }
         ];
         window.feedbackChart.updateSeries(newSeries, true);
       }
@@ -2364,8 +3046,8 @@
               if (type === 'top') {
                 var badgeClass = p.rank === 1 ? 'bg-warning text-dark' : (p.rank === 2 ? 'bg-secondary text-white' : (p.rank === 3 ? 'bg-bronze text-white' : 'bg-light text-dark border'));
                 html += '<tr>' +
-                  '<td><span class="badge ' + badgeClass + ' rounded-pill fw-bold">#' + p.rank + '</span></td>' +
-                  '<td class="fw-semibold text-dark">' + p.name + '</td>' +
+                  '<td class="sticky-col sticky-col-rank"><span class="badge ' + badgeClass + ' rounded-pill fw-bold">#' + p.rank + '</span></td>' +
+                  '<td class="sticky-col sticky-col-name fw-semibold text-dark">' + p.name + '</td>' +
                   '<td><span class="badge bg-light text-secondary border">' + p.section + '</span></td>' +
                   '<td class="text-muted small text-truncate" style="max-width: 150px;" title="' + p.assignment_name + '">' + p.assignment_name + '</td>' +
                   '<td class="text-center"><span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-fire text-danger me-1"></i>' + p.streak + ' ' + (p.streak === 1 ? 'day' : 'days') + '</span></td>' +
@@ -2373,8 +3055,8 @@
               } else {
                 var pBadge = p.raw_participant_type === 'student' ? 'badge-student' : (p.raw_participant_type === 'guardian' ? 'badge-guardian' : (p.raw_participant_type === 'employee' ? 'badge-employee' : 'bg-secondary'));
                 html += '<tr>' +
-                  '<td><span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">#' + p.rank + '</span></td>' +
-                  '<td class="fw-semibold text-dark">' + p.name + '</td>' +
+                  '<td class="sticky-col sticky-col-rank"><span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">#' + p.rank + '</span></td>' +
+                  '<td class="sticky-col sticky-col-name fw-semibold text-dark">' + p.name + '</td>' +
                   '<td><span class="badge bg-light text-secondary border">' + p.section + '</span></td>' +
                   '<td><span class="badge ' + pBadge + '">' + p.participant_type + '</span></td>' +
                   '<td class="text-muted small text-truncate" style="max-width: 140px;" title="' + p.assignment_name + '">' + p.assignment_name + '</td>' +
@@ -2394,28 +3076,37 @@
         });
     };
 
-    // Initialize on first load
+    // Initialize on first load and Turbo navigation
     document.addEventListener('DOMContentLoaded', initializeDashboardCharts);
-    
-    // Handle navigation to/from dashboard page
     document.addEventListener('turbo:load', function() {
       isDashboardPage = document.querySelector("#participants-section-chart") !== null;
       if (isDashboardPage) {
         initializeDashboardCharts();
       }
     });
-
-    // Clean up only when leaving dashboard page
-    document.addEventListener('turbo:before-visit', function() {
+    document.addEventListener('turbo:render', function() {
+      isDashboardPage = document.querySelector("#participants-section-chart") !== null;
       if (isDashboardPage) {
-        if (window.sectionChart) { window.sectionChart.destroy(); window.sectionChart = null; }
-        if (window.typeChart) { window.typeChart.destroy(); window.typeChart = null; }
-        if (window.feedbackChart) { window.feedbackChart.destroy(); window.feedbackChart = null; }
-        if (window.submissionsChart) { window.submissionsChart.destroy(); window.submissionsChart = null; }
-        if (window.byAssignmentChart) { window.byAssignmentChart.destroy(); window.byAssignmentChart = null; }
-        if (window.bySectionChart) { window.bySectionChart.destroy(); window.bySectionChart = null; }
-        if (window.notSubmittedChart) { window.notSubmittedChart.destroy(); window.notSubmittedChart = null; }
-        if (window.pendingSectionChart) { window.pendingSectionChart.destroy(); window.pendingSectionChart = null; }
+        initializeDashboardCharts();
       }
     });
+
+    // Clean up when leaving dashboard page or before Turbo caches the page
+    function cleanupDashboardCharts() {
+      if (isDashboardPage) {
+        var allChartKeys = [
+          'sectionChart', 'submissionsChart', 'byAssignmentChart', 
+          'bySectionChart', 'typeChart', 'feedbackChart', 
+          'notSubmittedChart', 'pendingSectionChart'
+        ];
+        allChartKeys.forEach(function(key) {
+          if (window[key] && typeof window[key].destroy === 'function') {
+            try { window[key].destroy(); } catch (e) {}
+            window[key] = null;
+          }
+        });
+      }
+    }
+    document.addEventListener('turbo:before-visit', cleanupDashboardCharts);
+    document.addEventListener('turbo:before-cache', cleanupDashboardCharts);
   </script>

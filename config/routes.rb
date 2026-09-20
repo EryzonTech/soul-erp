@@ -278,7 +278,8 @@ Rails.application.routes.draw do
         resources :sessions, only: [ :show ]
         resources :feedbacks, only: [ :new, :create ], controller: "training_program_feedbacks"
       end
-      resources :assignments, only: [ :index, :show ] do
+      resources :questions
+      resources :assignments do
         member do
           get :take_assignment
           post :submit

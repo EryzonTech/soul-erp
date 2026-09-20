@@ -1,0 +1,521 @@
+<div class="container py-4">
+  <!-- Page Header -->
+  <div class="page-header-card mb-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 w-100">
+      <div class="d-flex align-items-center gap-3">
+        <div class="header-icon">
+          <i class="bi bi-patch-question-fill"></i>
+        </div>
+        <div>
+          <h4 class="header-title">My Custom Questions</h4>
+          <p class="header-subtitle">Create and manage your personal questions for custom assignments</p>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <%= link_to participant_portal_assignments_path, class: "btn-back", title: "Back to Assignments" do %>
+          <i class="bi bi-arrow-left"></i>
+        <% end %>
+        <%= link_to new_participant_portal_question_path, class: "btn-create" do %>
+          <i class="bi bi-plus-lg me-1"></i> New Question
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Metrics Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon total">
+          <i class="bi bi-question-circle"></i>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value"><%= @total_questions_count %></span>
+          <span class="kpi-label">Total Questions</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon types">
+          <i class="bi bi-diagram-3"></i>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value"><%= @types_count %></span>
+          <span class="kpi-label">Question Types</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon required">
+          <i class="bi bi-asterisk"></i>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value"><%= @required_questions_count %></span>
+          <span class="kpi-label">Mandatory</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-icon active-stat">
+          <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value"><%= @active_questions_count %></span>
+          <span class="kpi-label">Active</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters & Search Toolbar -->
+  <div class="filter-card mb-4">
+    <%= form_with(url: participant_portal_questions_path, method: :get, local: true, class: "d-flex flex-wrap align-items-center gap-3 w-100") do |f| %>
+      <div class="search-box flex-grow-1">
+        <i class="bi bi-search search-icon"></i>
+        <%= f.text_field :search, value: params[:search], placeholder: "Search questions by title or display name...", class: "form-control search-input" %>
+      </div>
+
+      <div class="type-filter">
+        <%= f.select :question_type,
+            options_for_select(Question.question_types.keys.map { |k| [k.titleize, k] }, params[:question_type]),
+            { include_blank: "All Question Types" },
+            { class: "form-select filter-select", onchange: "this.form.submit()" } %>
+      </div>
+
+      <% if params[:search].present? || params[:question_type].present? %>
+        <%= link_to participant_portal_questions_path, class: "btn-reset" do %>
+          <i class="bi bi-x-circle me-1"></i> Reset
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <!-- Questions List Card -->
+  <div class="section-card">
+    <div class="section-header d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <div class="section-icon questions">
+          <i class="bi bi-list-check"></i>
+        </div>
+        <h5 class="section-title mb-0">Question Bank (<%= @questions.size %>)</h5>
+      </div>
+      <% if @questions.any? %>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1">
+          Showing <%= @questions.size %> <%= 'question'.pluralize(@questions.size) %>
+        </span>
+      <% end %>
+    </div>
+
+    <div class="section-body p-0">
+      <% if @questions.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 custom-questions-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th>Question Title</th>
+                <th style="width: 170px;">Type</th>
+                <th style="width: 160px;">Options / Details</th>
+                <th style="width: 100px;">Required</th>
+                <th style="width: 110px;">Used In</th>
+                <th class="text-end" style="width: 140px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @questions.each_with_index do |question, idx| %>
+                <tr>
+                  <td class="text-muted fw-semibold"><%= idx + 1 %></td>
+                  <td>
+                    <div class="d-flex flex-column">
+                      <span class="fw-bold text-dark"><%= question.title %></span>
+                      <% if question.display_name.present? && question.display_name != question.title %>
+                        <small class="text-muted"><i class="bi bi-tag me-1"></i><%= question.display_name %></small>
+                      <% end %>
+                      <% if question.description.present? %>
+                        <small class="text-secondary text-truncate" style="max-width: 380px;"><%= question.description %></small>
+                      <% end %>
+                    </div>
+                  </td>
+                  <td>
+                    <%
+                      type_badge_class = case question.question_type
+                      when "multiple_choice" then "bg-primary-subtle text-primary border border-primary-subtle"
+                      when "checkboxes" then "bg-info-subtle text-info border border-info-subtle"
+                      when "dropdown" then "bg-indigo-subtle text-indigo border border-indigo-subtle"
+                      when "short_answer" then "bg-success-subtle text-success border border-success-subtle"
+                      when "paragraph" then "bg-teal-subtle text-teal border border-teal-subtle"
+                      when "rating" then "bg-warning-subtle text-warning-emphasis border border-warning-subtle"
+                      when "yes_or_no" then "bg-purple-subtle text-purple border border-purple-subtle"
+                      when "date", "time" then "bg-secondary-subtle text-secondary border border-secondary-subtle"
+                      when "number" then "bg-danger-subtle text-danger border border-danger-subtle"
+                      else "bg-light text-dark"
+                      end
+                    %>
+                    <span class="badge rounded-pill px-2.5 py-1 <%= type_badge_class %>" style="font-size: 0.75rem;">
+                      <i class="bi <%= question.rating? ? 'bi-star-fill' : 'bi-check2-circle' %> me-1"></i>
+                      <%= question.question_type.titleize %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if question.requires_options? %>
+                      <div class="d-flex flex-wrap gap-1" style="max-width: 220px;">
+                        <% question.options.limit(3).each do |opt| %>
+                          <span class="badge bg-light text-dark border option-pill" style="font-size: 0.7rem;">
+                            <%= opt.text.truncate(20) %>
+                          </span>
+                        <% end %>
+                        <% if question.options.size > 3 %>
+                          <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.7rem;">
+                            +<%= question.options.size - 3 %> more
+                          </span>
+                        <% end %>
+                      </div>
+                    <% elsif question.rating? %>
+                      <span class="text-warning small">
+                        <% (1..[question.max_rating || 5, 5].min).each do %>
+                          <i class="bi bi-star-fill"></i>
+                        <% end %>
+                        <span class="text-muted ms-1">(Max <%= question.max_rating || 5 %>)</span>
+                      </span>
+                    <% else %>
+                      <span class="text-muted small">Text Response</span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% if question.required? %>
+                      <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">Yes</span>
+                    <% else %>
+                      <span class="badge bg-light text-secondary border rounded-pill">No</span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-dark border">
+                      <i class="bi bi-clipboard-check me-1"></i><%= question.assignments.count %> <%= 'assignment'.pluralize(question.assignments.count) %>
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <div class="d-flex align-items-center justify-content-end gap-2">
+                      <%= link_to participant_portal_question_path(question), 
+                          class: "btn action-btn btn-view", title: "View Question" do %>
+                        <i class="bi bi-eye"></i>
+                      <% end %>
+                      <%= link_to edit_participant_portal_question_path(question), 
+                          class: "btn action-btn btn-edit", title: "Edit Question" do %>
+                        <i class="bi bi-pencil"></i>
+                      <% end %>
+                      <%= button_to participant_portal_question_path(question),
+                          method: :delete,
+                          form: { style: 'display: inline-block', data: { turbo: false } },
+                          class: "btn action-btn btn-delete",
+                          title: "Delete Question",
+                          data: { turbo_confirm: "Are you sure you want to delete question '#{question.title}'?" } do %>
+                        <i class="bi bi-trash"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state py-5 text-center">
+          <div class="empty-icon mb-3">
+            <i class="bi bi-patch-question display-4 text-muted"></i>
+          </div>
+          <h5 class="fw-bold text-dark">No Questions Found</h5>
+          <p class="text-muted mb-4" style="max-width: 450px; margin: 0 auto;">
+            <% if params[:search].present? || params[:question_type].present? %>
+              No custom questions match your search filters. Try resetting the filters.
+            <% else %>
+              You haven't created any custom questions yet. Start building your personal question bank to use in custom assignments!
+            <% end %>
+          </p>
+          <% if params[:search].present? || params[:question_type].present? %>
+            <%= link_to "Clear Filters", participant_portal_questions_path, class: "btn btn-outline-primary" %>
+          <% else %>
+            <%= link_to new_participant_portal_question_path, class: "btn btn-primary px-4 py-2 rounded-3 shadow-sm" do %>
+              <i class="bi bi-plus-lg me-1"></i> Create Your First Question
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<% content_for :styles do %>
+  <style>
+    .page-header-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem 1.75rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .header-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+      flex-shrink: 0;
+    }
+    .header-title {
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 0.2rem;
+    }
+    .header-subtitle {
+      color: #64748b;
+      margin-bottom: 0;
+      font-size: 0.9rem;
+    }
+    .btn-create {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: white;
+      padding: 0.6rem 1.25rem;
+      border-radius: 10px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+      transition: all 0.2s ease;
+    }
+    .btn-create:hover {
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+    }
+    .btn-back {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: #f1f5f9;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-back:hover {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+    .kpi-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+    .kpi-icon.total { background: #e0e7ff; color: #4338ca; }
+    .kpi-icon.types { background: #dbeafe; color: #1d4ed8; }
+    .kpi-icon.required { background: #fee2e2; color: #b91c1c; }
+    .kpi-icon.active-stat { background: #dcfce7; color: #15803d; }
+    .kpi-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #1e293b;
+      line-height: 1.1;
+      display: block;
+    }
+    .kpi-label {
+      font-size: 0.78rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .filter-card {
+      background: white;
+      border-radius: 0.85rem;
+      padding: 0.85rem 1.25rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .search-box {
+      position: relative;
+      min-width: 250px;
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+    }
+    .search-input {
+      padding-left: 40px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      font-size: 0.9rem;
+    }
+    .filter-select {
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      font-size: 0.9rem;
+      min-width: 180px;
+    }
+    .btn-reset {
+      color: #64748b;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+    .btn-reset:hover {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+    .section-card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+    .section-header {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .section-icon.questions {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #e0e7ff;
+      color: #4f46e5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+    }
+    .custom-questions-table th {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      background: #f8fafc;
+      font-weight: 600;
+      padding: 0.85rem 1rem;
+      border-top: none;
+    }
+    .custom-questions-table td {
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .option-pill {
+      border-color: #e2e8f0 !important;
+      font-weight: 500;
+    }
+
+    /* Institute Admin Style Action Buttons */
+    .action-btn {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none;
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .action-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.5s, height 0.5s;
+    }
+
+    .action-btn:hover::before {
+      width: 80px;
+      height: 80px;
+    }
+
+    .action-btn i {
+      font-size: 14px;
+      position: relative;
+      z-index: 1;
+      line-height: 1;
+    }
+
+    .btn-view {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff !important;
+      box-shadow: 0 3px 6px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-view:hover {
+      background: linear-gradient(135deg, #5568d3 0%, #5a3a7f 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(102, 126, 234, 0.45);
+      color: #ffffff !important;
+    }
+
+    .btn-edit {
+      background: linear-gradient(135deg, #141c2f 0%, #ea02e9 100%);
+      color: #ffffff !important;
+      box-shadow: 0 3px 6px rgba(234, 2, 233, 0.3);
+    }
+
+    .btn-edit:hover {
+      background: linear-gradient(135deg, #141c2f 0%, #ea02e9 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(234, 2, 233, 0.45);
+      color: #ffffff !important;
+    }
+
+    .btn-delete {
+      background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
+      color: #ffffff !important;
+      box-shadow: 0 3px 6px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-delete:hover {
+      background: linear-gradient(135deg, #ee5a5a 0%, #b81919 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(255, 107, 107, 0.45);
+      color: #ffffff !important;
+    }
+
+    .action-btn:active {
+      transform: translateY(0);
+    }
+  </style>
+<% end %>

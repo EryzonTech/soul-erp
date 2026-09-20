@@ -41,25 +41,25 @@
   <div class="row g-3 mb-4">
     <!-- Card 1: Total Assigned -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
-        <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="inst-kpi-card flex-column justify-content-between h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
           <div>
-            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Assigned</div>
-            <div class="h4 fw-bold mb-0 text-dark"><%= @total_assigned_count || 0 %></div>
+            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Total Assigned</div>
+            <div class="h3 fw-bold mb-0 text-dark"><%= @total_assigned_count || 0 %></div>
           </div>
           <div class="inst-kpi-icon inst-kpi-icon-primary">
             <i class="bi bi-journal-text"></i>
           </div>
         </div>
-        <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-medium" title="Students Assigned">
-            <i class="bi bi-mortarboard me-1"></i>Stu: <%= @total_assigned_by_type&.fetch('student', 0) || 0 %>
+        <div class="inst-kpi-breakdown">
+          <span class="inst-kpi-pill inst-kpi-pill-stu" title="Students Assigned">
+            <i class="bi bi-mortarboard"></i>Stu: <%= @total_assigned_by_type&.fetch('student', 0) || 0 %>
           </span>
-          <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;" title="Guardians Assigned">
-            <i class="bi bi-shield-shaded me-1"></i>Gua: <%= @total_assigned_by_type&.fetch('guardian', 0) || 0 %>
+          <span class="inst-kpi-pill inst-kpi-pill-gua" title="Guardians Assigned">
+            <i class="bi bi-shield-shaded"></i>Gua: <%= @total_assigned_by_type&.fetch('guardian', 0) || 0 %>
           </span>
-          <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-medium" title="Employees Assigned">
-            <i class="bi bi-briefcase me-1"></i>Emp: <%= @total_assigned_by_type&.fetch('employee', 0) || 0 %>
+          <span class="inst-kpi-pill inst-kpi-pill-emp" title="Employees Assigned">
+            <i class="bi bi-briefcase"></i>Emp: <%= @total_assigned_by_type&.fetch('employee', 0) || 0 %>
           </span>
         </div>
       </div>
@@ -67,25 +67,25 @@
 
     <!-- Card 2: Submitted -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
-        <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="inst-kpi-card flex-column justify-content-between h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
           <div>
-            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Submitted</div>
-            <div class="h4 fw-bold mb-0 text-success"><%= @submitted_count || 0 %></div>
+            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Submitted</div>
+            <div class="h3 fw-bold mb-0 text-success"><%= @submitted_count || 0 %></div>
           </div>
           <div class="inst-kpi-icon inst-kpi-icon-success">
             <i class="bi bi-check-circle"></i>
           </div>
         </div>
-        <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-medium" title="Students Submitted">
-            <i class="bi bi-mortarboard me-1"></i>Stu: <%= @submitted_by_type&.fetch('student', 0) || 0 %>
+        <div class="inst-kpi-breakdown">
+          <span class="inst-kpi-pill inst-kpi-pill-stu" title="Students Submitted">
+            <i class="bi bi-mortarboard"></i>Stu: <%= @submitted_by_type&.fetch('student', 0) || 0 %>
           </span>
-          <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;" title="Guardians Submitted">
-            <i class="bi bi-shield-shaded me-1"></i>Gua: <%= @submitted_by_type&.fetch('guardian', 0) || 0 %>
+          <span class="inst-kpi-pill inst-kpi-pill-gua" title="Guardians Submitted">
+            <i class="bi bi-shield-shaded"></i>Gua: <%= @submitted_by_type&.fetch('guardian', 0) || 0 %>
           </span>
-          <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-medium" title="Employees Submitted">
-            <i class="bi bi-briefcase me-1"></i>Emp: <%= @submitted_by_type&.fetch('employee', 0) || 0 %>
+          <span class="inst-kpi-pill inst-kpi-pill-emp" title="Employees Submitted">
+            <i class="bi bi-briefcase"></i>Emp: <%= @submitted_by_type&.fetch('employee', 0) || 0 %>
           </span>
         </div>
       </div>
@@ -93,25 +93,25 @@
 
     <!-- Card 3: Pending -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
-        <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="inst-kpi-card flex-column justify-content-between h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
           <div>
-            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Pending</div>
-            <div class="h4 fw-bold mb-0 text-warning"><%= @pending_count || 0 %></div>
+            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Pending</div>
+            <div class="h3 fw-bold mb-0 text-warning"><%= @pending_count || 0 %></div>
           </div>
           <div class="inst-kpi-icon inst-kpi-icon-warning">
             <i class="bi bi-clock-history"></i>
           </div>
         </div>
-        <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-medium" title="Students Pending">
-            <i class="bi bi-mortarboard me-1"></i>Stu: <%= @pending_by_type&.fetch('student', 0) || 0 %>
+        <div class="inst-kpi-breakdown">
+          <span class="inst-kpi-pill inst-kpi-pill-stu" title="Students Pending">
+            <i class="bi bi-mortarboard"></i>Stu: <%= @pending_by_type&.fetch('student', 0) || 0 %>
           </span>
-          <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;" title="Guardians Pending">
-            <i class="bi bi-shield-shaded me-1"></i>Gua: <%= @pending_by_type&.fetch('guardian', 0) || 0 %>
+          <span class="inst-kpi-pill inst-kpi-pill-gua" title="Guardians Pending">
+            <i class="bi bi-shield-shaded"></i>Gua: <%= @pending_by_type&.fetch('guardian', 0) || 0 %>
           </span>
-          <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-medium" title="Employees Pending">
-            <i class="bi bi-briefcase me-1"></i>Emp: <%= @pending_by_type&.fetch('employee', 0) || 0 %>
+          <span class="inst-kpi-pill inst-kpi-pill-emp" title="Employees Pending">
+            <i class="bi bi-briefcase"></i>Emp: <%= @pending_by_type&.fetch('employee', 0) || 0 %>
           </span>
         </div>
       </div>
@@ -119,25 +119,25 @@
 
     <!-- Card 4: Completion Rate -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
-        <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="inst-kpi-card flex-column justify-content-between h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
           <div>
-            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Completion Rate</div>
-            <div class="h4 fw-bold mb-0 text-info"><%= @participation_rate || 0 %>%</div>
+            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Completion Rate</div>
+            <div class="h3 fw-bold mb-0 text-info"><%= sprintf("%g%%", (@participation_rate || 0).to_f.round(1)) %></div>
           </div>
           <div class="inst-kpi-icon inst-kpi-icon-info">
             <i class="bi bi-pie-chart"></i>
           </div>
         </div>
-        <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-medium" title="Student Completion Rate">
-            <i class="bi bi-mortarboard me-1"></i>Stu: <%= @completion_rate_by_type&.fetch('student', 0) || 0 %>%
+        <div class="inst-kpi-breakdown">
+          <span class="inst-kpi-pill inst-kpi-pill-stu" title="Student Completion Rate">
+            <i class="bi bi-mortarboard"></i>Stu: <%= sprintf("%g%%", (@completion_rate_by_type&.fetch('student', 0) || 0).to_f.round(1)) %>
           </span>
-          <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;" title="Guardian Completion Rate">
-            <i class="bi bi-shield-shaded me-1"></i>Gua: <%= @completion_rate_by_type&.fetch('guardian', 0) || 0 %>%
+          <span class="inst-kpi-pill inst-kpi-pill-gua" title="Guardian Completion Rate">
+            <i class="bi bi-shield-shaded"></i>Gua: <%= sprintf("%g%%", (@completion_rate_by_type&.fetch('guardian', 0) || 0).to_f.round(1)) %>
           </span>
-          <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-medium" title="Employee Completion Rate">
-            <i class="bi bi-briefcase me-1"></i>Emp: <%= @completion_rate_by_type&.fetch('employee', 0) || 0 %>%
+          <span class="inst-kpi-pill inst-kpi-pill-emp" title="Employee Completion Rate">
+            <i class="bi bi-briefcase"></i>Emp: <%= sprintf("%g%%", (@completion_rate_by_type&.fetch('employee', 0) || 0).to_f.round(1)) %>
           </span>
         </div>
       </div>
@@ -915,18 +915,5 @@
 
   .filter-dropdown-btn.show::after {
     transform: rotate(180deg);
-  }
-
-  .inst-kpi-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  .inst-kpi-card:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-    transform: translateY(-2px);
   }
 </style>

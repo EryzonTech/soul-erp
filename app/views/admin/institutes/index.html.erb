@@ -328,8 +328,10 @@
                 <td class="text-end pe-4">
                   <div class="action-buttons justify-content-end">
                     <!-- Login as Admin -->
-                    <%= link_to login_as_institute_admin_admin_institute_path(institute), 
-                                data: { turbo_method: :post, bs_toggle: "tooltip" }, 
+                    <%= button_to login_as_institute_admin_admin_institute_path(institute), 
+                                method: :post,
+                                form: { class: "d-inline m-0", data: { turbo: false } },
+                                data: { bs_toggle: "tooltip" }, 
                                 class: "action-btn btn-login", 
                                 title: "Login as Institute Admin" do %>
                       <i class="bi bi-box-arrow-in-right"></i>

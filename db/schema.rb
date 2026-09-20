@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_20_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_20_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -127,7 +127,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_20_000001) do
     t.string "assignment_type", default: "individual"
     t.integer "section_id"
     t.bigint "question_category_id"
+    t.bigint "participant_id"
     t.index ["institute_id"], name: "index_assignments_on_institute_id"
+    t.index ["participant_id"], name: "index_assignments_on_participant_id"
     t.index ["question_category_id"], name: "index_assignments_on_question_category_id"
     t.index ["section_id"], name: "index_assignments_on_section_id"
   end
@@ -369,7 +371,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_20_000001) do
     t.integer "duration_days"
     t.integer "from_day", default: 1, null: false
     t.integer "to_day"
+    t.bigint "participant_id"
     t.index ["institute_id"], name: "index_questions_on_institute_id"
+    t.index ["participant_id"], name: "index_questions_on_participant_id"
     t.index ["question_category_id"], name: "index_questions_on_question_category_id"
   end
 
@@ -655,6 +659,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_20_000001) do
   add_foreign_key "assignment_sections", "assignments"
   add_foreign_key "assignment_sections", "sections"
   add_foreign_key "assignments", "institutes"
+  add_foreign_key "assignments", "participants"
   add_foreign_key "assignments", "question_categories"
   add_foreign_key "attendances", "participants"
   add_foreign_key "attendances", "training_programs"
@@ -683,6 +688,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_20_000001) do
   add_foreign_key "question_set_items", "questions"
   add_foreign_key "question_sets", "institutes"
   add_foreign_key "questions", "institutes"
+  add_foreign_key "questions", "participants"
   add_foreign_key "questions", "question_categories"
   add_foreign_key "sections", "institutes"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

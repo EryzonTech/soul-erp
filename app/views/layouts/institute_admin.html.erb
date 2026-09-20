@@ -17,6 +17,8 @@
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- ApexCharts for dashboard visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script>
       // Check if Chart.js loaded correctly
       window.addEventListener('load', function() {
@@ -1208,7 +1210,7 @@
               <div class="alert alert-warning py-1 px-3 mb-0 me-2 d-none d-lg-block text-truncate">
                 <small>Viewing as institute admin for <%= current_institute&.name %></small>
               </div>
-              <%= link_to session[:admin_return_to], class: "btn btn-outline-primary btn-sm px-2.5 py-1.5 d-inline-flex align-items-center gap-1 shadow-xs fw-medium text-nowrap", method: :get, data: { admin_return: true } do %>
+              <%= link_to session[:admin_return_to], class: "btn btn-outline-primary btn-sm px-2.5 py-1.5 d-inline-flex align-items-center gap-1 shadow-xs fw-medium text-nowrap", method: :get, data: { admin_return: true, turbo: false } do %>
                 <i class="bi bi-arrow-return-left"></i>
                 <span class="d-none d-sm-inline">Return to Admin</span>
                 <span class="d-inline d-sm-none">Exit</span>

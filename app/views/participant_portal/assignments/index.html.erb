@@ -1,17 +1,27 @@
 <div class="container py-4">
   <div class="page-header-card mb-4">
-    <div class="d-flex align-items-center gap-3 flex-grow-1">
-      <div class="header-icon">
-        <i class="bi bi-journal-check"></i>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 w-100">
+      <div class="d-flex align-items-center gap-3">
+        <div class="header-icon">
+          <i class="bi bi-journal-check"></i>
+        </div>
+        <div>
+          <h4 class="header-title">My Assignments</h4>
+          <p class="header-subtitle">Track and complete your daily assignments</p>
+        </div>
       </div>
-      <div>
-        <h4 class="header-title">My Assignments</h4>
-        <p class="header-subtitle">Track and complete your daily assignments</p>
+      <div class="d-flex align-items-center flex-wrap gap-2">
+        <%= link_to participant_portal_questions_path, class: "btn-outline-custom", title: "Manage My Questions" do %>
+          <i class="bi bi-patch-question me-1"></i> My Questions
+        <% end %>
+        <%= link_to new_participant_portal_assignment_path, class: "btn-create-assignment" do %>
+          <i class="bi bi-plus-lg me-1"></i> Create Custom Assignment
+        <% end %>
+        <a href="#" onclick="history.back()" class="btn-back" title="Go back">
+          <i class="bi bi-arrow-left"></i>
+        </a>
       </div>
     </div>
-    <a href="#" onclick="history.back()" class="btn-back">
-      <i class="bi bi-arrow-left"></i>
-    </a>
   </div>
 
   <!-- Today's Assignments -->
@@ -29,20 +39,42 @@
             <div class="assignment-card">
               <div class="assignment-header">
                 <div>
-                  <h6 class="assignment-title"><%= assignment.title %></h6>
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <h6 class="assignment-title mb-0"><%= assignment.title %></h6>
+                    <% if assignment.custom? %>
+                      <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                        <i class="bi bi-person-gear me-0.5"></i> Custom
+                      </span>
+                    <% end %>
+                  </div>
                   <p class="assignment-description"><%= assignment.description %></p>
                 </div>
-                <% if assignment.answered_by_on_date?(current_participant, Date.current) %>
-                  <span class="status-badge status-completed">
-                    <i class="bi bi-check-circle-fill me-1"></i>Completed
-                  </span>
-                <% else %>
-                  <%= link_to take_assignment_participant_portal_assignment_path(assignment, date: Date.current),
-                      class: "btn-start",
-                      data: { turbo_frame: "_top" } do %>
-                    <i class="bi bi-play-fill me-1"></i>Start Assignment
+                <div class="d-flex align-items-center gap-2">
+                  <% if assignment.custom? && assignment.participant_id == current_participant.id %>
+                    <%= link_to edit_participant_portal_assignment_path(assignment), class: "btn action-btn btn-edit", title: "Edit Assignment" do %>
+                      <i class="bi bi-pencil"></i>
+                    <% end %>
+                    <%= button_to participant_portal_assignment_path(assignment),
+                        method: :delete,
+                        form: { style: 'display: inline-block', data: { turbo: false } },
+                        data: { turbo_confirm: "Are you sure you want to delete custom assignment '#{assignment.title}'?" },
+                        class: "btn action-btn btn-delete",
+                        title: "Delete Assignment" do %>
+                      <i class="bi bi-trash"></i>
+                    <% end %>
                   <% end %>
-                <% end %>
+                  <% if assignment.answered_by_on_date?(current_participant, Date.current) %>
+                    <span class="status-badge status-completed">
+                      <i class="bi bi-check-circle-fill me-1"></i>Completed
+                    </span>
+                  <% else %>
+                    <%= link_to take_assignment_participant_portal_assignment_path(assignment, date: Date.current),
+                        class: "btn-start",
+                        data: { turbo_frame: "_top" } do %>
+                      <i class="bi bi-play-fill me-1"></i>Start Assignment
+                    <% end %>
+                  <% end %>
+                </div>
               </div>
 
               <div class="assignment-meta">
@@ -111,6 +143,7 @@
                 <th>Period</th>
                 <th>Questions</th>
                 <th>Status</th>
+                <th class="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -118,7 +151,14 @@
                 <tr>
                   <td>
                     <div class="table-content">
-                      <strong class="assignment-title-table"><%= assignment.title %></strong>
+                      <div class="d-flex align-items-center gap-2">
+                        <strong class="assignment-title-table"><%= assignment.title %></strong>
+                        <% if assignment.custom? %>
+                          <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
+                            Custom
+                          </span>
+                        <% end %>
+                      </div>
                       <% if assignment.description.present? %>
                         <small class="assignment-desc-table"><%= assignment.description.truncate(80) %></small>
                       <% end %>
@@ -144,6 +184,26 @@
                     <% else %>
                       <span class="status-badge status-pending">Not Started</span>
                     <% end %>
+                  </td>
+                  <td class="text-end">
+                    <div class="d-flex align-items-center justify-content-end gap-2">
+                      <%= link_to participant_portal_assignment_path(assignment), class: "btn action-btn btn-view", title: "View Details" do %>
+                        <i class="bi bi-eye"></i>
+                      <% end %>
+                      <% if assignment.custom? && assignment.participant_id == current_participant.id %>
+                        <%= link_to edit_participant_portal_assignment_path(assignment), class: "btn action-btn btn-edit", title: "Edit Assignment" do %>
+                          <i class="bi bi-pencil"></i>
+                        <% end %>
+                        <%= button_to participant_portal_assignment_path(assignment),
+                            method: :delete,
+                            form: { style: 'display: inline-block', data: { turbo: false } },
+                            data: { turbo_confirm: "Are you sure you want to delete custom assignment '#{assignment.title}'?" },
+                            class: "btn action-btn btn-delete",
+                            title: "Delete Assignment" do %>
+                          <i class="bi bi-trash"></i>
+                        <% end %>
+                      <% end %>
+                    </div>
                   </td>
                 </tr>
               <% end %>
@@ -259,6 +319,64 @@
       justify-content: space-between;
       align-items: center;
       gap: 1.25rem;
+    }
+    .btn-create-assignment {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #ffffff !important;
+      padding: 0.6rem 1.25rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+      transition: all 0.2s ease;
+    }
+    .btn-create-assignment:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+    }
+    .btn-outline-custom {
+      background: #f8fafc;
+      color: #4f46e5 !important;
+      border: 1px solid #e0e7ff;
+      padding: 0.6rem 1.1rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+    .btn-outline-custom:hover {
+      background: #eef2ff;
+      border-color: #c7d2fe;
+    }
+    .btn-card-edit, .btn-card-delete {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      color: #64748b;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      padding: 0;
+    }
+    .btn-card-edit:hover {
+      background: #eff6ff;
+      color: #2563eb;
+      border-color: #bfdbfe;
+    }
+    .btn-card-delete:hover {
+      background: #fef2f2;
+      color: #dc2626;
+      border-color: #fecaca;
     }
     .header-icon {
       width: 56px;
@@ -700,6 +818,91 @@
       .table-modern tbody td {
         padding: 1rem;
       }
+    }
+
+    /* Institute Admin Style Action Buttons */
+    .action-btn {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none;
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .action-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.5s, height 0.5s;
+    }
+
+    .action-btn:hover::before {
+      width: 80px;
+      height: 80px;
+    }
+
+    .action-btn i {
+      font-size: 14px;
+      position: relative;
+      z-index: 1;
+      line-height: 1;
+    }
+
+    .btn-view {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff !important;
+      box-shadow: 0 3px 6px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-view:hover {
+      background: linear-gradient(135deg, #5568d3 0%, #5a3a7f 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(102, 126, 234, 0.45);
+      color: #ffffff !important;
+    }
+
+    .btn-edit {
+      background: linear-gradient(135deg, #141c2f 0%, #ea02e9 100%);
+      color: #ffffff !important;
+      box-shadow: 0 3px 6px rgba(234, 2, 233, 0.3);
+    }
+
+    .btn-edit:hover {
+      background: linear-gradient(135deg, #141c2f 0%, #ea02e9 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(234, 2, 233, 0.45);
+      color: #ffffff !important;
+    }
+
+    .btn-delete {
+      background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
+      color: #ffffff !important;
+      box-shadow: 0 3px 6px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-delete:hover {
+      background: linear-gradient(135deg, #ee5a5a 0%, #b81919 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(255, 107, 107, 0.45);
+      color: #ffffff !important;
+    }
+
+    .action-btn:active {
+      transform: translateY(0);
     }
   </style>
 <% end %> 

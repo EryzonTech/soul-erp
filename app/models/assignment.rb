@@ -2,6 +2,7 @@ class Assignment < ApplicationRecord
   attr_accessor :skip_association_validation
 
   belongs_to :institute
+  belongs_to :participant, optional: true
   belongs_to :section, optional: true
   belongs_to :question_category, optional: true
 
@@ -37,6 +38,8 @@ class Assignment < ApplicationRecord
   accepts_nested_attributes_for :assignment_question_sets, allow_destroy: true
 
   scope :active, -> { where(active: true) }
+  scope :custom, -> { where.not(participant_id: nil) }
+  scope :institute_assigned, -> { where(participant_id: nil) }
   scope :current, -> { active.where("start_date <= ? AND end_date >= ?", Time.current, Time.current) }
   scope :upcoming, -> { active.where("start_date > ?", Time.current) }
   scope :past, -> { active.where("end_date < ?", Time.current) }
@@ -287,6 +290,10 @@ class Assignment < ApplicationRecord
     else
       "active"
     end
+  end
+
+  def custom?
+    participant_id.present?
   end
 
   private

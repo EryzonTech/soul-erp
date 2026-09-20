@@ -417,25 +417,25 @@
       <div class="row g-3 mb-4">
         <!-- Card 1: Total Approved -->
         <div class="col-12 col-sm-6 col-xl-3">
-          <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
-            <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="inst-kpi-card flex-column justify-content-between h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
               <div>
-                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Approved</div>
-                <div class="h4 fw-bold mb-0 text-dark"><%= @total_approved_count || 0 %></div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Total Approved</div>
+                <div class="h3 fw-bold mb-0 text-dark"><%= @total_approved_count || 0 %></div>
               </div>
               <div class="inst-kpi-icon inst-kpi-icon-primary">
                 <i class="bi bi-person-check-fill"></i>
               </div>
             </div>
-            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
-              <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-medium" title="Students">
-                <i class="bi bi-mortarboard me-1"></i>Stu: <%= @approved_by_type&.fetch('student', 0) || 0 %>
+            <div class="inst-kpi-breakdown">
+              <span class="inst-kpi-pill inst-kpi-pill-stu" title="Students">
+                <i class="bi bi-mortarboard"></i>Stu: <%= @approved_by_type&.fetch('student', 0) || 0 %>
               </span>
-              <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;" title="Guardians">
-                <i class="bi bi-shield-shaded me-1"></i>Gua: <%= @approved_by_type&.fetch('guardian', 0) || 0 %>
+              <span class="inst-kpi-pill inst-kpi-pill-gua" title="Guardians">
+                <i class="bi bi-shield-shaded"></i>Gua: <%= @approved_by_type&.fetch('guardian', 0) || 0 %>
               </span>
-              <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-medium" title="Employees">
-                <i class="bi bi-briefcase me-1"></i>Emp: <%= @approved_by_type&.fetch('employee', 0) || 0 %>
+              <span class="inst-kpi-pill inst-kpi-pill-emp" title="Employees">
+                <i class="bi bi-briefcase"></i>Emp: <%= @approved_by_type&.fetch('employee', 0) || 0 %>
               </span>
             </div>
           </div>
@@ -443,20 +443,20 @@
 
         <!-- Card 2: Students -->
         <div class="col-12 col-sm-6 col-xl-3">
-          <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
-            <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="inst-kpi-card flex-column justify-content-between h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
               <div>
-                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Students</div>
-                <div class="h4 fw-bold mb-0 text-primary"><%= @approved_by_type&.fetch('student', 0) || 0 %></div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Students</div>
+                <div class="h3 fw-bold mb-0 text-primary"><%= @approved_by_type&.fetch('student', 0) || 0 %></div>
               </div>
               <div class="inst-kpi-icon inst-kpi-icon-primary">
                 <i class="bi bi-mortarboard-fill"></i>
               </div>
             </div>
-            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted" style="font-size: 0.75rem;">
-              <span>Share of participants</span>
-              <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium">
-                <%= @total_approved_count && @total_approved_count > 0 ? (((@approved_by_type&.fetch('student', 0) || 0).to_f / @total_approved_count) * 100).round(1) : 0 %>%
+            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted mt-auto" style="font-size: 0.75rem;">
+              <span class="fw-medium text-secondary">Share of participants</span>
+              <span class="badge bg-primary-subtle text-primary rounded-pill fw-semibold px-2.5 py-1">
+                <%= @total_approved_count && @total_approved_count > 0 ? sprintf("%g%%", (((@approved_by_type&.fetch('student', 0) || 0).to_f / @total_approved_count) * 100).round(1)) : "0%" %>
               </span>
             </div>
           </div>
@@ -464,20 +464,20 @@
 
         <!-- Card 3: Guardians -->
         <div class="col-12 col-sm-6 col-xl-3">
-          <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
-            <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="inst-kpi-card flex-column justify-content-between h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
               <div>
-                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Guardians</div>
-                <div class="h4 fw-bold mb-0 text-purple" style="color: #7e22ce;"><%= @approved_by_type&.fetch('guardian', 0) || 0 %></div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Guardians</div>
+                <div class="h3 fw-bold mb-0" style="color: #7e22ce;"><%= @approved_by_type&.fetch('guardian', 0) || 0 %></div>
               </div>
-              <div class="inst-kpi-icon" style="background-color: #f3e8ff; color: #7e22ce;">
+              <div class="inst-kpi-icon inst-kpi-icon-purple">
                 <i class="bi bi-shield-shaded"></i>
               </div>
             </div>
-            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted" style="font-size: 0.75rem;">
-              <span>Share of participants</span>
-              <span class="badge rounded-pill fw-medium" style="background-color: #f3e8ff; color: #7e22ce;">
-                <%= @total_approved_count && @total_approved_count > 0 ? (((@approved_by_type&.fetch('guardian', 0) || 0).to_f / @total_approved_count) * 100).round(1) : 0 %>%
+            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted mt-auto" style="font-size: 0.75rem;">
+              <span class="fw-medium text-secondary">Share of participants</span>
+              <span class="badge rounded-pill fw-semibold px-2.5 py-1" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;">
+                <%= @total_approved_count && @total_approved_count > 0 ? sprintf("%g%%", (((@approved_by_type&.fetch('guardian', 0) || 0).to_f / @total_approved_count) * 100).round(1)) : "0%" %>
               </span>
             </div>
           </div>
@@ -485,20 +485,20 @@
 
         <!-- Card 4: Employees -->
         <div class="col-12 col-sm-6 col-xl-3">
-          <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
-            <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="inst-kpi-card flex-column justify-content-between h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
               <div>
-                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Employees</div>
-                <div class="h4 fw-bold mb-0 text-warning"><%= @approved_by_type&.fetch('employee', 0) || 0 %></div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Employees</div>
+                <div class="h3 fw-bold mb-0 text-warning"><%= @approved_by_type&.fetch('employee', 0) || 0 %></div>
               </div>
               <div class="inst-kpi-icon inst-kpi-icon-warning">
                 <i class="bi bi-briefcase-fill"></i>
               </div>
             </div>
-            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted" style="font-size: 0.75rem;">
-              <span>Share of participants</span>
-              <span class="badge bg-warning-subtle text-warning rounded-pill fw-medium">
-                <%= @total_approved_count && @total_approved_count > 0 ? (((@approved_by_type&.fetch('employee', 0) || 0).to_f / @total_approved_count) * 100).round(1) : 0 %>%
+            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted mt-auto" style="font-size: 0.75rem;">
+              <span class="fw-medium text-secondary">Share of participants</span>
+              <span class="badge bg-warning-subtle text-warning rounded-pill fw-semibold px-2.5 py-1 border border-warning-subtle">
+                <%= @total_approved_count && @total_approved_count > 0 ? sprintf("%g%%", (((@approved_by_type&.fetch('employee', 0) || 0).to_f / @total_approved_count) * 100).round(1)) : "0%" %>
               </span>
             </div>
           </div>
@@ -1181,50 +1181,6 @@
 
   .filter-dropdown-btn.show::after {
     transform: rotate(180deg);
-  }
-
-  .inst-kpi-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  .inst-kpi-card:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-    transform: translateY(-2px);
-  }
-
-  .inst-kpi-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    flex-shrink: 0;
-  }
-
-  .inst-kpi-icon-primary {
-    background: #e0e7ff;
-    color: #4f46e5;
-  }
-
-  .inst-kpi-icon-warning {
-    background: #fef3c7;
-    color: #d97706;
-  }
-
-  .inst-kpi-icon-success {
-    background: #dcfce7;
-    color: #16a34a;
-  }
-
-  .inst-kpi-icon-info {
-    background: #e0f2fe;
-    color: #0284c7;
   }
 
   /* ── Multi-Select Dropdown Fix ───────────────────────────────── */

@@ -2,21 +2,28 @@
 
 .inst-kpi-card {
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #ffffff;
   padding: 1.25rem;
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .inst-kpi-card:hover {
   border-color: #cbd5e1;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.inst-kpi-card.flex-column,
+.inst-kpi-card.d-flex.flex-column {
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: space-between !important;
 }
 
 .inst-kpi-icon {

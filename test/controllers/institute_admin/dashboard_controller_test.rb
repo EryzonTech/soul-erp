@@ -101,7 +101,7 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_select ".stat-breakdown-pill", minimum: 1
 
     # Assignment submission graph and controls
-    assert_select "h5", text: /Assignment submission/
+    assert_select ".chart-header-title", text: /Assignment submission/i
     assert_select ".chart-controls-toolbar", minimum: 1
     assert_select "#assignment_submission_range_picker", 1
     assert_select "#backlog_range_picker", 0
@@ -218,7 +218,7 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Unified Feedback by Training Program
-    assert_select "h5", text: /Feedback by Training Program/
+    assert_select ".chart-header-title", text: /Feedback by Training Program/
     assert_select "#tpfProgramDropdown", 1
     assert_select "#tpfModeReceivedPending", 1
     assert_select "#tpfModeParticipantType", 1
@@ -226,8 +226,8 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_select "#tpf-pending-summary", 1
 
     # Top & Bottom Submitting Participants Leaderboards
-    assert_select "h5", text: /Top Submitting Participants/
-    assert_select "h5", text: /Bottom Submitting Participants/
+    assert_select ".chart-header-title", text: /Top Submitting Participants/
+    assert_select ".chart-header-title", text: /Bottom Submitting Participants/
     assert_select "#topLeaderboardTable", 1
     assert_select "#bottomLeaderboardTable", 1
     assert_select "#topLeaderboardAssignment", 1

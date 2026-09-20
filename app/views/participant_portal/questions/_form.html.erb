@@ -1,0 +1,225 @@
+<%= form_with(model: [:participant_portal, @question], local: true, data: { controller: "question-form nested-form", turbo: false }, html: { novalidate: true }) do |f| %>
+  <% if @question.errors.any? %>
+    <div class="alert alert-danger rounded-3 mb-4 shadow-sm">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+        <h6 class="mb-0 fw-bold">Please fix the following <%= 'error'.pluralize(@question.errors.count) %>:</h6>
+      </div>
+      <ul class="mb-0 ps-3 small">
+        <% @question.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+    <div class="card-header bg-white border-bottom p-3 p-md-4">
+      <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+        <i class="bi bi-pencil-square text-primary"></i> Question Details
+      </h5>
+    </div>
+    <div class="card-body p-3 p-md-4">
+      <!-- Title -->
+      <div class="mb-4">
+        <%= f.label :title, "Question Title *", class: "form-label fw-semibold text-dark small mb-1" %>
+        <%= f.text_field :title, 
+            class: "form-control form-control-lg rounded-3 border-secondary-subtle",
+            placeholder: "e.g. How many hours did you exercise today?",
+            required: true,
+            data: { 
+              question_form_target: "titleInput",
+              action: "input->question-form#validateForm"
+            } %>
+      </div>
+
+      <!-- Display Name & Day Range -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <%= f.label :display_name, "Display Name (optional)", class: "form-label fw-semibold text-dark small mb-1" %>
+          <%= f.text_field :display_name,
+              class: "form-control rounded-3 border-secondary-subtle",
+              placeholder: "e.g. Daily Exercise" %>
+          <div class="form-text text-muted small">A short label for tables and summary reports.</div>
+        </div>
+
+        <div class="col-md-3">
+          <%= f.label :from_day, "From Day", class: "form-label fw-semibold text-dark small mb-1" %>
+          <%= f.number_field :from_day,
+              class: "form-control rounded-3 border-secondary-subtle",
+              min: 1,
+              value: (@question.from_day || 1),
+              placeholder: "1" %>
+          <div class="form-text text-muted small">Start day of schedule.</div>
+        </div>
+
+        <div class="col-md-3">
+          <%= f.label :to_day, "To Day", class: "form-label fw-semibold text-dark small mb-1" %>
+          <%= f.number_field :to_day,
+              class: "form-control rounded-3 border-secondary-subtle",
+              min: 1,
+              value: (@question.to_day || 30),
+              placeholder: "30" %>
+          <div class="form-text text-muted small">End day of schedule.</div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="mb-4">
+        <%= f.label :description, "Instructions / Description (optional)", class: "form-label fw-semibold text-dark small mb-1" %>
+        <%= f.text_area :description,
+            class: "form-control rounded-3 border-secondary-subtle",
+            rows: 2,
+            placeholder: "Additional context or guidance on how to answer..." %>
+      </div>
+
+      <!-- Question Type -->
+      <div class="row mb-4">
+        <div class="col-md-12">
+          <%= f.label :question_type, "Question Type *", class: "form-label fw-semibold text-dark small mb-1" %>
+          <%= f.select :question_type,
+              options_for_select(Question.question_types.keys.map { |k| [k.titleize, k] }, @question.question_type),
+              { include_blank: "Select Question Type" },
+              { class: "form-select rounded-3 border-secondary-subtle", required: true, data: { action: "change->question-form#handleTypeChange" } } %>
+        </div>
+      </div>
+
+      <!-- Rating Options (when type == rating) -->
+      <div class="row mb-4 rating-options" style="<%= @question.rating? ? '' : 'display: none;' %>">
+        <div class="col-md-6">
+          <%= f.label :max_rating, "Maximum Rating (Stars)", class: "form-label fw-semibold text-dark small mb-1" %>
+          <%= f.select :max_rating, 
+              options_for_select((1..10).map { |n| [pluralize(n, "star"), n] }, @question.max_rating || 5),
+              {}, 
+              { class: "form-select rounded-3 border-secondary-subtle" } %>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold text-dark small mb-1">Preview</label>
+          <div class="rating-preview py-2">
+            <% (1..5).each do %>
+              <i class="bi bi-star-fill text-warning fs-4 me-1"></i>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic Answer Options Wrapper -->
+      <div class="answer-options-wrapper mt-3" data-question-form-target="optionsWrapper">
+        <!-- Short Answer Preview -->
+        <div class="answer-preview short-answer d-none mb-3" data-question-form-target="shortAnswerPreview">
+          <label class="form-label text-muted small">Sample Input Preview:</label>
+          <input type="text" class="form-control rounded-3 bg-light" placeholder="Participant will type a short answer here..." disabled>
+        </div>
+
+        <!-- Paragraph Preview -->
+        <div class="answer-preview paragraph d-none mb-3" data-question-form-target="paragraphPreview">
+          <label class="form-label text-muted small">Sample Input Preview:</label>
+          <textarea class="form-control rounded-3 bg-light" rows="3" placeholder="Participant will type a multi-line paragraph response here..." disabled></textarea>
+        </div>
+
+        <!-- Date Preview -->
+        <div class="answer-preview date d-none mb-3" data-question-form-target="datePreview">
+          <label class="form-label text-muted small">Sample Input Preview:</label>
+          <input type="date" class="form-control rounded-3 bg-light" disabled>
+        </div>
+
+        <!-- Time Preview -->
+        <div class="answer-preview time d-none mb-3" data-question-form-target="timePreview">
+          <label class="form-label text-muted small">Sample Input Preview:</label>
+          <input type="time" class="form-control rounded-3 bg-light" disabled>
+        </div>
+
+        <!-- Number Preview -->
+        <div class="answer-preview number d-none mb-3" data-question-form-target="numberPreview">
+          <label class="form-label text-muted small">Sample Input Preview:</label>
+          <input type="number" class="form-control rounded-3 bg-light" placeholder="Enter a number..." disabled>
+        </div>
+
+        <!-- Options Container for Choice Types -->
+        <div class="options-container" style="<%= @question.requires_options? ? '' : 'display: none;' %>" data-question-form-target="optionsSection">
+          <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded-3">
+            <span class="fw-bold text-dark small text-uppercase">Answer Options</span>
+            <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" data-action="nested-form#add">
+              <i class="bi bi-plus-lg me-1"></i> Add Option
+            </button>
+          </div>
+
+          <!-- Template for dynamic options -->
+          <template data-nested-form-target="template">
+            <%= f.fields_for :options, Option.new, child_index: 'NEW_RECORD' do |option| %>
+              <div class="option-item mb-2.5">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="option-indicator text-muted px-1">
+                    <i class="bi bi-circle"></i>
+                  </div>
+                  <%= option.text_field :text, 
+                      class: "form-control rounded-3 border-secondary-subtle",
+                      placeholder: "Option text",
+                      value: "" %>
+                  <button type="button" class="btn btn-outline-danger btn-sm rounded-3" data-action="nested-form#remove" title="Remove option">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            <% end %>
+          </template>
+
+          <div data-nested-form-target="items">
+            <%= f.fields_for :options do |option| %>
+              <% opt_idx = (option.index.is_a?(Integer) ? option.index + 1 : 1) %>
+              <div class="option-item mb-2.5">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="option-indicator text-muted px-1">
+                    <i class="bi <%= @question.question_type == 'checkboxes' ? 'bi-square' : 'bi-circle' %>"></i>
+                  </div>
+                  <%= option.text_field :text, 
+                      class: "form-control rounded-3 border-secondary-subtle",
+                      placeholder: "Option #{opt_idx}",
+                      value: option.object.text %>
+                  <%= option.hidden_field :id if option.object.persisted? %>
+                  <button type="button" class="btn btn-outline-danger btn-sm rounded-3" data-action="nested-form#remove" title="Remove option">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Row -->
+      <div class="border-top pt-3 mt-4">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="form-check form-switch">
+              <%= f.check_box :required, class: "form-check-input", id: "question_required" %>
+              <label class="form-check-label fw-semibold text-dark small" for="question_required">
+                Mandatory (Required question)
+              </label>
+              <div class="form-text text-muted small">Participant cannot submit the assignment without answering this question.</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check form-switch">
+              <%= f.check_box :active, class: "form-check-input", id: "question_active", checked: @question.new_record? ? true : @question.active %>
+              <label class="form-check-label fw-semibold text-dark small" for="question_active">
+                Active
+              </label>
+              <div class="form-text text-muted small">Only active questions will appear in assignments.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Footer Actions -->
+    <div class="card-footer bg-light p-3 p-md-4 d-flex justify-content-between align-items-center">
+      <%= link_to participant_portal_questions_path, class: "btn btn-outline-secondary px-3 py-2 rounded-3" do %>
+        <i class="bi bi-x-lg me-1"></i> Cancel
+      <% end %>
+      <%= f.submit (@question.persisted? ? "Update Question" : "Save Question"), 
+          class: "btn btn-primary px-4 py-2 rounded-3 shadow-sm fw-semibold",
+          data: { question_form_target: "submitButton" } %>
+    </div>
+  </div>
+<% end %>
