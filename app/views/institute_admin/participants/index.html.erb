@@ -413,73 +413,277 @@
   <% else %>
     <!-- Approved Participants Section -->
     <div class="card-body">
-      <!-- Filter Section -->
-      <div class="filter-section mb-4">
-        <div class="filter-header d-flex justify-content-between align-items-center mb-3">
-          <h6 class="mb-0"><i class="bi bi-funnel me-2"></i>Filter Participants</h6>
-          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearFilters()">
-            <i class="bi bi-x-circle me-1"></i>Clear Filters
-          </button>
+      <!-- 4 TOP SCORE CARDS (ITEM 19c) -->
+      <div class="row g-3 mb-4">
+        <!-- Card 1: Total Approved -->
+        <div class="col-12 col-sm-6 col-xl-3">
+          <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Approved</div>
+                <div class="h4 fw-bold mb-0 text-dark"><%= @total_approved_count || 0 %></div>
+              </div>
+              <div class="inst-kpi-icon inst-kpi-icon-primary">
+                <i class="bi bi-person-check-fill"></i>
+              </div>
+            </div>
+            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-medium" title="Students">
+                <i class="bi bi-mortarboard me-1"></i>Stu: <%= @approved_by_type&.fetch('student', 0) || 0 %>
+              </span>
+              <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;" title="Guardians">
+                <i class="bi bi-shield-shaded me-1"></i>Gua: <%= @approved_by_type&.fetch('guardian', 0) || 0 %>
+              </span>
+              <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-medium" title="Employees">
+                <i class="bi bi-briefcase me-1"></i>Emp: <%= @approved_by_type&.fetch('employee', 0) || 0 %>
+              </span>
+            </div>
+          </div>
         </div>
-        
-        <%= form_with url: institute_admin_participants_path, method: :get, local: true, class: "filter-form" do |f| %>
+
+        <!-- Card 2: Students -->
+        <div class="col-12 col-sm-6 col-xl-3">
+          <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Students</div>
+                <div class="h4 fw-bold mb-0 text-primary"><%= @approved_by_type&.fetch('student', 0) || 0 %></div>
+              </div>
+              <div class="inst-kpi-icon inst-kpi-icon-primary">
+                <i class="bi bi-mortarboard-fill"></i>
+              </div>
+            </div>
+            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted" style="font-size: 0.75rem;">
+              <span>Share of participants</span>
+              <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium">
+                <%= @total_approved_count && @total_approved_count > 0 ? (((@approved_by_type&.fetch('student', 0) || 0).to_f / @total_approved_count) * 100).round(1) : 0 %>%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Guardians -->
+        <div class="col-12 col-sm-6 col-xl-3">
+          <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Guardians</div>
+                <div class="h4 fw-bold mb-0 text-purple" style="color: #7e22ce;"><%= @approved_by_type&.fetch('guardian', 0) || 0 %></div>
+              </div>
+              <div class="inst-kpi-icon" style="background-color: #f3e8ff; color: #7e22ce;">
+                <i class="bi bi-shield-shaded"></i>
+              </div>
+            </div>
+            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted" style="font-size: 0.75rem;">
+              <span>Share of participants</span>
+              <span class="badge rounded-pill fw-medium" style="background-color: #f3e8ff; color: #7e22ce;">
+                <%= @total_approved_count && @total_approved_count > 0 ? (((@approved_by_type&.fetch('guardian', 0) || 0).to_f / @total_approved_count) * 100).round(1) : 0 %>%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Employees -->
+        <div class="col-12 col-sm-6 col-xl-3">
+          <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Employees</div>
+                <div class="h4 fw-bold mb-0 text-warning"><%= @approved_by_type&.fetch('employee', 0) || 0 %></div>
+              </div>
+              <div class="inst-kpi-icon inst-kpi-icon-warning">
+                <i class="bi bi-briefcase-fill"></i>
+              </div>
+            </div>
+            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted" style="font-size: 0.75rem;">
+              <span>Share of participants</span>
+              <span class="badge bg-warning-subtle text-warning rounded-pill fw-medium">
+                <%= @total_approved_count && @total_approved_count > 0 ? (((@approved_by_type&.fetch('employee', 0) || 0).to_f / @total_approved_count) * 100).round(1) : 0 %>%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTER SECTION WITH MULTI-SELECT & MOBILE SEARCH (ITEM 19a, e, f) -->
+      <%
+        part_active_filters_count = 0
+        part_active_filters_count += 1 if params[:search].present?
+        part_active_filters_count += 1 if @selected_participant_types.present? && @selected_participant_types.size < 3
+        part_active_filters_count += 1 if @selected_section_ids.present? && !@selected_section_ids.include?('all')
+      %>
+      <div class="filter-toolbar-card bg-white rounded-4 shadow-sm border mb-4 p-3 p-md-4">
+        <%= form_with url: institute_admin_participants_path, method: :get, local: true, id: "approvedParticipantsForm", class: "filter-form" do |f| %>
           <%= hidden_field_tag :approved, params[:approved] %>
           
-          <div class="row g-3 align-items-center">
-            <!-- Search by Name -->
-            <div class="col-lg-3 col-md-6">
-              <%= text_field_tag :search, params[:search], class: "form-control filter-input", placeholder: "Search by name..." %>
+          <div class="row g-2 g-md-3 align-items-center mb-3">
+            <!-- Search by Name or Mobile (Item 19a) -->
+            <div class="col-12 col-md-7 col-lg-8">
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 ps-3 pe-2">
+                  <i class="bi bi-search text-primary"></i>
+                </span>
+                <%= text_field_tag :search, params[:search], 
+                    id: "participantSearchInput",
+                    class: "form-control border-start-0 border-end-0 ps-1 text-dark fw-medium", 
+                    placeholder: "Search by name, email, or mobile number...", 
+                    autocomplete: "off" %>
+                <% if params[:search].present? %>
+                  <button type="button" 
+                          class="btn btn-link text-muted pe-3 text-decoration-none border-start-0 border-end-0" 
+                          onclick="document.getElementById('participantSearchInput').value=''; document.getElementById('approvedParticipantsForm').submit();" 
+                          title="Clear search">
+                    <i class="bi bi-x-circle-fill"></i>
+                  </button>
+                <% end %>
+                <button type="submit" class="btn btn-primary px-3 rounded-end-3 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-sm">
+                  <i class="bi bi-search"></i>
+                  <span>Search</span>
+                </button>
+              </div>
             </div>
-            
-            <!-- Filter by Type -->
-            <div class="col-lg-2 col-md-6">
-              <%= select_tag :participant_type, 
-                  options_for_select([
-                    ['All Types', ''],
-                    ['Student', 'student'],
-                    ['Guardian', 'guardian'],
-                    ['Employee', 'employee']
-                  ], params[:participant_type]), 
-                  class: "form-select filter-input" %>
-            </div>
-            
-            <!-- Filter by Section -->
-            <div class="col-lg-3 col-md-6">
-              <%= select_tag :section_id, 
-                  options_for_select([['All Sections', '']] + @sections.map { |s| [s.name, s.id] }, params[:section_id]), 
-                  class: "form-select filter-input" %>
-            </div>
-            
+
             <!-- Action Buttons -->
-            <div class="col-lg-4 col-md-6">
-              <div class="d-flex gap-2">
-                <%= button_tag type: 'submit', class: 'btn btn-primary flex-grow-1 filter-btn' do %>
-                  <i class="bi bi-funnel-fill me-2"></i>Apply Filters
+            <div class="col-12 col-md-5 col-lg-4 d-flex align-items-center justify-content-md-end gap-2">
+              <%= link_to institute_admin_participants_path(approved: params[:approved]), class: "btn btn-outline-secondary px-3 rounded-3 d-inline-flex align-items-center justify-content-center gap-1.5 w-50 w-md-auto flex-md-grow-0", title: "Reset All Filters" do %>
+                <i class="bi bi-arrow-counterclockwise"></i>
+                <span>Reset</span>
+                <% if part_active_filters_count > 0 %>
+                  <span class="badge bg-secondary text-white rounded-pill ms-1" style="font-size: 0.72rem;"><%= part_active_filters_count %></span>
                 <% end %>
-                <%= link_to institute_admin_participants_path(approved: params[:approved]), class: 'btn btn-outline-secondary flex-grow-1 filter-btn' do %>
-                  <i class="bi bi-arrow-clockwise me-2"></i>Reset
-                <% end %>
+              <% end %>
+
+              <button type="submit" class="btn btn-primary px-3 px-sm-4 rounded-3 d-inline-flex align-items-center justify-content-center gap-1.5 fw-semibold shadow-sm w-50 w-md-auto flex-md-grow-0">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Apply Filters</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="row g-2 g-md-3 align-items-center">
+            <!-- Filter by Type (Multi-Select) (Item 19e) -->
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="dropdown multiselect-dropdown">
+                <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active-indigo' if @selected_participant_types.present? && @selected_participant_types.size < 3 %>" 
+                        type="button" 
+                        data-bs-toggle="dropdown" 
+                        data-bs-display="static"
+                        data-bs-auto-close="outside"
+                        aria-expanded="false">
+                  <span class="d-inline-flex align-items-center text-truncate">
+                    <i class="bi bi-person-badge me-2 text-primary flex-shrink-0"></i>
+                    <span class="dropdown-label text-truncate" id="typeLabel">
+                      Type (<%= @selected_participant_types.blank? || @selected_participant_types.size == 3 ? 'All' : @selected_participant_types.map(&:titleize).join(', ') %>)
+                    </span>
+                  </span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border">
+                  <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
+                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold text-primary" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'typeLabel', 'Type', 'participant_types[]')">Select All</button>
+                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'typeLabel', 'Type', 'participant_types[]')">Clear</button>
+                  </div>
+                  <div class="multiselect-options-list">
+                    <% [ ['Student', 'student'], ['Guardian', 'guardian'], ['Employee', 'employee'] ].each do |label, val| %>
+                      <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-center gap-2">
+                        <input class="form-check-input flex-shrink-0" 
+                               type="checkbox" 
+                               name="participant_types[]" 
+                               value="<%= val %>" 
+                               id="ptype_cb_<%= val %>" 
+                               <%= 'checked' if @selected_participant_types.blank? || @selected_participant_types.include?(val) %>
+                               onchange="updateParticipantTypeCounter()">
+                        <label class="form-check-label flex-grow-1 cursor-pointer small" for="ptype_cb_<%= val %>">
+                          <%= label %>
+                        </label>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filter by Section (Multi-Select) (Item 19f) -->
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="dropdown multiselect-dropdown">
+                <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active-indigo' if @selected_section_ids.present? && !@selected_section_ids.include?('all') %>" 
+                        type="button" 
+                        data-bs-toggle="dropdown" 
+                        data-bs-display="static"
+                        data-bs-auto-close="outside"
+                        aria-expanded="false">
+                  <span class="d-inline-flex align-items-center text-truncate">
+                    <i class="bi bi-people me-2 text-primary flex-shrink-0"></i>
+                    <span class="dropdown-label text-truncate" id="partSecLabel">
+                      Sections (<%= @selected_section_ids.blank? || @selected_section_ids.include?('all') ? 'All' : @selected_section_ids.size %>)
+                    </span>
+                  </span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border">
+                  <div class="px-1 mb-2">
+                    <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search sections..." oninput="filterDropdownList(this)">
+                  </div>
+                  <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
+                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold text-primary" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'partSecLabel', 'Sections', 'section_ids[]')">Select All</button>
+                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'partSecLabel', 'Sections', 'section_ids[]')">Clear</button>
+                  </div>
+                  <div class="multiselect-options-list">
+                    <% @sections.each do |sec| %>
+                      <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-start gap-2">
+                        <input class="form-check-input mt-1 flex-shrink-0" 
+                               type="checkbox" 
+                               name="section_ids[]" 
+                               value="<%= sec.id %>" 
+                               id="sec_cb_<%= sec.id %>" 
+                               <%= 'checked' if @selected_section_ids&.include?(sec.id.to_s) %>
+                               onchange="updateDropdownCounter('partSecLabel', 'Sections', 'section_ids[]')">
+                        <label class="form-check-label flex-grow-1 cursor-pointer small" for="sec_cb_<%= sec.id %>" title="<%= sec.name %>">
+                          <%= sec.name %>
+                        </label>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         <% end %>
       </div>
       
+      <!-- DATA TABLE WITH SERIAL NUMBER & MOBILE NUMBER (ITEM 19b, d) -->
       <% if @participants.any? %>
         <div class="table-responsive">
-          <table class="table table-hover">
+          <table class="table table-hover align-middle">
             <thead>
               <tr>
+                <th style="width: 50px;" class="text-center">#</th>
                 <th>Name</th>
+                <th>Mobile Number</th>
                 <th>Type</th>
                 <th>Section</th>
-                <th>Actions</th>
+                <th class="text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
-              <% @participants.each do |participant| %>
+              <% @participants.each_with_index do |participant, idx| %>
                 <tr>
-                  <td><%= participant.user.full_name %></td>
+                  <td class="text-center fw-medium text-secondary">
+                    <%= @participants.offset_value + idx + 1 %>
+                  </td>
+                  <td>
+                    <div class="fw-semibold text-dark"><%= participant.user.full_name %></div>
+                    <div class="text-muted small"><%= participant.user.email %></div>
+                  </td>
+                  <td>
+                    <% mobile_no = participant.user&.phone.presence || participant.phone_number.presence %>
+                    <% if mobile_no.present? %>
+                      <span class="d-inline-flex align-items-center gap-1.5 text-dark fw-medium">
+                        <i class="bi bi-telephone text-primary small"></i>
+                        <span><%= mobile_no %></span>
+                      </span>
+                    <% else %>
+                      <span class="text-muted small">N/A</span>
+                    <% end %>
+                  </td>
                   <td>
                     <% badge_class = case participant.participant_type&.downcase
                                      when 'student', nil then 'badge-student'
@@ -504,7 +708,7 @@
                       <% end %>
                     <% end %>
                   </td>
-                  <td>
+                  <td class="text-center">
                     <%= link_to institute_admin_participant_path(participant), class: "btn action-btn btn-view me-2", title: "View" do %>
                       <i class="bi bi-eye"></i>
                     <% end %>
@@ -529,7 +733,7 @@
               Showing <%= @participants.offset_value + 1 %> to <%= [@participants.offset_value + @participants.limit_value, @participants.total_count].min %> of <%= @participants.total_count %> participants
             </div>
             <div>
-              <%= paginate @participants, params: { approved: 'true', search: params[:search], participant_type: params[:participant_type], section_id: params[:section_id] } %>
+              <%= paginate @participants, params: { approved: 'true', search: params[:search], participant_types: @selected_participant_types, section_ids: @selected_section_ids } %>
             </div>
           </div>
         <% end %>
@@ -538,7 +742,7 @@
           <i class="bi bi-people fs-1 text-muted mb-3"></i>
           <p class="text-muted mb-0">No approved participants found</p>
         </div>
-            <% end %>
+      <% end %>
     </div>
   <% end %>
 </div>
@@ -920,9 +1124,277 @@
       padding: 0.6rem 1.5rem;
     }
   }
+
+  .filter-dropdown-btn {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+    font-size: 0.86rem !important;
+    font-weight: 500 !important;
+    height: 42px;
+    padding: 0.45rem 0.85rem !important;
+    border-radius: 10px !important;
+    transition: all 0.15s ease-in-out !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    cursor: pointer;
+    text-decoration: none !important;
+  }
+
+  .filter-dropdown-btn:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+  }
+
+  .filter-dropdown-btn:focus,
+  .filter-dropdown-btn:active,
+  .filter-dropdown-btn.show,
+  .show > .filter-dropdown-btn.dropdown-toggle {
+    background-color: #ffffff !important;
+    border-color: #6366f1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+  }
+
+  .filter-dropdown-btn .dropdown-label {
+    color: #1e293b !important;
+    font-weight: 500;
+  }
+
+  .filter-dropdown-btn.filter-active-indigo {
+    border-color: #6366f1 !important;
+    background-color: #eef2ff !important;
+    color: #4338ca !important;
+  }
+
+  .filter-dropdown-btn.filter-active-indigo .dropdown-label {
+    color: #4338ca !important;
+    font-weight: 600 !important;
+  }
+
+  .filter-dropdown-btn::after {
+    margin-left: 0.5rem;
+    color: #64748b !important;
+    vertical-align: middle;
+    transition: transform 0.2s ease;
+  }
+
+  .filter-dropdown-btn.show::after {
+    transform: rotate(180deg);
+  }
+
+  .inst-kpi-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .inst-kpi-card:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+  }
+
+  .inst-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .inst-kpi-icon-primary {
+    background: #e0e7ff;
+    color: #4f46e5;
+  }
+
+  .inst-kpi-icon-warning {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  .inst-kpi-icon-success {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+
+  .inst-kpi-icon-info {
+    background: #e0f2fe;
+    color: #0284c7;
+  }
+
+  /* ── Multi-Select Dropdown Fix ───────────────────────────────── */
+  /* Override Bootstrap .form-check padding/margin inside multiselect
+     so d-flex + gap handles alignment instead of absolute positioning */
+  .multiselect-dropdown .dropdown-menu {
+    min-width: 100% !important;
+    border-radius: 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04) !important;
+    padding: 0.5rem !important;
+    animation: dropdownFadeIn 0.15s ease-out;
+  }
+
+  @keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .multiselect-dropdown .multiselect-item.form-check {
+    padding-left: 0 !important;
+    margin-bottom: 0 !important;
+    margin-left: 0 !important;
+    cursor: pointer;
+    border-radius: 8px !important;
+    padding: 0.4rem 0.6rem !important;
+    transition: background-color 0.12s ease;
+  }
+
+  .multiselect-dropdown .multiselect-item.form-check:hover {
+    background-color: #f1f5f9;
+  }
+
+  .multiselect-dropdown .multiselect-item .form-check-input {
+    float: none !important;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    position: relative !important;
+    width: 1.1em;
+    height: 1.1em;
+    flex-shrink: 0;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1.5px solid #94a3b8;
+    transition: all 0.15s ease;
+  }
+
+  .multiselect-dropdown .multiselect-item .form-check-input:checked {
+    background-color: #6366f1;
+    border-color: #6366f1;
+  }
+
+  .multiselect-dropdown .multiselect-item .form-check-label {
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #334155;
+    font-weight: 500;
+    line-height: 1.4;
+    padding: 0;
+    margin: 0;
+    user-select: none;
+  }
+
+  .multiselect-dropdown .multiselect-search {
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    font-size: 0.82rem;
+    padding: 0.4rem 0.65rem !important;
+    background-color: #f8fafc;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .multiselect-dropdown .multiselect-search:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12) !important;
+    background-color: #fff;
+  }
+
+  .multiselect-dropdown .multiselect-options-list {
+    max-height: 240px;
+    overflow-y: auto;
+  }
+
+  .multiselect-dropdown .multiselect-options-list::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .multiselect-dropdown .multiselect-options-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .multiselect-dropdown .multiselect-options-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
+  /* Mobile: make dropdown menu span full width */
+  @media (max-width: 768px) {
+    .multiselect-dropdown .dropdown-menu {
+      width: 100% !important;
+      max-width: calc(100vw - 2rem) !important;
+      min-width: 0 !important;
+    }
+  }
 </style>
 
 <script>
+  function filterDropdownList(input) {
+    const term = input.value.toLowerCase().trim();
+    const dropdownMenu = input.closest('.dropdown-menu');
+    const items = dropdownMenu.querySelectorAll('.multiselect-item');
+    items.forEach(item => {
+      const text = item.textContent.toLowerCase();
+      item.style.display = text.includes(term) ? 'flex' : 'none';
+    });
+  }
+
+  function selectAllDropdownCheckboxes(btn, selectAll, labelId, prefix, inputName) {
+    const dropdownMenu = btn.closest('.dropdown-menu');
+    const checkboxes = dropdownMenu.querySelectorAll(`.multiselect-options-list input[name="${inputName}"]`);
+    checkboxes.forEach(cb => {
+      const itemWrapper = cb.closest('.multiselect-item');
+      if (!itemWrapper || itemWrapper.style.display !== 'none') {
+        cb.checked = selectAll;
+      }
+    });
+    if (inputName === 'participant_types[]') {
+      updateParticipantTypeCounter();
+    } else {
+      updateDropdownCounter(labelId, prefix, inputName);
+    }
+  }
+
+  function updateDropdownCounter(labelId, prefix, inputName) {
+    if (!inputName) return;
+    const checkedBoxes = document.querySelectorAll(`input[name="${inputName}"]:checked`);
+    const allBoxes = document.querySelectorAll(`input[name="${inputName}"]`);
+    const labelEl = document.getElementById(labelId);
+    if (!labelEl) return;
+
+    const btn = labelEl.closest('.filter-dropdown-btn');
+
+    if (checkedBoxes.length === 0 || checkedBoxes.length === allBoxes.length) {
+      labelEl.innerText = `${prefix} (All)`;
+      if (btn) btn.classList.remove('filter-active-indigo');
+    } else {
+      labelEl.innerText = `${prefix} (${checkedBoxes.length})`;
+      if (btn) btn.classList.add('filter-active-indigo');
+    }
+  }
+
+  function updateParticipantTypeCounter() {
+    const checked = document.querySelectorAll('input[name="participant_types[]"]:checked');
+    const labelEl = document.getElementById('typeLabel');
+    if (!labelEl) return;
+
+    const btn = labelEl.closest('.filter-dropdown-btn');
+
+    if (checked.length === 0 || checked.length === 3) {
+      labelEl.innerText = 'Type (All)';
+      if (btn) btn.classList.remove('filter-active-indigo');
+    } else {
+      const types = Array.from(checked).map(c => {
+        return c.value.charAt(0).toUpperCase() + c.value.slice(1);
+      }).join(', ');
+      labelEl.innerText = `Type (${types})`;
+      if (btn) btn.classList.add('filter-active-indigo');
+    }
+  }
+
   function clearFilters() {
     const form = document.querySelector('.filter-form');
     const searchInput = form.querySelector('input[name="search"]');

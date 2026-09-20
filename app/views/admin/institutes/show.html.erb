@@ -380,7 +380,13 @@
                     <%= admin.username.strip.first.upcase rescue 'U' %>
                   </div>
                   <div>
-                    <div class="fw-semibold text-dark mb-0" style="font-size: 0.9rem;"><%= admin.username %></div>
+                    <div class="fw-semibold text-dark mb-0" style="font-size: 0.9rem;"><%= admin.username %>
+                      <% if admin.view_only_admin? %>
+                        <span class="badge ms-1 rounded-pill px-2" style="background:rgba(99,102,241,0.1);color:#4f46e5;border:1px solid rgba(99,102,241,0.2);font-size:0.7rem;font-weight:600;vertical-align:middle;">
+                          <i class="bi bi-eye-fill me-1"></i>View Only
+                        </span>
+                      <% end %>
+                    </div>
                     <div class="text-muted small"><%= admin.email %></div>
                   </div>
                 </div>

@@ -114,6 +114,7 @@ Rails.application.routes.draw do
     namespace :institute_admin do
       root "dashboard#index"
       get "dashboard/chart_data", to: "dashboard#chart_data"
+      get "dashboard/streak_leaderboards", to: "dashboard#streak_leaderboards"
 
       # Add profile routes
       get "profile", to: "profile#show"

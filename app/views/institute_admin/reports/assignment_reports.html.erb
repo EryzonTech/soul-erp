@@ -39,117 +39,323 @@
 
   <!-- KPI SUMMARY METRICS ROW -->
   <div class="row g-3 mb-4">
+    <!-- Card 1: Total Assigned -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="inst-kpi-card">
-        <div>
-          <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Assigned</div>
-          <div class="h4 fw-bold mb-0 text-dark"><%= @total_assigned_count || 0 %></div>
+      <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div>
+            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Assigned</div>
+            <div class="h4 fw-bold mb-0 text-dark"><%= @total_assigned_count || 0 %></div>
+          </div>
+          <div class="inst-kpi-icon inst-kpi-icon-primary">
+            <i class="bi bi-journal-text"></i>
+          </div>
         </div>
-        <div class="inst-kpi-icon inst-kpi-icon-primary">
-          <i class="bi bi-journal-text"></i>
+        <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-medium" title="Students Assigned">
+            <i class="bi bi-mortarboard me-1"></i>Stu: <%= @total_assigned_by_type&.fetch('student', 0) || 0 %>
+          </span>
+          <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;" title="Guardians Assigned">
+            <i class="bi bi-shield-shaded me-1"></i>Gua: <%= @total_assigned_by_type&.fetch('guardian', 0) || 0 %>
+          </span>
+          <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-medium" title="Employees Assigned">
+            <i class="bi bi-briefcase me-1"></i>Emp: <%= @total_assigned_by_type&.fetch('employee', 0) || 0 %>
+          </span>
         </div>
       </div>
     </div>
 
+    <!-- Card 2: Submitted -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="inst-kpi-card">
-        <div>
-          <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Submitted</div>
-          <div class="h4 fw-bold mb-0 text-success"><%= @submitted_count || 0 %></div>
+      <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div>
+            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Submitted</div>
+            <div class="h4 fw-bold mb-0 text-success"><%= @submitted_count || 0 %></div>
+          </div>
+          <div class="inst-kpi-icon inst-kpi-icon-success">
+            <i class="bi bi-check-circle"></i>
+          </div>
         </div>
-        <div class="inst-kpi-icon inst-kpi-icon-success">
-          <i class="bi bi-check-circle"></i>
+        <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-medium" title="Students Submitted">
+            <i class="bi bi-mortarboard me-1"></i>Stu: <%= @submitted_by_type&.fetch('student', 0) || 0 %>
+          </span>
+          <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;" title="Guardians Submitted">
+            <i class="bi bi-shield-shaded me-1"></i>Gua: <%= @submitted_by_type&.fetch('guardian', 0) || 0 %>
+          </span>
+          <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-medium" title="Employees Submitted">
+            <i class="bi bi-briefcase me-1"></i>Emp: <%= @submitted_by_type&.fetch('employee', 0) || 0 %>
+          </span>
         </div>
       </div>
     </div>
 
+    <!-- Card 3: Pending -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="inst-kpi-card">
-        <div>
-          <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Pending</div>
-          <div class="h4 fw-bold mb-0 text-warning"><%= @pending_count || 0 %></div>
+      <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div>
+            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Pending</div>
+            <div class="h4 fw-bold mb-0 text-warning"><%= @pending_count || 0 %></div>
+          </div>
+          <div class="inst-kpi-icon inst-kpi-icon-warning">
+            <i class="bi bi-clock-history"></i>
+          </div>
         </div>
-        <div class="inst-kpi-icon inst-kpi-icon-warning">
-          <i class="bi bi-clock-history"></i>
+        <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-medium" title="Students Pending">
+            <i class="bi bi-mortarboard me-1"></i>Stu: <%= @pending_by_type&.fetch('student', 0) || 0 %>
+          </span>
+          <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;" title="Guardians Pending">
+            <i class="bi bi-shield-shaded me-1"></i>Gua: <%= @pending_by_type&.fetch('guardian', 0) || 0 %>
+          </span>
+          <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-medium" title="Employees Pending">
+            <i class="bi bi-briefcase me-1"></i>Emp: <%= @pending_by_type&.fetch('employee', 0) || 0 %>
+          </span>
         </div>
       </div>
     </div>
 
+    <!-- Card 4: Completion Rate -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="inst-kpi-card">
-        <div>
-          <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Completion Rate</div>
-          <div class="h4 fw-bold mb-0 text-info"><%= @participation_rate || 0 %>%</div>
+      <div class="inst-kpi-card d-flex flex-column justify-content-between h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div>
+            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Completion Rate</div>
+            <div class="h4 fw-bold mb-0 text-info"><%= @participation_rate || 0 %>%</div>
+          </div>
+          <div class="inst-kpi-icon inst-kpi-icon-info">
+            <i class="bi bi-pie-chart"></i>
+          </div>
         </div>
-        <div class="inst-kpi-icon inst-kpi-icon-info">
-          <i class="bi bi-pie-chart"></i>
+        <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-medium" title="Student Completion Rate">
+            <i class="bi bi-mortarboard me-1"></i>Stu: <%= @completion_rate_by_type&.fetch('student', 0) || 0 %>%
+          </span>
+          <span class="badge rounded-pill px-2 py-0.5 fw-medium" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;" title="Guardian Completion Rate">
+            <i class="bi bi-shield-shaded me-1"></i>Gua: <%= @completion_rate_by_type&.fetch('guardian', 0) || 0 %>%
+          </span>
+          <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5 fw-medium" title="Employee Completion Rate">
+            <i class="bi bi-briefcase me-1"></i>Emp: <%= @completion_rate_by_type&.fetch('employee', 0) || 0 %>%
+          </span>
         </div>
       </div>
     </div>
   </div>
 
   <!-- FILLED FILTER TOOLBAR -->
-  <div class="filled-toolbar mb-4">
+  <%
+    active_filters_count = 0
+    active_filters_count += 1 if params[:search].present?
+    active_filters_count += 1 if @selected_section_ids.present? && !@selected_section_ids.include?('all')
+    active_filters_count += 1 if @selected_assignment_ids.present? && !@selected_assignment_ids.include?('all')
+    active_filters_count += 1 if @selected_statuses.present? && @selected_statuses.size == 1
+    active_filters_count += 1 if params[:specific_date].present?
+    active_filters_count += 1 if params[:date_range].present? && params[:date_range] != ''
+  %>
+  <div class="filter-toolbar-card bg-white rounded-4 shadow-sm border mb-4 p-3 p-md-4">
     <%= form_tag assignment_reports_institute_admin_reports_path, method: :get, id: "assignmentReportsForm" do %>
-      <div class="row g-2 align-items-center">
-        <!-- Search Input -->
-        <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+      <!-- TOP ROW: Defined Search & Action Buttons -->
+      <div class="row g-2 g-md-3 align-items-center mb-3">
+        <!-- Search Keyword Input with Submit and Clear -->
+        <div class="col-12 col-md-7 col-lg-8">
           <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" name="search" id="reportSearchInput" class="form-control" placeholder="Search..." value="<%= params[:search] %>">
+            <span class="input-group-text bg-white border-end-0 ps-3 pe-2">
+              <i class="bi bi-search text-primary"></i>
+            </span>
+            <input type="text" 
+                   name="search" 
+                   id="reportSearchInput" 
+                   class="form-control border-start-0 border-end-0 ps-1 text-dark fw-medium" 
+                   placeholder="Search participant name, email, section, assignment, mobile..." 
+                   value="<%= params[:search] %>"
+                   autocomplete="off">
+            <% if params[:search].present? %>
+              <button type="button" 
+                      class="btn btn-link text-muted pe-3 text-decoration-none border-start-0 border-end-0" 
+                      onclick="document.getElementById('reportSearchInput').value=''; document.getElementById('assignmentReportsForm').submit();" 
+                      title="Clear search">
+                <i class="bi bi-x-circle-fill"></i>
+              </button>
+            <% end %>
+            <button type="submit" class="btn btn-primary px-3 rounded-end-3 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-sm">
+              <i class="bi bi-search"></i>
+              <span>Search</span>
+            </button>
           </div>
         </div>
 
-        <!-- Section Filter -->
-        <div class="col-12 col-sm-6 col-md-4 col-xl-2">
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-people"></i></span>
-            <select name="section_id" id="sectionFilter" class="form-select" onchange="this.form.submit()">
-              <option value="" <%= 'selected' if params[:section_id].blank? %>>All Sections</option>
-              <% current_institute.sections.each do |sec| %>
-                <option value="<%= sec.id %>" <%= 'selected' if params[:section_id].to_s == sec.id.to_s %>><%= sec.name %></option>
-              <% end %>
-            </select>
+        <!-- Action Buttons (Reset & Apply Filters) -->
+        <div class="col-12 col-md-5 col-lg-4 d-flex align-items-center justify-content-md-end gap-2">
+          <%= link_to assignment_reports_institute_admin_reports_path, class: "btn btn-outline-secondary px-3 rounded-3 d-inline-flex align-items-center justify-content-center gap-1.5 w-50 w-md-auto flex-md-grow-0", title: "Reset All Filters" do %>
+            <i class="bi bi-arrow-counterclockwise"></i>
+            <span>Reset</span>
+            <% if active_filters_count > 0 %>
+              <span class="badge bg-secondary text-white rounded-pill ms-1" style="font-size: 0.72rem;"><%= active_filters_count %></span>
+            <% end %>
+          <% end %>
+
+          <button type="submit" class="btn btn-primary px-3 px-sm-4 rounded-3 d-inline-flex align-items-center justify-content-center gap-1.5 fw-semibold shadow-sm w-50 w-md-auto flex-md-grow-0">
+            <i class="bi bi-funnel-fill"></i>
+            <span>Apply Filters</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- BOTTOM ROW: Multi-Select Filter Dropdowns & Dates -->
+      <div class="row g-2 g-md-3 align-items-center">
+        <!-- 1. Sections Multi-Select Dropdown -->
+        <div class="col-12 col-sm-6 col-md-4 col-xl">
+          <div class="dropdown multiselect-dropdown">
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active-indigo' if @selected_section_ids.present? && !@selected_section_ids.include?('all') %>" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    data-bs-display="static"
+                    data-bs-auto-close="outside"
+                    aria-expanded="false">
+              <span class="d-inline-flex align-items-center text-truncate">
+                <i class="bi bi-people me-2 text-primary flex-shrink-0"></i>
+                <span class="dropdown-label text-truncate" id="secLabel">
+                  Sections (<%= @selected_section_ids.blank? || @selected_section_ids.include?('all') ? 'All' : @selected_section_ids.size %>)
+                </span>
+              </span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border" style="width: 300px; max-width: min(340px, calc(100vw - 2rem)); max-height: 360px; overflow-y: auto;">
+              <div class="px-1 mb-2">
+                <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search sections..." oninput="filterDropdownList(this)">
+              </div>
+              <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold text-primary" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'secLabel', 'Sections', 'section_ids[]')">Select All</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'secLabel', 'Sections', 'section_ids[]')">Clear</button>
+              </div>
+              <div class="multiselect-options-list">
+                <% (@available_sections || current_institute.sections.order(:name)).each do |sec| %>
+                  <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-start gap-2">
+                    <input class="form-check-input mt-1 flex-shrink-0" 
+                           type="checkbox" 
+                           name="section_ids[]" 
+                           value="<%= sec.id %>" 
+                           id="sec_cb_<%= sec.id %>" 
+                           <%= 'checked' if @selected_section_ids&.include?(sec.id.to_s) %>
+                           onchange="updateDropdownCounter('secLabel', 'Sections', 'section_ids[]')">
+                    <label class="form-check-label flex-grow-1 cursor-pointer small" for="sec_cb_<%= sec.id %>" title="<%= sec.name %>">
+                      <%= sec.name %>
+                    </label>
+                  </div>
+                <% end %>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Assignment Filter -->
-        <div class="col-12 col-sm-6 col-md-4 col-xl-2">
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-file-earmark-text"></i></span>
-            <select name="assignment_id" id="assignmentFilter" class="form-select" onchange="this.form.submit()">
-              <option value="" <%= 'selected' if params[:assignment_id].blank? %>>All Assignments</option>
-              <% current_institute.assignments.each do |asg| %>
-                <option value="<%= asg.id %>" <%= 'selected' if params[:assignment_id].to_s == asg.id.to_s %>><%= asg.title %></option>
-              <% end %>
-            </select>
+        <!-- 2. Assignments Multi-Select Dropdown -->
+        <div class="col-12 col-sm-6 col-md-4 col-xl">
+          <div class="dropdown multiselect-dropdown">
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active-indigo' if @selected_assignment_ids.present? && !@selected_assignment_ids.include?('all') %>" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    data-bs-display="static"
+                    data-bs-auto-close="outside"
+                    aria-expanded="false">
+              <span class="d-inline-flex align-items-center text-truncate">
+                <i class="bi bi-file-earmark-text me-2 text-primary flex-shrink-0"></i>
+                <span class="dropdown-label text-truncate" id="asgLabel">
+                  Assignments (<%= @selected_assignment_ids.blank? || @selected_assignment_ids.include?('all') ? 'All' : @selected_assignment_ids.size %>)
+                </span>
+              </span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border" style="width: 320px; max-width: min(360px, calc(100vw - 2rem)); max-height: 360px; overflow-y: auto;">
+              <div class="px-1 mb-2">
+                <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search assignments..." oninput="filterDropdownList(this)">
+              </div>
+              <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold text-primary" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'asgLabel', 'Assignments', 'assignment_ids[]')">Select All</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'asgLabel', 'Assignments', 'assignment_ids[]')">Clear</button>
+              </div>
+              <div class="multiselect-options-list">
+                <% (@available_assignments || current_institute.assignments.order(start_date: :desc, title: :asc)).each do |asg| %>
+                  <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-start gap-2">
+                    <input class="form-check-input mt-1 flex-shrink-0" 
+                           type="checkbox" 
+                           name="assignment_ids[]" 
+                           value="<%= asg.id %>" 
+                           id="asg_cb_<%= asg.id %>" 
+                           <%= 'checked' if @selected_assignment_ids&.include?(asg.id.to_s) %>
+                           onchange="updateDropdownCounter('asgLabel', 'Assignments', 'assignment_ids[]')">
+                    <label class="form-check-label flex-grow-1 cursor-pointer small" for="asg_cb_<%= asg.id %>" title="<%= asg.title %>">
+                      <%= asg.title %>
+                    </label>
+                  </div>
+                <% end %>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Submission Status -->
-        <div class="col-12 col-sm-6 col-md-4 col-xl-2">
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-check-circle"></i></span>
-            <select name="submission_status" id="statusFilter" class="form-select" onchange="this.form.submit()">
-              <option value="" <%= 'selected' if params[:submission_status].blank? %>>All Status</option>
-              <option value="submitted" <%= 'selected' if params[:submission_status] == 'submitted' %>>Submitted</option>
-              <option value="not_submitted" <%= 'selected' if params[:submission_status] == 'not_submitted' %>>Pending Only</option>
-            </select>
+        <!-- 3. Status Multi-Select Dropdown -->
+        <div class="col-12 col-sm-6 col-md-4 col-xl">
+          <div class="dropdown multiselect-dropdown">
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active-indigo' if @selected_statuses.present? && @selected_statuses.size == 1 %>" 
+                    type="button" 
+                    data-bs-toggle="dropdown" 
+                    data-bs-display="static"
+                    data-bs-auto-close="outside"
+                    aria-expanded="false">
+              <span class="d-inline-flex align-items-center text-truncate">
+                <i class="bi bi-check-circle me-2 text-primary flex-shrink-0"></i>
+                <span class="dropdown-label text-truncate" id="statusLabel">
+                  Status (<%= @selected_statuses.blank? || @selected_statuses.size == 2 ? 'All' : @selected_statuses.map { |s| s == 'not_submitted' ? 'Pending' : 'Submitted' }.join(', ') %>)
+                </span>
+              </span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border" style="width: 240px; max-width: min(280px, calc(100vw - 2rem));">
+              <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold text-primary" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'statusLabel', 'Status', 'submission_statuses[]')">Select All</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'statusLabel', 'Status', 'submission_statuses[]')">Clear</button>
+              </div>
+              <div class="multiselect-options-list">
+                <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-center gap-2">
+                  <input class="form-check-input flex-shrink-0" 
+                         type="checkbox" 
+                         name="submission_statuses[]" 
+                         value="submitted" 
+                         id="status_cb_submitted" 
+                         <%= 'checked' if @selected_statuses.blank? || @selected_statuses.include?('submitted') %>
+                         onchange="updateStatusDropdownCounter()">
+                  <label class="form-check-label flex-grow-1 cursor-pointer small" for="status_cb_submitted">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill me-1">Submitted</span>
+                  </label>
+                </div>
+                <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-center gap-2">
+                  <input class="form-check-input flex-shrink-0" 
+                         type="checkbox" 
+                         name="submission_statuses[]" 
+                         value="not_submitted" 
+                         id="status_cb_not_submitted" 
+                         <%= 'checked' if @selected_statuses.blank? || @selected_statuses.include?('not_submitted') %>
+                         onchange="updateStatusDropdownCounter()">
+                  <label class="form-check-label flex-grow-1 cursor-pointer small" for="status_cb_not_submitted">
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-0.5 rounded-pill me-1">Pending</span>
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Exact Date Filter -->
-        <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+        <!-- 4. Exact Date Filter -->
+        <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="input-group" title="Filter by Specific Date">
-            <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-            <input type="date" name="specific_date" class="form-control" value="<%= params[:specific_date] %>" onchange="this.form.submit()" placeholder="Select Date">
+            <span class="input-group-text bg-white"><i class="bi bi-calendar-event text-secondary"></i></span>
+            <input type="date" name="specific_date" class="form-control" value="<%= params[:specific_date] %>" onchange="this.form.submit()" placeholder="Specific Date">
           </div>
         </div>
 
-        <!-- Date Range Filter -->
-        <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+        <!-- 5. Date Range Filter -->
+        <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-calendar-range"></i></span>
+            <span class="input-group-text bg-white"><i class="bi bi-calendar-range text-secondary"></i></span>
             <select name="date_range" id="dateRangeFilter" class="form-select" onchange="toggleCustomDates(this.value); if (this.value !== 'custom') { this.form.submit(); }">
               <option value="" <%= 'selected' if params[:date_range].blank? %>>All Ranges</option>
               <option value="today" <%= 'selected' if params[:date_range] == 'today' %>>Today</option>
@@ -586,6 +792,63 @@
     }, 15000);
   }
 
+  function filterDropdownList(input) {
+    const term = input.value.toLowerCase().trim();
+    const dropdownMenu = input.closest('.dropdown-menu');
+    const items = dropdownMenu.querySelectorAll('.multiselect-item');
+    items.forEach(item => {
+      const text = item.textContent.toLowerCase();
+      item.style.display = text.includes(term) ? 'flex' : 'none';
+    });
+  }
+
+  function selectAllDropdownCheckboxes(btn, selectAll, labelId, prefix, inputName) {
+    const dropdownMenu = btn.closest('.dropdown-menu');
+    const checkboxes = dropdownMenu.querySelectorAll(`.multiselect-options-list input[name="${inputName}"]`);
+    checkboxes.forEach(cb => {
+      const itemWrapper = cb.closest('.multiselect-item');
+      if (!itemWrapper || itemWrapper.style.display !== 'none') {
+        cb.checked = selectAll;
+      }
+    });
+    updateDropdownCounter(labelId, prefix, inputName);
+  }
+
+  function updateDropdownCounter(labelId, prefix, inputName) {
+    if (!inputName) return;
+    const checkedBoxes = document.querySelectorAll(`input[name="${inputName}"]:checked`);
+    const allBoxes = document.querySelectorAll(`input[name="${inputName}"]`);
+    const labelEl = document.getElementById(labelId);
+    if (!labelEl) return;
+
+    const btn = labelEl.closest('.filter-dropdown-btn');
+
+    if (checkedBoxes.length === 0 || checkedBoxes.length === allBoxes.length) {
+      labelEl.innerText = `${prefix} (All)`;
+      if (btn) btn.classList.remove('filter-active-indigo');
+    } else {
+      labelEl.innerText = `${prefix} (${checkedBoxes.length})`;
+      if (btn) btn.classList.add('filter-active-indigo');
+    }
+  }
+
+  function updateStatusDropdownCounter() {
+    const checked = document.querySelectorAll('input[name="submission_statuses[]"]:checked');
+    const labelEl = document.getElementById('statusLabel');
+    if (!labelEl) return;
+
+    const btn = labelEl.closest('.filter-dropdown-btn');
+
+    if (checked.length === 0 || checked.length === 2) {
+      labelEl.innerText = 'Status (All)';
+      if (btn) btn.classList.remove('filter-active-indigo');
+    } else {
+      const statuses = Array.from(checked).map(c => c.value === 'not_submitted' ? 'Pending' : 'Submitted').join(', ');
+      labelEl.innerText = `Status (${statuses})`;
+      if (btn) btn.classList.add('filter-active-indigo');
+    }
+  }
+
   document.addEventListener('turbo:before-cache', function() {
     if (exportPollTimer) {
       clearTimeout(exportPollTimer);
@@ -594,3 +857,76 @@
     isExportRunning = false;
   });
 </script>
+
+<style>
+  .filter-dropdown-btn {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+    font-size: 0.86rem !important;
+    font-weight: 500 !important;
+    height: 42px;
+    padding: 0.45rem 0.85rem !important;
+    border-radius: 10px !important;
+    transition: all 0.15s ease-in-out !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    cursor: pointer;
+    text-decoration: none !important;
+  }
+
+  .filter-dropdown-btn:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+  }
+
+  .filter-dropdown-btn:focus,
+  .filter-dropdown-btn:active,
+  .filter-dropdown-btn.show,
+  .show > .filter-dropdown-btn.dropdown-toggle {
+    background-color: #ffffff !important;
+    border-color: #6366f1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+  }
+
+  .filter-dropdown-btn .dropdown-label {
+    color: #1e293b !important;
+    font-weight: 500;
+  }
+
+  .filter-dropdown-btn.filter-active-indigo {
+    border-color: #6366f1 !important;
+    background-color: #eef2ff !important;
+    color: #4338ca !important;
+  }
+
+  .filter-dropdown-btn.filter-active-indigo .dropdown-label {
+    color: #4338ca !important;
+    font-weight: 600 !important;
+  }
+
+  .filter-dropdown-btn::after {
+    margin-left: 0.5rem;
+    color: #64748b !important;
+    vertical-align: middle;
+    transition: transform 0.2s ease;
+  }
+
+  .filter-dropdown-btn.show::after {
+    transform: rotate(180deg);
+  }
+
+  .inst-kpi-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .inst-kpi-card:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+  }
+</style>

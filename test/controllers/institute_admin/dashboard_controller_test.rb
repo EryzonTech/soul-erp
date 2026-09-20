@@ -104,14 +104,11 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_select "h5", text: /Assignment submission/
     assert_select ".chart-controls-toolbar", minimum: 1
     assert_select "#assignment_submission_range_picker", 1
-    assert_select "#backlog_range_picker", 1
+    assert_select "#backlog_range_picker", 0
     assert_select "#by_assignment_picker", 1
     assert_select "#by_section_picker", 1
     assert_select "#not_submitted_picker", 1
     assert_select "#pending_section_picker", 1
-
-    # Separate Backlog Trend card
-    assert_select "h5", text: /Backlog Trend/
   end
 
   test "chart_data returns assignment submission data with participant type breakdowns" do
@@ -214,5 +211,48 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
 
     json = JSON.parse(response.body)
     assert_equal false, json["success"]
+  end
+
+  test "should get dashboard index with unified feedback, leaderboards, and duration" do
+    get institute_admin_root_url
+    assert_response :success
+
+    # Unified Feedback by Training Program
+    assert_select "h5", text: /Feedback by Training Program/
+    assert_select "#tpfProgramDropdown", 1
+    assert_select "#tpfModeReceivedPending", 1
+    assert_select "#tpfModeParticipantType", 1
+    assert_select "#tpf-received-summary", 1
+    assert_select "#tpf-pending-summary", 1
+
+    # Top & Bottom Submitting Participants Leaderboards
+    assert_select "h5", text: /Top Submitting Participants/
+    assert_select "h5", text: /Bottom Submitting Participants/
+    assert_select "#topLeaderboardTable", 1
+    assert_select "#bottomLeaderboardTable", 1
+    assert_select "#topLeaderboardAssignment", 1
+    assert_select "#bottomLeaderboardAssignment", 1
+
+    # Recent Training Programs Duration Column
+    assert_select "table.modern-table thead tr th", text: /Duration/
+  end
+
+  test "streak_leaderboards endpoint returns top and bottom rankings" do
+    get institute_admin_dashboard_streak_leaderboards_url(assignment_id: @assignment.id, top_limit: 5, bottom_limit: 5)
+    assert_response :success
+
+    json = JSON.parse(response.body)
+    assert json["success"]
+    assert json["top"].is_a?(Array)
+    assert json["bottom"].is_a?(Array)
+    assert_equal @assignment.title, json["assignment"]["title"]
+    assert_equal 2, json["top"].size
+    assert_equal 1, json["top"].first["rank"]
+    assert_equal "John Student", json["top"].first["name"]
+    assert_equal 1, json["top"].first["streak"]
+    assert_equal 2, json["bottom"].size
+    assert_equal 1, json["bottom"].first["rank"]
+    assert_equal "Mary Guardian", json["bottom"].first["name"]
+    assert_equal 0, json["bottom"].first["streak"]
   end
 end

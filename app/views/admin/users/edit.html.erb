@@ -56,9 +56,29 @@
         <div class="col-md-12 mb-3">
           <div class="form-group">
             <%= f.label :institute_id, "Select Institute", class: "form-label" %>
-            <%= f.collection_select :institute_id, @institutes, :id, :name, 
-                { prompt: "Choose an institute" }, 
+            <%= f.collection_select :institute_id, @institutes, :id, :name,
+                { prompt: "Choose an institute" },
                 { class: "form-select" } %>
+          </div>
+        </div>
+
+        <div class="col-md-12 mb-2">
+          <div class="p-3 rounded-3 border d-flex align-items-center justify-content-between gap-3"
+               style="background: linear-gradient(135deg, rgba(99,102,241,0.05) 0%, rgba(139,92,246,0.05) 100%); border-color: rgba(99,102,241,0.2) !important;">
+            <div>
+              <div class="fw-semibold text-dark mb-1" style="font-size:0.9rem;">
+                <i class="bi bi-eye me-1" style="color:#6366f1;"></i> View-Only Access
+              </div>
+              <div class="text-muted" style="font-size:0.8rem; line-height:1.4;">
+                When enabled, this admin can view the Dashboard and Reports but cannot create,
+                edit, or delete any data.
+              </div>
+            </div>
+            <div class="form-check form-switch mb-0 flex-shrink-0">
+              <%= f.check_box :view_only,
+                    { class: "form-check-input", role: "switch", id: "user_view_only", style: "width:2.5em;height:1.4em;cursor:pointer;" },
+                    "1", "0" %>
+            </div>
           </div>
         </div>
       </div>

@@ -106,6 +106,16 @@ module InstituteAdmin
       # Training program feedback data
       @program_feedback_data = get_program_feedback_data
 
+      # Streak leaderboards initial data
+      @available_assignments = current_institute.assignments.order(created_at: :desc)
+      @default_assignment = @available_assignments.first
+      streak_data = fetch_streak_leaderboard_data(@default_assignment&.id, 10, 10)
+      @top_submitting_participants = streak_data[:top]
+      @bottom_submitting_participants = streak_data[:bottom]
+
+      # Recent feedback programs for accordion
+      @recent_feedback_programs = fetch_recent_feedback_programs
+
       # Recent training programs
       @recent_programs = current_institute.training_programs
         .left_joins(:training_program_participants)
@@ -176,6 +186,17 @@ module InstituteAdmin
       end
     rescue => e
       Rails.logger.error "DashboardController#chart_data error: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+      render json: { success: false, error: e.message }, status: :internal_server_error
+    end
+
+    def streak_leaderboards
+      top_limit = params[:top_limit].present? ? [params[:top_limit].to_i, 1].max : 10
+      bottom_limit = params[:bottom_limit].present? ? [params[:bottom_limit].to_i, 1].max : 10
+
+      data = fetch_streak_leaderboard_data(params[:assignment_id], top_limit, bottom_limit)
+      render json: { success: true, **data }
+    rescue => e
+      Rails.logger.error "DashboardController#streak_leaderboards error: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
       render json: { success: false, error: e.message }, status: :internal_server_error
     end
 
@@ -447,28 +468,186 @@ module InstituteAdmin
                     .left_joins(:training_program_participants)
                     .select("training_programs.*, COUNT(training_program_participants.id) AS participants_count")
                     .group("training_programs.id")
-                    .limit(10)
+                    .order("training_programs.created_at DESC")
+                    .limit(25)
 
-        result = programs.map do |program|
+        type_sql = ActiveRecord::Base.sanitize_sql_array([ <<-SQL, current_institute.id ])
+          SELECT tpf.training_program_id, p.participant_type, COUNT(tpf.id) AS count
+          FROM training_program_feedbacks tpf
+          JOIN participants p ON p.id = tpf.participant_id
+          JOIN training_programs tp ON tp.id = tpf.training_program_id
+          WHERE tp.institute_id = ?
+          GROUP BY tpf.training_program_id, p.participant_type
+        SQL
+        feedback_type_counts = ActiveRecord::Base.connection.exec_query(type_sql).each_with_object({}) do |row, hash|
+          hash[[row["training_program_id"].to_i, row["participant_type"].to_s]] = row["count"].to_i
+        end
+
+        programs.map do |program|
           total_participants = program[:participants_count].to_i
           received_feedback = program.training_program_feedbacks_count.to_i
           pending_feedback = [ total_participants - received_feedback, 0 ].max
 
+          student_fb = feedback_type_counts[[program.id, "student"]] || 0
+          guardian_fb = feedback_type_counts[[program.id, "guardian"]] || 0
+          employee_fb = feedback_type_counts[[program.id, "employee"]] || 0
+
           {
+            id: program.id,
             name: program.title || "Unnamed Program",
             received: received_feedback,
             pending: pending_feedback,
-            total: total_participants
+            total: total_participants,
+            student: student_fb,
+            guardian: guardian_fb,
+            employee: employee_fb
           }
         end
-
-        return [] if result.all? { |r| r[:received] == 0 && r[:pending] == 0 }
-
-        result
       rescue => e
         Rails.logger.error "Error getting program feedback data: #{e.message}"
         []
       end
+    end
+
+    def fetch_streak_leaderboard_data(assignment_id = nil, top_limit = 10, bottom_limit = 10)
+      assignment = if assignment_id.present?
+                     current_institute.assignments.find_by(id: assignment_id)
+                   end
+      assignment ||= current_institute.assignments.order(created_at: :desc).first
+
+      return { assignment: nil, top: [], bottom: [] } unless assignment
+
+      participants = Participant.includes(:user, :section)
+                                .joins(:user)
+                                .where(institute_id: current_institute.id, users: { active: true })
+                                .joins("LEFT JOIN assignment_participants ap ON ap.participant_id = participants.id")
+                                .joins("LEFT JOIN assignment_sections asg ON asg.section_id = participants.section_id")
+                                .where("ap.assignment_id = :id OR asg.assignment_id = :id OR participants.section_id = :sec_id",
+                                       id: assignment.id, sec_id: assignment.section_id)
+                                .distinct
+
+      logs = AssignmentResponseLog.where(assignment_id: assignment.id)
+                                  .pluck(:participant_id, :response_date)
+      submitted_dates_by_part = logs.group_by(&:first).transform_values do |pairs|
+        pairs.map { |p| p[1].to_date }.to_set
+      end
+
+      effective_end_date = [assignment.end_date.to_date, Date.current].min
+
+      participant_stats = participants.map do |part|
+        dates = submitted_dates_by_part[part.id] || Set.new
+        streak = compute_continuous_streak(dates, effective_end_date)
+        total_sub = dates.size
+
+        {
+          id: part.id,
+          name: part.full_name,
+          section: part.section&.name || "N/A",
+          participant_type: part.participant_type.to_s.titleize,
+          raw_participant_type: part.participant_type.to_s,
+          assignment_name: assignment.title,
+          streak: streak,
+          total_submissions: total_sub
+        }
+      end
+
+      top_sorted = participant_stats.sort_by { |p| [ -p[:streak], -p[:total_submissions], p[:name] ] }
+      top_records = top_sorted.first(top_limit).each_with_index.map do |p, idx|
+        p.merge(rank: idx + 1)
+      end
+
+      bottom_sorted = participant_stats.sort_by { |p| [ p[:streak], p[:total_submissions], p[:name] ] }
+      bottom_records = bottom_sorted.first(bottom_limit).each_with_index.map do |p, idx|
+        p.merge(rank: idx + 1)
+      end
+
+      {
+        assignment: { id: assignment.id, title: assignment.title },
+        top: top_records,
+        bottom: bottom_records
+      }
+    end
+
+    def compute_continuous_streak(submitted_dates, effective_end_date)
+      return 0 if submitted_dates.empty?
+
+      streak = 0
+      check_date = effective_end_date
+
+      if submitted_dates.include?(check_date)
+        while submitted_dates.include?(check_date)
+          streak += 1
+          check_date -= 1.day
+        end
+      elsif submitted_dates.include?(check_date - 1.day)
+        check_date -= 1.day
+        while submitted_dates.include?(check_date)
+          streak += 1
+          check_date -= 1.day
+        end
+      end
+
+      streak
+    end
+
+    def fetch_recent_feedback_programs
+      program_ids = TrainingProgramFeedback.joins(:training_program)
+                                           .where(training_programs: { institute_id: current_institute.id })
+                                           .order(created_at: :desc)
+                                           .limit(50)
+                                           .pluck(:training_program_id)
+                                           .uniq
+                                           .first(5)
+
+      return [] if program_ids.blank?
+
+      programs = current_institute.training_programs
+                                  .where(id: program_ids)
+                                  .left_joins(:training_program_participants)
+                                  .select("training_programs.*, COUNT(DISTINCT training_program_participants.id) AS participants_count")
+                                  .group("training_programs.id")
+
+      programs = programs.sort_by { |p| program_ids.index(p.id) || 999 }
+
+      programs.map do |program|
+        total_participants = program[:participants_count].to_i
+        received_feedbacks = program.training_program_feedbacks
+                                    .includes(participant: :user)
+                                    .order(created_at: :desc)
+        received_count = received_feedbacks.size
+        pending_count = [total_participants - received_count, 0].max
+
+        avg_rating = received_count > 0 ? (received_feedbacks.sum(&:rating).to_f / received_count).round(1) : 0.0
+
+        fb_by_type = received_feedbacks.group_by { |f| f.participant&.participant_type.to_s }
+        type_dist = {
+          "student" => fb_by_type["student"]&.size || 0,
+          "guardian" => fb_by_type["guardian"]&.size || 0,
+          "employee" => fb_by_type["employee"]&.size || 0
+        }
+
+        rating_dist = (1..5).to_h { |star| [star, received_feedbacks.count { |f| f.rating == star }] }
+
+        {
+          id: program.id,
+          title: program.title,
+          status: program.status,
+          start_date: program.start_date,
+          end_date: program.end_date,
+          total_participants: total_participants,
+          received_count: received_count,
+          pending_count: pending_count,
+          received_percentage: total_participants > 0 ? ((received_count.to_f / total_participants) * 100).round : 0,
+          pending_percentage: total_participants > 0 ? ((pending_count.to_f / total_participants) * 100).round : 0,
+          avg_rating: avg_rating,
+          type_distribution: type_dist,
+          rating_distribution: rating_dist,
+          recent_feedbacks: received_feedbacks.first(5)
+        }
+      end
+    rescue => e
+      Rails.logger.error "Error fetching recent feedback programs: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+      []
     end
 
     def calculate_percentage(part, total)

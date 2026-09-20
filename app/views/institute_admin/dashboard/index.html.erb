@@ -76,35 +76,158 @@
       box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25);
     }
 
-    /* Card Variants Row 2 */
-    .stat-card-responses {
-      background: linear-gradient(135deg, #0891b2 0%, #22d3ee 100%);
-      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.25);
+    /* Operational Metric Cards (Row 2 - Distinguished Identity) */
+    .op-stat-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      min-height: 128px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.02);
     }
 
-    .stat-card-trainers {
-      background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
-      box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25);
+    .op-stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      border-color: #cbd5e1;
     }
 
-    .stat-card-programs {
-      background: linear-gradient(135deg, #16a34a 0%, #4ade80 100%);
-      box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25);
+    .op-stat-card .card-body {
+      padding: 1.1rem 1.25rem;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
     }
 
-    .stat-card-feedback {
-      background: linear-gradient(135deg, #db2777 0%, #f472b6 100%);
-      box-shadow: 0 8px 20px rgba(219, 39, 119, 0.25);
+    .op-stat-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
     }
 
-    /* Modern Table Styles */
+    .op-stat-title {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #64748b;
+      margin-bottom: 0.35rem;
+    }
+
+    .op-stat-value {
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+    }
+
+    .op-stat-icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    .op-stat-card:hover .op-stat-icon-box {
+      transform: scale(1.08);
+    }
+
+    /* Distinct Card Identity & Border Top Accents */
+    .op-stat-card-responses {
+      border-top: 3.5px solid #06b6d4;
+      background: linear-gradient(180deg, #ffffff 65%, rgba(6, 182, 212, 0.04) 100%);
+    }
+    .op-stat-card-responses .op-stat-icon-box {
+      background: rgba(6, 182, 212, 0.12);
+      color: #0891b2;
+    }
+
+    .op-stat-card-trainers {
+      border-top: 3.5px solid #8b5cf6;
+      background: linear-gradient(180deg, #ffffff 65%, rgba(139, 92, 246, 0.04) 100%);
+    }
+    .op-stat-card-trainers .op-stat-icon-box {
+      background: rgba(139, 92, 246, 0.12);
+      color: #7c3aed;
+    }
+
+    .op-stat-card-programs {
+      border-top: 3.5px solid #10b981;
+      background: linear-gradient(180deg, #ffffff 65%, rgba(16, 185, 129, 0.04) 100%);
+    }
+    .op-stat-card-programs .op-stat-icon-box {
+      background: rgba(16, 185, 129, 0.12);
+      color: #059669;
+    }
+
+    .op-stat-card-feedback {
+      border-top: 3.5px solid #ec4899;
+      background: linear-gradient(180deg, #ffffff 65%, rgba(236, 72, 153, 0.04) 100%);
+    }
+    .op-stat-card-feedback .op-stat-icon-box {
+      background: rgba(236, 72, 153, 0.12);
+      color: #db2777;
+    }
+
+    /* Breakdown in Operational Cards */
+    .op-stat-card .stat-breakdown,
+    .op-stat-breakdown {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      margin-top: 0.65rem;
+      padding-top: 0.5rem;
+      border-top: 1px dashed #e2e8f0;
+    }
+
+    .op-stat-card .stat-breakdown-pill,
+    .op-stat-breakdown-pill {
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 0.2rem 0.55rem;
+      border-radius: 9999px;
+      background: #f1f5f9;
+      color: #334155 !important;
+      border: 1px solid #e2e8f0;
+      backdrop-filter: none;
+      white-space: nowrap;
+      letter-spacing: 0.1px;
+    }
+
+    .op-stat-card .stat-breakdown-pill strong,
+    .op-stat-breakdown-pill strong {
+      color: #0f172a !important;
+      font-weight: 700;
+    }
+
+    /* Modern Table Styles with mobile touch momentum */
     .table-responsive {
       overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
+      -webkit-overflow-scrolling: touch !important;
+      touch-action: pan-x pan-y !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      overscroll-behavior-x: contain;
     }
 
     .modern-table {
       width: 100%;
+      min-width: 540px;
       border-collapse: separate;
       border-spacing: 0 0.75rem;
       margin-top: -0.75rem;
@@ -203,7 +326,7 @@
       border-top: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    .stat-breakdown-pill {
+    .stat-card .stat-breakdown-pill {
       font-size: 0.7rem;
       font-weight: 600;
       padding: 0.2rem 0.55rem;
@@ -239,7 +362,7 @@
   <!-- KPI Cards Row 1 -->
   <div class="row g-4 mb-4">
     <!-- Total Participants -->
-    <div class="col-xl-3 col-md-6">
+    <div class="col-12 col-sm-6 col-xl-3">
       <div class="stat-card stat-card-participants">
         <div class="card-body">
           <div class="stat-title">Total Participants</div>
@@ -255,7 +378,7 @@
     </div>
 
     <!-- Total Questions -->
-    <div class="col-xl-3 col-md-6">
+    <div class="col-12 col-sm-6 col-xl-3">
       <div class="stat-card stat-card-questions">
         <div class="card-body">
           <div class="stat-title">Total Questions</div>
@@ -266,7 +389,7 @@
     </div>
 
     <!-- Total Assignments -->
-    <div class="col-xl-3 col-md-6">
+    <div class="col-12 col-sm-6 col-xl-3">
       <div class="stat-card stat-card-assignments">
         <div class="card-body">
           <div class="stat-title">Total Assignments</div>
@@ -282,12 +405,101 @@
     </div>
 
     <!-- Total Sections -->
-    <div class="col-xl-3 col-md-6">
+    <div class="col-12 col-sm-6 col-xl-3">
       <div class="stat-card stat-card-sections">
         <div class="card-body">
           <div class="stat-title">Total Sections</div>
           <h2 class="stat-value"><%= @total_sections %></h2>
           <i class="bi bi-grid-fill stat-icon"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Cards Row 2: Operational & Activity Metrics (Distinguished Identity) -->
+  <div class="row g-4 mb-4">
+    <!-- Today Responses -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="op-stat-card op-stat-card-responses">
+        <div class="card-body">
+          <div class="op-stat-header">
+            <div>
+              <div class="op-stat-title">Today Responses</div>
+              <div class="op-stat-value"><%= @today_responses_count || 0 %></div>
+            </div>
+            <div class="op-stat-icon-box">
+              <i class="bi bi-file-earmark-check-fill"></i>
+            </div>
+          </div>
+          <div class="op-stat-breakdown stat-breakdown">
+            <span class="op-stat-breakdown-pill">Students: <strong><%= @today_responses_by_type["student"] || 0 %></strong></span>
+            <span class="op-stat-breakdown-pill">Guardians: <strong><%= @today_responses_by_type["guardian"] || 0 %></strong></span>
+            <span class="op-stat-breakdown-pill">Employees: <strong><%= @today_responses_by_type["employee"] || 0 %></strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Trainers -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="op-stat-card op-stat-card-trainers">
+        <div class="card-body">
+          <div class="op-stat-header">
+            <div>
+              <div class="op-stat-title">Total Trainers</div>
+              <div class="op-stat-value"><%= @total_trainers %></div>
+            </div>
+            <div class="op-stat-icon-box">
+              <i class="bi bi-person-workspace"></i>
+            </div>
+          </div>
+          <div class="op-stat-breakdown stat-breakdown">
+            <span class="op-stat-breakdown-pill"><i class="bi bi-person-badge me-1" style="color: #7c3aed;"></i>Active Staff</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Training Programs -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="op-stat-card op-stat-card-programs">
+        <div class="card-body">
+          <div class="op-stat-header">
+            <div>
+              <div class="op-stat-title">Training Programs</div>
+              <div class="op-stat-value"><%= @total_training_programs %></div>
+            </div>
+            <div class="op-stat-icon-box">
+              <i class="bi bi-mortarboard-fill"></i>
+            </div>
+          </div>
+          <div class="op-stat-breakdown stat-breakdown">
+            <span class="op-stat-breakdown-pill">Students: <strong><%= @training_programs_by_type["student"] || 0 %></strong></span>
+            <span class="op-stat-breakdown-pill">Guardians: <strong><%= @training_programs_by_type["guardian"] || 0 %></strong></span>
+            <span class="op-stat-breakdown-pill">Employees: <strong><%= @training_programs_by_type["employee"] || 0 %></strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback Received -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="op-stat-card op-stat-card-feedback">
+        <div class="card-body">
+          <div class="op-stat-header">
+            <div>
+              <div class="op-stat-title">Feedback Received</div>
+              <div class="op-stat-value"><%= @total_feedback_received || 0 %></div>
+            </div>
+            <div class="op-stat-icon-box">
+              <i class="bi bi-chat-square-text-fill"></i>
+            </div>
+          </div>
+          <div class="op-stat-breakdown stat-breakdown">
+            <span class="op-stat-breakdown-pill">Students: <strong><%= @feedback_by_type["student"] || 0 %></strong></span>
+            <span class="op-stat-breakdown-pill">Guardians: <strong><%= @feedback_by_type["guardian"] || 0 %></strong></span>
+            <span class="op-stat-breakdown-pill">Employees: <strong><%= @feedback_by_type["employee"] || 0 %></strong></span>
+          </div>
         </div>
       </div>
     </div>
@@ -353,45 +565,6 @@
             <span>No submissions recorded in this date range. Use <strong>&lt; Prev 14d</strong> or pick a custom date range to view earlier activity.</span>
           </div>
           <div id="submissions-over-time-chart" style="height: 330px;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Backlog Trend (14 days) - Placed directly below Assignment submission -->
-  <div class="row g-4 mb-4">
-    <div class="col-12">
-      <div class="card card-custom h-100 shadow-sm border-0">
-        <div class="card-header border-0 pt-3 pb-2 bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
-          <div>
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-              <h5 class="card-title mb-0 fw-bold text-dark">Backlog Trend (14 days)</h5>
-              <span id="backlog-date-range-badge" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
-                <%= @submission_start_date.strftime("%b %d") %> – <%= @submission_end_date.strftime("%b %d, %Y") %>
-              </span>
-            </div>
-            <small class="text-muted">Unsubmitted daily assignments over the 14-day window</small>
-          </div>
-          <div class="chart-controls-toolbar">
-            <div class="btn-group btn-group-sm" role="group">
-              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftBacklogDays(false)" title="Previous 14 Days">
-                <i class="bi bi-chevron-left"></i> Prev 14d
-              </button>
-              <button type="button" class="btn btn-sm btn-outline-secondary chart-nav-btn" onclick="shiftBacklogDays(true)" title="Next 14 Days">
-                Next 14d <i class="bi bi-chevron-right"></i>
-              </button>
-              <button type="button" class="btn btn-sm btn-light border chart-nav-btn" onclick="resetBacklogLatest()" title="Latest 14 Days">
-                Latest
-              </button>
-            </div>
-            <div style="min-width: 215px;">
-              <input type="text" id="backlog_range_picker" class="form-control form-control-sm bg-light border-secondary-subtle text-center"
-                     placeholder="Custom Date Range" readonly>
-            </div>
-          </div>
-        </div>
-        <div class="card-body pt-1">
-          <div id="backlog-trend-chart" style="height: 240px;"></div>
         </div>
       </div>
     </div>
@@ -551,68 +724,6 @@
     </div>
   </div>
 
-  <!-- KPI Cards Row 2 -->
-  <div class="row g-4 mb-4">
-    <!-- Today Responses -->
-    <div class="col-xl-3 col-md-6">
-      <div class="stat-card stat-card-responses">
-        <div class="card-body">
-          <div class="stat-title">Today Responses</div>
-          <h2 class="stat-value"><%= @today_responses_count || 0 %></h2>
-          <i class="bi bi-file-earmark-check-fill stat-icon"></i>
-          <div class="stat-breakdown">
-            <span class="stat-breakdown-pill">Students: <%= @today_responses_by_type["student"] || 0 %></span>
-            <span class="stat-breakdown-pill">Guardians: <%= @today_responses_by_type["guardian"] || 0 %></span>
-            <span class="stat-breakdown-pill">Employees: <%= @today_responses_by_type["employee"] || 0 %></span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Total Trainers -->
-    <div class="col-xl-3 col-md-6">
-      <div class="stat-card stat-card-trainers">
-        <div class="card-body">
-          <div class="stat-title">Total Trainers</div>
-          <h2 class="stat-value"><%= @total_trainers %></h2>
-          <i class="bi bi-person-workspace stat-icon"></i>
-        </div>
-      </div>
-    </div>
-
-    <!-- Training Programs -->
-    <div class="col-xl-3 col-md-6">
-      <div class="stat-card stat-card-programs">
-        <div class="card-body">
-          <div class="stat-title">Training Programs</div>
-          <h2 class="stat-value"><%= @total_training_programs %></h2>
-          <i class="bi bi-mortarboard-fill stat-icon"></i>
-          <div class="stat-breakdown">
-            <span class="stat-breakdown-pill">Students: <%= @training_programs_by_type["student"] || 0 %></span>
-            <span class="stat-breakdown-pill">Guardians: <%= @training_programs_by_type["guardian"] || 0 %></span>
-            <span class="stat-breakdown-pill">Employees: <%= @training_programs_by_type["employee"] || 0 %></span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Feedback Received -->
-    <div class="col-xl-3 col-md-6">
-      <div class="stat-card stat-card-feedback">
-        <div class="card-body">
-          <div class="stat-title">Feedback Received</div>
-          <h2 class="stat-value"><%= @total_feedback_received || 0 %></h2>
-          <i class="bi bi-chat-square-text-fill stat-icon"></i>
-          <div class="stat-breakdown">
-            <span class="stat-breakdown-pill">Students: <%= @feedback_by_type["student"] || 0 %></span>
-            <span class="stat-breakdown-pill">Guardians: <%= @feedback_by_type["guardian"] || 0 %></span>
-            <span class="stat-breakdown-pill">Employees: <%= @feedback_by_type["employee"] || 0 %></span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Charts Row -->
   <div class="row g-4 mb-4">
     <!-- Participants by Section -->
@@ -642,76 +753,433 @@
     </div>
   </div>
 
-  <!-- Feedback: Overview (left) and Training Program Chart (right) -->
-  <div class="row g-4 mb-4 align-items-stretch">
-    <div class="col-xl-4 col-md-6">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Feedback Overview</h5>
-        </div>
-  <div class="card-body d-flex flex-column justify-content-center h-100">
-          <div class="mb-3">
-            <h6 class="text-muted mb-2">Feedback Received</h6>
-            <div class="progress" style="height: 25px; background: #f1f5f9;">
-              <div class="progress-bar" role="progressbar"
-                   style="width: <%= @feedback_received_percentage || 0 %>%; background: linear-gradient(90deg, #8b5cf6 0%, #06b6d4 100%); color: #04263a; font-weight:600;"
-                   aria-valuenow="<%= @feedback_received_percentage || 0 %>"
-                   aria-valuemin="0" aria-valuemax="100">
-                <%= @feedback_received_percentage || 0 %>%
+  <!-- Unified Feedback by Training Program Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card card-custom">
+        <div class="card-header border-0 pt-3 pb-2 d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <div class="p-2 rounded-3 bg-purple-subtle text-purple">
+                <i class="bi bi-bar-chart-line-fill fs-5" style="color: #8b5cf6;"></i>
+              </div>
+              <div>
+                <h5 class="card-title mb-0 fw-bold">Feedback by Training Program</h5>
+                <small class="text-muted">Combined received & pending responses by program and audience</small>
               </div>
             </div>
-            <div class="d-flex justify-content-between mt-2">
-              <small class="text-muted">Total: <%= @total_feedback_received || 0 %></small>
-              <small class="text-muted">Target: 100%</small>
+            <!-- Overview Summary KPI Banner -->
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-2 pt-1">
+              <span class="badge border px-2.5 py-1.5 fw-semibold" id="tpf-received-summary" style="background: rgba(139, 92, 246, 0.12); color: #6d28d9; border-color: rgba(139, 92, 246, 0.25) !important;">
+                <i class="bi bi-check2-circle me-1"></i>Received: <%= @feedback_received_percentage || 0 %>% (<%= @total_feedback_received || 0 %>)
+              </span>
+              <span class="badge border px-2.5 py-1.5 fw-semibold" id="tpf-pending-summary" style="background: rgba(251, 113, 133, 0.12); color: #be123c; border-color: rgba(251, 113, 133, 0.25) !important;">
+                <i class="bi bi-hourglass-split me-1"></i>Pending: <%= @feedback_pending_percentage || 0 %>% (<%= @total_feedback_pending || 0 %>)
+              </span>
+              <span class="op-stat-breakdown-pill" id="tpf-students-summary">
+                Students: <strong><%= @feedback_by_type['student'] || 0 %></strong>
+              </span>
+              <span class="op-stat-breakdown-pill" id="tpf-guardians-summary">
+                Guardians: <strong><%= @feedback_by_type['guardian'] || 0 %></strong>
+              </span>
+              <span class="op-stat-breakdown-pill" id="tpf-employees-summary">
+                Employees: <strong><%= @feedback_by_type['employee'] || 0 %></strong>
+              </span>
             </div>
           </div>
-          <div class="mb-3">
-            <h6 class="text-muted mb-2">Feedback Pending</h6>
-            <div class="progress" style="height: 25px; background: #f1f5f9;">
-              <div class="progress-bar" role="progressbar"
-                   style="width: <%= @feedback_pending_percentage || 0 %>%; background: linear-gradient(90deg, #fb7185 0%, #fb923c 100%); color: #4a2b00; font-weight:600;"
-                   aria-valuenow="<%= @feedback_pending_percentage || 0 %>"
-                   aria-valuemin="0" aria-valuemax="100">
-                <%= @feedback_pending_percentage || 0 %>%
-              </div>
-            </div>
-            <div class="d-flex justify-content-between mt-2">
-              <small class="text-muted">Total: <%= @total_feedback_pending || 0 %></small>
-              <small class="text-muted">Target: 0%</small>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <div class="col-xl-8 col-md-6">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Feedback by Training Program</h5>
+          <!-- Header Toolbar: Multi-select Filter & View Mode Switcher -->
+          <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-lg-auto justify-content-between justify-content-lg-end">
+            <!-- Multi-Select Training Program Dropdown -->
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1.5 rounded-3 px-3 py-1.5" 
+                      type="button" 
+                      id="tpfProgramDropdown" 
+                      data-bs-toggle="dropdown" 
+                      data-bs-display="static"
+                      data-bs-auto-close="outside" 
+                      aria-expanded="false">
+                <i class="bi bi-funnel-fill text-primary"></i>
+                <span id="tpfSelectedProgramLabel">All Programs (<%= @program_feedback_data.size %>)</span>
+              </button>
+              <div class="dropdown-menu dropdown-menu-end p-2.5 shadow-lg rounded-3 border" style="min-width: 280px; max-height: 340px; overflow-y: auto;" aria-labelledby="tpfProgramDropdown">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                  <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="tpfSelectAll" checked onchange="toggleAllFeedbackPrograms(this)">
+                    <label class="form-check-label fw-bold small" for="tpfSelectAll">Select All</label>
+                  </div>
+                  <small class="text-muted" id="tpfCounterText"><%= @program_feedback_data.size %> selected</small>
+                </div>
+                <div id="tpfProgramCheckboxes">
+                  <% @program_feedback_data.each do |p| %>
+                    <div class="form-check py-1 px-1 rounded hover-bg-light">
+                      <input class="form-check-input tpf-program-cb me-2" type="checkbox" value="<%= p[:id] %>" id="tpf_prog_<%= p[:id] %>" checked onchange="handleFeedbackProgramChange()">
+                      <label class="form-check-label small text-truncate d-block cursor-pointer" for="tpf_prog_<%= p[:id] %>" title="<%= p[:name] %>">
+                        <%= p[:name] %>
+                      </label>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+
+            <!-- View Mode Switcher -->
+            <div class="btn-group btn-group-sm rounded-3 shadow-none border" role="group">
+              <button type="button" class="btn btn-outline-primary active px-2.5 py-1.5" id="tpfModeReceivedPending" onclick="switchFeedbackViewMode('received_pending')">
+                Received vs Pending
+              </button>
+              <button type="button" class="btn btn-outline-primary px-2.5 py-1.5" id="tpfModeParticipantType" onclick="switchFeedbackViewMode('participant_type')">
+                By Participant Type
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
+        <div class="card-body pt-2">
           <!-- Feedback by Training Program Chart Container -->
-          <div id="feedback-training-chart" style="min-height:320px;"></div>
+          <div id="feedback-training-chart" style="min-height:350px;"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Recent Training Programs Table -->
+  <!-- Recent Feedback Accordion Section (Item 20) -->
+  <div class="card card-custom mb-4">
+    <div class="card-header border-0 pt-3 pb-2 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2.5">
+      <div class="d-flex align-items-center gap-2">
+        <div class="p-2 rounded-3 bg-purple-subtle text-purple">
+          <i class="bi bi-chat-square-quote-fill fs-5" style="color: #8b5cf6;"></i>
+        </div>
+        <div>
+          <h5 class="card-title mb-0 fw-bold">Recent Feedback</h5>
+          <small class="text-muted">User reviews and rating distributions by training program</small>
+        </div>
+      </div>
+      <div>
+        <%= link_to feedback_reports_institute_admin_reports_path, class: "btn btn-sm btn-outline-primary rounded-3 px-3" do %>
+          <i class="bi bi-list-ul me-1"></i> View Feedback Reports
+        <% end %>
+      </div>
+    </div>
+    <div class="card-body pt-2">
+      <% if @recent_feedback_programs.present? %>
+        <div class="accordion accordion-custom" id="recentFeedbackAccordion">
+          <% @recent_feedback_programs.each_with_index do |prog, idx| %>
+            <div class="accordion-item border rounded-3 mb-2.5 overflow-hidden shadow-sm">
+              <h2 class="accordion-header" id="heading_feedback_<%= prog[:id] %>">
+                <button class="accordion-button <%= 'collapsed' unless idx == 0 %> d-flex flex-wrap align-items-center justify-content-between gap-2.5 py-3" 
+                        type="button" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#collapse_feedback_<%= prog[:id] %>" 
+                        aria-expanded="<%= idx == 0 ? 'true' : 'false' %>" 
+                        aria-controls="collapse_feedback_<%= prog[:id] %>"
+                        style="background: <%= idx == 0 ? '#f8fafc' : '#ffffff' %>;">
+                  
+                  <!-- Program Title & Status -->
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0" style="max-width: 360px;">
+                    <i class="bi bi-mortarboard text-primary fs-5"></i>
+                    <span class="fw-bold text-dark text-truncate" title="<%= prog[:title] %>"><%= prog[:title] %></span>
+                    <span class="badge bg-light text-muted border small"><%= prog[:status]&.titleize %></span>
+                  </div>
+
+                  <!-- Rating Badge -->
+                  <div class="d-flex align-items-center gap-1.5 me-2">
+                    <div class="badge bg-warning-subtle text-warning-emphasis d-inline-flex align-items-center gap-1 px-2 py-1">
+                      <i class="bi bi-star-fill text-warning"></i>
+                      <span class="fw-bold"><%= prog[:avg_rating] %></span>
+                    </div>
+                    <span class="text-muted small">(<%= prog[:received_count] %> reviews)</span>
+                  </div>
+
+                  <!-- Stacked Mini Progress Bar (Received vs Pending) -->
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 w-100 w-sm-auto" style="min-width: 160px; max-width: 340px;">
+                    <div class="progress flex-grow-1 rounded-pill" style="height: 10px; background-color: #f1f5f9;">
+                      <div class="progress-bar" role="progressbar" 
+                           style="width: <%= prog[:received_percentage] %>%; background: linear-gradient(90deg, #8b5cf6 0%, #06b6d4 100%);" 
+                           title="Received: <%= prog[:received_count] %> (<%= prog[:received_percentage] %>%)"></div>
+                      <div class="progress-bar" role="progressbar" 
+                           style="width: <%= prog[:pending_percentage] %>%; background: linear-gradient(90deg, #fb7185 0%, #fb923c 100%);" 
+                           title="Pending: <%= prog[:pending_count] %> (<%= prog[:pending_percentage] %>%)"></div>
+                    </div>
+                    <span class="small fw-semibold text-muted text-nowrap"><%= prog[:received_percentage] %>% received</span>
+                  </div>
+                </button>
+              </h2>
+              <div id="collapse_feedback_<%= prog[:id] %>" 
+                   class="accordion-collapse collapse <%= 'show' if idx == 0 %>" 
+                   aria-labelledby="heading_feedback_<%= prog[:id] %>" 
+                   data-bs-parent="#recentFeedbackAccordion">
+                <div class="accordion-body bg-light-subtle p-3 p-md-4">
+                  
+                  <!-- Distribution Summary Bar -->
+                  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 pb-3 border-bottom">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                      <span class="text-muted small fw-semibold">Audience Breakdown:</span>
+                      <span class="op-stat-breakdown-pill">Students: <strong><%= prog[:type_distribution]["student"] %></strong></span>
+                      <span class="op-stat-breakdown-pill">Guardians: <strong><%= prog[:type_distribution]["guardian"] %></strong></span>
+                      <span class="op-stat-breakdown-pill">Employees: <strong><%= prog[:type_distribution]["employee"] %></strong></span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-muted small">
+                      <span>Total Participants: <strong><%= prog[:total_participants] %></strong></span>
+                      <span>•</span>
+                      <span>Received: <strong class="text-success"><%= prog[:received_count] %></strong></span>
+                      <span>•</span>
+                      <span>Pending: <strong class="text-warning"><%= prog[:pending_count] %></strong></span>
+                    </div>
+                  </div>
+
+                  <!-- Reviews List (Referencing Master Admin recent feedback style) -->
+                  <div class="row g-3">
+                    <% if prog[:recent_feedbacks].any? %>
+                      <% prog[:recent_feedbacks].each do |fb| %>
+                        <div class="col-12 col-md-6 col-xl-4">
+                          <div class="card h-100 border-0 shadow-sm rounded-3 p-3 bg-white">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                              <div class="d-flex text-warning" style="font-size: 0.85rem;">
+                                <% fb.rating.to_i.times do %>
+                                  <i class="bi bi-star-fill me-0.5"></i>
+                                <% end %>
+                                <% (5 - fb.rating.to_i).times do %>
+                                  <i class="bi bi-star text-muted opacity-25 me-0.5"></i>
+                                <% end %>
+                              </div>
+                              <small class="text-muted" style="font-size: 0.75rem;">
+                                <i class="bi bi-clock me-1"></i><%= time_ago_in_words(fb.created_at) %> ago
+                              </small>
+                            </div>
+                            <p class="text-dark small mb-3 flex-grow-1" style="line-height: 1.5; font-style: italic;">
+                              "<%= truncate(fb.content, length: 120) %>"
+                            </p>
+                            <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="border-color: #f1f5f9 !important;">
+                              <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                  <%= fb.participant&.user&.first_name&.first || 'U' %>
+                                </div>
+                                <div class="small fw-semibold text-dark text-truncate" style="max-width: 140px;">
+                                  <%= fb.participant&.user&.full_name %>
+                                </div>
+                              </div>
+                              <% p_type = fb.participant&.participant_type %>
+                              <span class="badge badge-<%= p_type || 'student' %> small" style="font-size: 0.65rem;">
+                                <%= p_type&.titleize || 'Student' %>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      <% end %>
+                    <% else %>
+                      <div class="col-12">
+                        <div class="alert alert-light border mb-0 text-muted small">
+                          <i class="bi bi-info-circle me-1"></i> No written feedback reviews submitted for this program yet.
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="alert alert-info mb-0">
+          <i class="bi bi-info-circle me-2"></i> No training programs with feedback recorded yet.
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Top and Bottom Submitting Participants Leaderboard Row (Items 15 & 16) -->
+  <div class="row g-4 mb-4">
+    <!-- Top Submitting Participants (Streak without break) -->
+    <div class="col-xl-6 col-12">
+      <div class="card card-custom h-100">
+        <div class="card-header border-0 pt-3 pb-2 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2.5">
+          <div class="d-flex align-items-center gap-2">
+            <div class="p-2 rounded-3 bg-warning-subtle text-warning">
+              <i class="bi bi-trophy-fill fs-5"></i>
+            </div>
+            <div>
+              <h5 class="card-title mb-0 fw-bold">Top Submitting Participants</h5>
+              <small class="text-muted">Follows streak without break</small>
+            </div>
+          </div>
+          
+          <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+            <!-- Assignment filter -->
+            <select class="form-select form-select-sm rounded-3 flex-grow-1 flex-sm-grow-0" id="topLeaderboardAssignment" style="min-width: 140px; max-width: 220px;" onchange="updateStreakLeaderboard('top')">
+              <% (@available_assignments || []).each do |asg| %>
+                <option value="<%= asg.id %>" <%= 'selected' if asg.id == @default_assignment&.id %>><%= asg.title %></option>
+              <% end %>
+            </select>
+
+            <!-- Limit selector -->
+            <div class="d-flex align-items-center gap-1">
+              <span class="text-muted small">Show:</span>
+              <select class="form-select form-select-sm rounded-3" id="topLeaderboardLimit" style="width: 75px;" onchange="updateStreakLeaderboard('top')">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="d-lg-none px-3 pt-2 text-muted small">
+            <i class="bi bi-arrow-left-right me-1"></i> Swipe table horizontally to view all columns &rarr;
+          </div>
+          <div class="table-responsive">
+            <table class="table modern-table mb-0" id="topLeaderboardTable">
+              <thead>
+                <tr>
+                  <th style="width: 60px;">Rank</th>
+                  <th>Name</th>
+                  <th>Section</th>
+                  <th>Assignment</th>
+                  <th class="text-center">Streak</th>
+                </tr>
+              </thead>
+              <tbody id="topLeaderboardBody">
+                <% if @top_submitting_participants.present? %>
+                  <% @top_submitting_participants.each do |p| %>
+                    <tr>
+                      <td>
+                        <span class="badge <%= p[:rank] == 1 ? 'bg-warning text-dark' : (p[:rank] == 2 ? 'bg-secondary text-white' : (p[:rank] == 3 ? 'bg-bronze text-white' : 'bg-light text-dark border')) %> rounded-pill fw-bold">
+                          #<%= p[:rank] %>
+                        </span>
+                      </td>
+                      <td class="fw-semibold text-dark"><%= p[:name] %></td>
+                      <td><span class="badge bg-light text-secondary border"><%= p[:section] %></span></td>
+                      <td class="text-muted small text-truncate" style="max-width: 150px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
+                      <td class="text-center">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                          <i class="bi bi-fire text-danger me-1"></i><%= pluralize(p[:streak], 'day') %>
+                        </span>
+                      </td>
+                    </tr>
+                  <% end %>
+                <% else %>
+                  <tr><td colspan="5" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Submitting Participants (Never follows streak) -->
+    <div class="col-xl-6 col-12">
+      <div class="card card-custom h-100">
+        <div class="card-header border-0 pt-3 pb-2 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2.5">
+          <div class="d-flex align-items-center gap-2">
+            <div class="p-2 rounded-3 bg-danger-subtle text-danger">
+              <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+            </div>
+            <div>
+              <h5 class="card-title mb-0 fw-bold">Bottom Submitting Participants</h5>
+              <small class="text-muted">Never follows streak / broken streak</small>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+            <!-- Assignment filter -->
+            <select class="form-select form-select-sm rounded-3 flex-grow-1 flex-sm-grow-0" id="bottomLeaderboardAssignment" style="min-width: 140px; max-width: 220px;" onchange="updateStreakLeaderboard('bottom')">
+              <% (@available_assignments || []).each do |asg| %>
+                <option value="<%= asg.id %>" <%= 'selected' if asg.id == @default_assignment&.id %>><%= asg.title %></option>
+              <% end %>
+            </select>
+
+            <!-- Limit selector -->
+            <div class="d-flex align-items-center gap-1">
+              <span class="text-muted small">Show:</span>
+              <select class="form-select form-select-sm rounded-3" id="bottomLeaderboardLimit" style="width: 75px;" onchange="updateStreakLeaderboard('bottom')">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="d-lg-none px-3 pt-2 text-muted small">
+            <i class="bi bi-arrow-left-right me-1"></i> Swipe table horizontally to view all columns &rarr;
+          </div>
+          <div class="table-responsive">
+            <table class="table modern-table mb-0" id="bottomLeaderboardTable">
+              <thead>
+                <tr>
+                  <th style="width: 60px;">Rank</th>
+                  <th>Name</th>
+                  <th>Section</th>
+                  <th>Participant Type</th>
+                  <th>Assignment</th>
+                  <th class="text-center">Streak</th>
+                </tr>
+              </thead>
+              <tbody id="bottomLeaderboardBody">
+                <% if @bottom_submitting_participants.present? %>
+                  <% @bottom_submitting_participants.each do |p| %>
+                    <tr>
+                      <td>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">
+                          #<%= p[:rank] %>
+                        </span>
+                      </td>
+                      <td class="fw-semibold text-dark"><%= p[:name] %></td>
+                      <td><span class="badge bg-light text-secondary border"><%= p[:section] %></span></td>
+                      <td>
+                        <% p_badge = case p[:raw_participant_type]
+                                     when 'student' then 'badge-student'
+                                     when 'guardian' then 'badge-guardian'
+                                     when 'employee' then 'badge-employee'
+                                     else 'bg-secondary'
+                                     end %>
+                        <span class="badge <%= p_badge %>"><%= p[:participant_type] %></span>
+                      </td>
+                      <td class="text-muted small text-truncate" style="max-width: 140px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
+                      <td class="text-center">
+                        <span class="badge bg-light text-muted border">
+                          <i class="bi bi-x-circle text-danger me-1"></i><%= p[:streak] %> days
+                        </span>
+                      </td>
+                    </tr>
+                  <% end %>
+                <% else %>
+                  <tr><td colspan="6" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Training Programs Table (Item 13 with Duration Column) -->
   <div class="card card-custom border-0 bg-transparent shadow-none">
     <div class="card-header border-0 pt-0 px-0 pb-4 bg-transparent">
-      <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
         <h5 class="card-title mb-0 fw-bold">Recent Training Programs</h5>
         <%= link_to "View All", institute_admin_training_programs_path, class: "btn btn-primary" %>
       </div>
     </div>
     <div class="card-body p-0">
+      <div class="d-lg-none px-3 pt-2 text-muted small">
+        <i class="bi bi-arrow-left-right me-1"></i> Swipe table horizontally to view all columns &rarr;
+      </div>
       <div class="table-responsive">
         <% if @recent_programs.present? %>
           <table class="table modern-table">
             <thead>
               <tr>
                 <th>Program</th>
+                <th>Duration</th>
                 <th>Participants</th>
                 <th>Feedback Rate</th>
                 <th>Status</th>
@@ -731,6 +1199,15 @@
                         <small class="text-muted"><%= program.start_date&.strftime("%b %d, %Y") %></small>
                       </div>
                     </div>
+                  </td>
+                  <td>
+                    <% if program.start_date.present? && program.end_date.present? %>
+                      <% days = (program.end_date.to_date - program.start_date.to_date).to_i + 1 %>
+                      <div class="fw-semibold text-dark"><%= pluralize(days, "day") %></div>
+                      <small class="text-muted"><%= program.start_date.strftime("%b %d") %> - <%= program.end_date.strftime("%b %d, %Y") %></small>
+                    <% else %>
+                      <span class="text-muted">-</span>
+                    <% end %>
                   </td>
                   <td class="fw-bold text-center"><%= program.participants_count %></td>
                   <td>
@@ -773,8 +1250,6 @@
   // Global state variables for dates and multi-series datasets
   let currentSubStartDate = new Date("<%= @submission_start_date.iso8601 %>T00:00:00");
   let currentSubEndDate = new Date("<%= @submission_end_date.iso8601 %>T00:00:00");
-  let currentBacklogStartDate = new Date("<%= @submission_start_date.iso8601 %>T00:00:00");
-  let currentBacklogEndDate = new Date("<%= @submission_end_date.iso8601 %>T00:00:00");
   let currentAssignDate = new Date("<%= @assignment_date.iso8601 %>T00:00:00");
   let currentSectionDate = new Date("<%= @section_date.iso8601 %>T00:00:00");
   let currentNotSubDate = new Date("<%= @not_submitted_date.iso8601 %>T00:00:00");
@@ -1100,24 +1575,6 @@
         window.submissionsChart.render();
       }
 
-      // Backlog Trend Chart (Apex - Row 2.5)
-      var backlogContainer = document.querySelector('#backlog-trend-chart');
-      if (window.backlogChart) { try { window.backlogChart.destroy(); } catch(e) {} }
-      if (backlogContainer) {
-        var backlogOptions = {
-          chart: { type: 'area', height: 240, toolbar: { show: true } },
-          series: [{ name: 'Backlog', data: <%= raw @backlog_data.to_json %> }],
-          xaxis: { categories: <%= raw @backlog_labels.to_json %>, labels: { rotate: -35, style: { fontSize: '11px' } } },
-          stroke: { curve: 'smooth', width: 2.5 },
-          colors: ['#ef4444'],
-          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', opacityFrom: 0.5, opacityTo: 0.05 } },
-          tooltip: { y: { formatter: function(val){ return val + ' pending'; } } },
-          grid: { borderColor: '#eef2f6' }
-        };
-        window.backlogChart = new ApexCharts(backlogContainer, backlogOptions);
-        window.backlogChart.render();
-      }
-
       // Submissions by Assignment (bar) - Full Name in x-axis
       var byAssignmentContainer = document.querySelector('#submissions-by-assignment-chart');
       if (window.byAssignmentChart) { try { window.byAssignmentChart.destroy(); } catch(e) {} }
@@ -1219,20 +1676,136 @@
         window.typeChart.render();
       }
 
+      // Feedback by Training Program (Interactive & Combined)
+      window.programFeedbackRawData = <%= raw @program_feedback_data.to_json %> || [];
+      window.feedbackViewMode = 'received_pending'; // 'received_pending' or 'participant_type'
+      window.selectedFeedbackProgramIds = window.programFeedbackRawData.map(function(p) { return p.id; });
+
+      function getFilteredFeedbackPrograms() {
+        return window.programFeedbackRawData.filter(function(p) {
+          return window.selectedFeedbackProgramIds.indexOf(p.id) !== -1;
+        });
+      }
+
+      function buildFeedbackSeries() {
+        var filtered = getFilteredFeedbackPrograms();
+        if (window.feedbackViewMode === 'participant_type') {
+          return [
+            { name: 'Students', data: filtered.map(function(p) { return p.student || 0; }) },
+            { name: 'Guardians', data: filtered.map(function(p) { return p.guardian || 0; }) },
+            { name: 'Employees', data: filtered.map(function(p) { return p.employee || 0; }) },
+            { name: 'Pending', data: filtered.map(function(p) { return p.pending || 0; }) }
+          ];
+        } else {
+          return [
+            { name: 'Received', data: filtered.map(function(p) { return p.received || 0; }) },
+            { name: 'Pending', data: filtered.map(function(p) { return p.pending || 0; }) }
+          ];
+        }
+      }
+
       if (feedbackChartContainer) {
         var feedbackChartOptions = {
-          chart: { type: 'bar', height: 300 },
-          series: [{
-            name: 'Received',
-            data: <%= @program_feedback_data.map { |d| d[:received].to_i } %>
-          }, {
-            name: 'Pending',
-            data: <%= @program_feedback_data.map { |d| d[:pending].to_i } %>
-          }],
-          xaxis: { categories: <%= raw @program_feedback_data.map { |d| d[:name] }.to_json %> },
+          chart: {
+            type: 'bar',
+            height: 350,
+            stacked: true,
+            toolbar: { show: false }
+          },
+          plotOptions: {
+            bar: {
+              horizontal: false,
+              columnWidth: '55%',
+              borderRadius: 4,
+              dataLabels: {
+                total: {
+                  enabled: true,
+                  style: { fontSize: '12px', fontWeight: 600, color: '#475569' },
+                  formatter: function(val) {
+                    return val > 0 ? val : '';
+                  }
+                }
+              }
+            }
+          },
+          dataLabels: {
+            enabled: true,
+            formatter: function(val, opts) {
+              if (!val || val === 0) return '';
+              var pIdx = opts.dataPointIndex;
+              var filtered = getFilteredFeedbackPrograms();
+              var prog = filtered[pIdx];
+              var total = prog ? prog.total : 0;
+              var pct = total > 0 ? Math.round((val / total) * 100) : 0;
+              return pct + '% (' + val + ')';
+            },
+            style: {
+              fontSize: '11px',
+              fontWeight: 600,
+              colors: ['#ffffff']
+            }
+          },
+          series: buildFeedbackSeries(),
+          xaxis: {
+            categories: window.programFeedbackRawData.map(function(p) { return p.name; }),
+            labels: {
+              rotate: -25,
+              rotateAlways: false,
+              trim: true,
+              maxHeight: 80,
+              style: { fontSize: '12px', fontWeight: 500 }
+            }
+          },
+          yaxis: {
+            title: { text: 'Responses / Participants' },
+            forceNiceScale: true,
+            labels: {
+              formatter: function(val) { return Math.round(val); }
+            }
+          },
           colors: ['#8b5cf6', '#fb7185'],
-          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#06b6d4', '#fb923c'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.6, stops: [0, 100] } },
-          tooltip: { y: { formatter: function(val){ return val + ' responses'; } } }
+          tooltip: {
+            theme: 'light',
+            shared: true,
+            intersect: false,
+            y: {
+              formatter: function(val, opts) {
+                if (val === undefined || val === null) return '';
+                var pIdx = opts.dataPointIndex;
+                var filtered = getFilteredFeedbackPrograms();
+                var prog = filtered[pIdx];
+                var total = prog ? prog.total : 0;
+                var pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                return pct + '% (' + val + ') [Total: ' + total + ']';
+              }
+            }
+          },
+          legend: {
+            position: 'top',
+            horizontalAlign: 'right',
+            fontSize: '12px',
+            itemMargin: { horizontal: 8, vertical: 4 }
+          },
+          responsive: [{
+            breakpoint: 768,
+            options: {
+              chart: {
+                height: 320
+              },
+              legend: {
+                position: 'bottom',
+                horizontalAlign: 'center',
+                fontSize: '11px',
+                itemMargin: { horizontal: 6, vertical: 4 }
+              },
+              xaxis: {
+                labels: {
+                  rotate: -35,
+                  style: { fontSize: '10px' }
+                }
+              }
+            }
+          }]
         };
         window.feedbackChart = new ApexCharts(feedbackChartContainer, feedbackChartOptions);
         window.feedbackChart.render();
@@ -1459,40 +2032,6 @@
         .catch(err => console.error('Failed to update assignment submission chart:', err));
     }
 
-    // Backlog Trend 14-day navigation
-    function shiftBacklogDays(forward) {
-      const delta = forward ? 14 : -14;
-      currentBacklogStartDate.setDate(currentBacklogStartDate.getDate() + delta);
-      currentBacklogEndDate.setDate(currentBacklogEndDate.getDate() + delta);
-      fetchBacklogTrendData();
-    }
-
-    function resetBacklogLatest() {
-      currentBacklogEndDate = new Date();
-      currentBacklogStartDate = new Date();
-      currentBacklogStartDate.setDate(currentBacklogEndDate.getDate() - 13);
-      fetchBacklogTrendData();
-    }
-
-    function fetchBacklogTrendData(startStr = null, endStr = null) {
-      const sStr = startStr || formatDateIso(currentBacklogStartDate);
-      const eStr = endStr || formatDateIso(currentBacklogEndDate);
-      if (!startStr) {
-        const badge = document.getElementById('backlog-date-range-badge');
-        if (badge) badge.textContent = formatRangeDisplay(currentBacklogStartDate, currentBacklogEndDate);
-      }
-
-      fetch(`/institute_admin/dashboard/chart_data?chart=backlog_trend&start_date=${sStr}&end_date=${eStr}`)
-        .then(r => r.json())
-        .then(res => {
-          if (res.success && window.backlogChart) {
-            window.backlogChart.updateOptions({ xaxis: { categories: res.labels } });
-            window.backlogChart.updateSeries([{ name: 'Backlog', data: res.data }]);
-          }
-        })
-        .catch(err => console.error('Failed to update backlog trend chart:', err));
-    }
-
     // Submissions by Assignment navigation
     function shiftAssignmentDay(forward) {
       currentAssignDate.setDate(currentAssignDate.getDate() + (forward ? 1 : -1));
@@ -1650,23 +2189,6 @@
         }
       });
 
-      flatpickr("#backlog_range_picker", {
-        mode: "range",
-        dateFormat: "Y-m-d",
-        defaultDate: ["<%= @submission_start_date.iso8601 %>", "<%= @submission_end_date.iso8601 %>"],
-        onClose: function(selectedDates) {
-          if (selectedDates.length === 2) {
-            currentBacklogStartDate = selectedDates[0];
-            currentBacklogEndDate = selectedDates[1];
-            const sStr = formatDateIso(selectedDates[0]);
-            const eStr = formatDateIso(selectedDates[1]);
-            const badge = document.getElementById('backlog-date-range-badge');
-            if (badge) badge.textContent = formatRangeDisplay(selectedDates[0], selectedDates[1]);
-            fetchBacklogTrendData(sStr, eStr);
-          }
-        }
-      });
-
       flatpickr("#by_assignment_picker", {
         mode: "range",
         dateFormat: "Y-m-d",
@@ -1718,6 +2240,160 @@
       });
     }
 
+    // Interactive helper functions for Feedback by Training Program
+    window.switchFeedbackViewMode = function(mode) {
+      window.feedbackViewMode = mode;
+      var btnRec = document.getElementById('tpfModeReceivedPending');
+      var btnPart = document.getElementById('tpfModeParticipantType');
+      if (btnRec && btnPart) {
+        if (mode === 'received_pending') {
+          btnRec.classList.add('active');
+          btnPart.classList.remove('active');
+        } else {
+          btnPart.classList.add('active');
+          btnRec.classList.remove('active');
+        }
+      }
+      renderFeedbackChartAndSummary();
+    };
+
+    window.toggleAllFeedbackPrograms = function(cb) {
+      var check = cb.checked;
+      var cbs = document.querySelectorAll('.tpf-program-cb');
+      window.selectedFeedbackProgramIds = [];
+      cbs.forEach(function(c) {
+        c.checked = check;
+        if (check) window.selectedFeedbackProgramIds.push(parseInt(c.value));
+      });
+      renderFeedbackChartAndSummary();
+    };
+
+    window.handleFeedbackProgramChange = function() {
+      var cbs = document.querySelectorAll('.tpf-program-cb');
+      window.selectedFeedbackProgramIds = [];
+      var allChecked = true;
+      cbs.forEach(function(c) {
+        if (c.checked) {
+          window.selectedFeedbackProgramIds.push(parseInt(c.value));
+        } else {
+          allChecked = false;
+        }
+      });
+      var selectAllCb = document.getElementById('tpfSelectAll');
+      if (selectAllCb) selectAllCb.checked = allChecked;
+      renderFeedbackChartAndSummary();
+    };
+
+    window.renderFeedbackChartAndSummary = function() {
+      var filtered = window.programFeedbackRawData.filter(function(p) {
+        return window.selectedFeedbackProgramIds.indexOf(p.id) !== -1;
+      });
+
+      var totalReceived = filtered.reduce(function(sum, p) { return sum + (p.received || 0); }, 0);
+      var totalPending = filtered.reduce(function(sum, p) { return sum + (p.pending || 0); }, 0);
+      var totalPossible = totalReceived + totalPending;
+      var recPct = totalPossible > 0 ? Math.round((totalReceived / totalPossible) * 100) : 0;
+      var pendPct = totalPossible > 0 ? Math.round((totalPending / totalPossible) * 100) : 0;
+      var totalStudents = filtered.reduce(function(sum, p) { return sum + (p.student || 0); }, 0);
+      var totalGuardians = filtered.reduce(function(sum, p) { return sum + (p.guardian || 0); }, 0);
+      var totalEmployees = filtered.reduce(function(sum, p) { return sum + (p.employee || 0); }, 0);
+
+      var recEl = document.getElementById('tpf-received-summary');
+      if (recEl) recEl.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Received: ' + recPct + '% (' + totalReceived + ')';
+      var pendEl = document.getElementById('tpf-pending-summary');
+      if (pendEl) pendEl.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Pending: ' + pendPct + '% (' + totalPending + ')';
+      var stuEl = document.getElementById('tpf-students-summary');
+      if (stuEl) stuEl.innerHTML = 'Students: <strong>' + totalStudents + '</strong>';
+      var guarEl = document.getElementById('tpf-guardians-summary');
+      if (guarEl) guarEl.innerHTML = 'Guardians: <strong>' + totalGuardians + '</strong>';
+      var empEl = document.getElementById('tpf-employees-summary');
+      if (empEl) empEl.innerHTML = 'Employees: <strong>' + totalEmployees + '</strong>';
+
+      var labelEl = document.getElementById('tpfSelectedProgramLabel');
+      if (labelEl) {
+        if (window.selectedFeedbackProgramIds.length === window.programFeedbackRawData.length) {
+          labelEl.textContent = 'All Programs (' + window.programFeedbackRawData.length + ')';
+        } else {
+          labelEl.textContent = window.selectedFeedbackProgramIds.length + ' Programs Selected';
+        }
+      }
+      var counterTextEl = document.getElementById('tpfCounterText');
+      if (counterTextEl) counterTextEl.textContent = window.selectedFeedbackProgramIds.length + ' selected';
+
+      if (window.feedbackChart) {
+        var colors = window.feedbackViewMode === 'participant_type' ? ['#0ea5e9', '#a855f7', '#f59e0b', '#fb7185'] : ['#8b5cf6', '#fb7185'];
+        window.feedbackChart.updateOptions({
+          colors: colors,
+          xaxis: { categories: filtered.map(function(p) { return p.name; }) }
+        }, false, true);
+
+        var newSeries = window.feedbackViewMode === 'participant_type' ? [
+          { name: 'Students', data: filtered.map(function(p) { return p.student || 0; }) },
+          { name: 'Guardians', data: filtered.map(function(p) { return p.guardian || 0; }) },
+          { name: 'Employees', data: filtered.map(function(p) { return p.employee || 0; }) },
+          { name: 'Pending', data: filtered.map(function(p) { return p.pending || 0; }) }
+        ] : [
+          { name: 'Received', data: filtered.map(function(p) { return p.received || 0; }) },
+          { name: 'Pending', data: filtered.map(function(p) { return p.pending || 0; }) }
+        ];
+        window.feedbackChart.updateSeries(newSeries, true);
+      }
+    };
+
+    // Streak Leaderboards AJAX Handler
+    window.updateStreakLeaderboard = function(type) {
+      var asgSelect = document.getElementById(type + 'LeaderboardAssignment');
+      var limitSelect = document.getElementById(type + 'LeaderboardLimit');
+      if (!asgSelect || !limitSelect) return;
+
+      var asgId = asgSelect.value;
+      var limit = limitSelect.value;
+      var tbody = document.getElementById(type + 'LeaderboardBody');
+      if (tbody) tbody.style.opacity = '0.4';
+
+      var url = '/institute_admin/dashboard/streak_leaderboards?assignment_id=' + encodeURIComponent(asgId) + '&' + type + '_limit=' + encodeURIComponent(limit);
+      fetch(url, { headers: { 'Accept': 'application/json' } })
+        .then(function(res) { return res.json(); })
+        .then(function(json) {
+          if (tbody) tbody.style.opacity = '1';
+          if (!json.success) return;
+          var list = type === 'top' ? json.top : json.bottom;
+          var html = '';
+          if (list && list.length > 0) {
+            list.forEach(function(p) {
+              if (type === 'top') {
+                var badgeClass = p.rank === 1 ? 'bg-warning text-dark' : (p.rank === 2 ? 'bg-secondary text-white' : (p.rank === 3 ? 'bg-bronze text-white' : 'bg-light text-dark border'));
+                html += '<tr>' +
+                  '<td><span class="badge ' + badgeClass + ' rounded-pill fw-bold">#' + p.rank + '</span></td>' +
+                  '<td class="fw-semibold text-dark">' + p.name + '</td>' +
+                  '<td><span class="badge bg-light text-secondary border">' + p.section + '</span></td>' +
+                  '<td class="text-muted small text-truncate" style="max-width: 150px;" title="' + p.assignment_name + '">' + p.assignment_name + '</td>' +
+                  '<td class="text-center"><span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-fire text-danger me-1"></i>' + p.streak + ' ' + (p.streak === 1 ? 'day' : 'days') + '</span></td>' +
+                  '</tr>';
+              } else {
+                var pBadge = p.raw_participant_type === 'student' ? 'badge-student' : (p.raw_participant_type === 'guardian' ? 'badge-guardian' : (p.raw_participant_type === 'employee' ? 'badge-employee' : 'bg-secondary'));
+                html += '<tr>' +
+                  '<td><span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">#' + p.rank + '</span></td>' +
+                  '<td class="fw-semibold text-dark">' + p.name + '</td>' +
+                  '<td><span class="badge bg-light text-secondary border">' + p.section + '</span></td>' +
+                  '<td><span class="badge ' + pBadge + '">' + p.participant_type + '</span></td>' +
+                  '<td class="text-muted small text-truncate" style="max-width: 140px;" title="' + p.assignment_name + '">' + p.assignment_name + '</td>' +
+                  '<td class="text-center"><span class="badge bg-light text-muted border"><i class="bi bi-x-circle text-danger me-1"></i>' + p.streak + ' days</span></td>' +
+                  '</tr>';
+              }
+            });
+          } else {
+            var cols = type === 'top' ? 5 : 6;
+            html = '<tr><td colspan="' + cols + '" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>';
+          }
+          if (tbody) tbody.innerHTML = html;
+        })
+        .catch(function(err) {
+          if (tbody) tbody.style.opacity = '1';
+          console.error('Failed to update streak leaderboard:', err);
+        });
+    };
+
     // Initialize on first load
     document.addEventListener('DOMContentLoaded', initializeDashboardCharts);
     
@@ -1740,7 +2416,6 @@
         if (window.bySectionChart) { window.bySectionChart.destroy(); window.bySectionChart = null; }
         if (window.notSubmittedChart) { window.notSubmittedChart.destroy(); window.notSubmittedChart = null; }
         if (window.pendingSectionChart) { window.pendingSectionChart.destroy(); window.pendingSectionChart = null; }
-        if (window.backlogChart) { window.backlogChart.destroy(); window.backlogChart = null; }
       }
     });
   </script>

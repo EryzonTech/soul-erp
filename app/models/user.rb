@@ -51,6 +51,7 @@ class User < ApplicationRecord
   scope :trainer, -> { where(role: :trainer) }
   scope :participant, -> { where(role: :participant) }
   scope :guardian, -> { where(role: :guardian) }
+  scope :view_only_admin, -> { where(role: :institute_admin, view_only: true) }
 
   accepts_nested_attributes_for :participant
   accepts_nested_attributes_for :trainer
@@ -98,6 +99,12 @@ class User < ApplicationRecord
 
   def institute_admin?
     role == "institute_admin"
+  end
+
+  # Returns true when this user is an institute admin with view-only privilege.
+  # Master admins impersonating an institute never inherit the view-only restriction.
+  def view_only_admin?
+    institute_admin? && view_only?
   end
 
   def trainer?

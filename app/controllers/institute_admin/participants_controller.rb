@@ -10,6 +10,12 @@ module InstituteAdmin
       @participants = current_institute.participants.includes(:section, :guardian_for_participant, user: :section).order(created_at: :desc)
       @sections = current_institute.sections.order(:name)
 
+      # Score card metrics for approved participants
+      base_approved = current_institute.participants.joins(:user).where(users: { active: true })
+      @total_approved_count = base_approved.count
+      @approved_by_type = base_approved.group(:participant_type).count
+      @total_sections_count = current_institute.sections.count
+
       # Filter by approval status
       if params[:approved] == "false"
         @participants = @participants.joins(:user).where(users: { active: false })
@@ -20,20 +26,31 @@ module InstituteAdmin
         @approval_status = "approved"
       end
 
-      # Filter by search (name)
+      # Filter by search (name or mobile number)
       if params[:search].present?
-        search_term = "%#{params[:search]}%"
-        @participants = @participants.joins(:user).where("users.first_name ILIKE ? OR users.last_name ILIKE ? OR CONCAT(users.first_name, ' ', users.last_name) ILIKE ?", search_term, search_term, search_term)
+        search_term = "%#{params[:search].to_s.strip}%"
+        @participants = @participants.joins(:user).where(
+          "users.first_name ILIKE :q OR users.last_name ILIKE :q OR CONCAT(users.first_name, ' ', users.last_name) ILIKE :q OR users.phone ILIKE :q OR participants.phone_number ILIKE :q",
+          q: search_term
+        )
       end
 
-      # Filter by participant type
-      if params[:participant_type].present?
-        @participants = @participants.where(participant_type: params[:participant_type])
+      # Filter by participant types (multi-select with backward compatibility)
+      @selected_participant_types = parse_multiselect_param(params[:participant_types])
+      if @selected_participant_types.empty? && params[:participant_type].present? && params[:participant_type] != "all"
+        @selected_participant_types = [params[:participant_type].to_s]
+      end
+      if @selected_participant_types.present? && !@selected_participant_types.include?("all")
+        @participants = @participants.where(participant_type: @selected_participant_types)
       end
 
-      # Filter by section
-      if params[:section_id].present?
-        @participants = @participants.where(section_id: params[:section_id])
+      # Filter by sections (multi-select with backward compatibility)
+      @selected_section_ids = parse_multiselect_param(params[:section_ids])
+      if @selected_section_ids.empty? && params[:section_id].present? && params[:section_id] != "all"
+        @selected_section_ids = [params[:section_id].to_s]
+      end
+      if @selected_section_ids.present? && !@selected_section_ids.include?("all")
+        @participants = @participants.where(section_id: @selected_section_ids)
       end
 
       # Add pagination
@@ -285,6 +302,17 @@ module InstituteAdmin
           :state
         ]
       )
+    end
+
+    def parse_multiselect_param(param)
+      return [] if param.blank?
+      if param.is_a?(Array)
+        param.reject(&:blank?).map(&:to_s)
+      elsif param.is_a?(String)
+        param.split(",").map(&:strip).reject(&:blank?)
+      else
+        []
+      end
     end
   end
 end
