@@ -1,17 +1,17 @@
 <div class="container-fluid p-0">
 
   <!-- PAGE HEADER -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-3 border-bottom gap-3">
-    <div>
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4 pb-3 border-bottom gap-2" style="flex-wrap: wrap;">
+    <div style="min-width: 0; flex: 1 1 auto; overflow: hidden;">
       <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-        <h3 class="fw-bold text-dark mb-0">Program Feedbacks</h3>
-        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-semibold"><%= @training_program.title %></span>
+        <h3 class="fw-bold text-dark mb-0" style="font-size: clamp(1.15rem, 4vw, 1.5rem);">Program Feedbacks</h3>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-semibold text-truncate" style="max-width: min(260px, calc(100vw - 2.5rem));" title="<%= @training_program.title %>"><%= @training_program.title %></span>
       </div>
-      <p class="text-muted small mb-0">Review feedback submissions, rating distributions, and user comments.</p>
+      <p class="text-muted small mb-0 d-none d-sm-block">Review feedback submissions, rating distributions, and user comments.</p>
     </div>
     <div class="header-actions d-flex flex-wrap align-items-center gap-2">
       <%= link_to institute_admin_training_program_training_program_feedbacks_path(@training_program, format: :pdf, rating: params[:rating], participant_type: params[:participant_type], search: params[:search], date_range: params[:date_range], start_date: params[:start_date], end_date: params[:end_date]), 
-                  class: "btn btn-outline-danger d-inline-flex align-items-center gap-2 shadow-sm rounded-3 px-3 py-2 fw-medium", 
+                  class: "btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1 shadow-sm rounded-3 fw-medium", 
                   target: "_blank", 
                   title: "Export PDF Report" do %>
         <i class="bi bi-file-earmark-pdf-fill"></i>
@@ -19,15 +19,15 @@
       <% end %>
 
       <%= link_to institute_admin_training_program_training_program_feedbacks_path(@training_program, format: :csv, rating: params[:rating], participant_type: params[:participant_type], search: params[:search], date_range: params[:date_range], start_date: params[:start_date], end_date: params[:end_date]), 
-                  class: "btn btn-outline-success d-inline-flex align-items-center gap-2 shadow-sm rounded-3 px-3 py-2 fw-medium", 
+                  class: "btn btn-outline-success btn-sm d-inline-flex align-items-center gap-1 shadow-sm rounded-3 fw-medium", 
                   title: "Export CSV Data" do %>
         <i class="bi bi-file-earmark-spreadsheet-fill"></i>
         <span>Export CSV</span>
       <% end %>
 
-      <%= link_to institute_admin_training_programs_path(view: 'feedbacks'), class: "btn btn-outline-secondary d-inline-flex align-items-center gap-2 shadow-sm rounded-3 px-3 py-2 fw-medium" do %>
+      <%= link_to institute_admin_training_programs_path(view: 'feedbacks'), class: "btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1 shadow-sm rounded-3 fw-medium" do %>
         <i class="bi bi-arrow-left"></i>
-        <span>Back to Programs</span>
+        <span>Back</span>
       <% end %>
     </div>
   </div>
@@ -160,10 +160,10 @@
                    title="Click to filter by <%= item[:stars] %> star ratings">
                 
                 <!-- Star Label -->
-                <div class="rating-star-label d-flex align-items-center gap-1 fw-bold text-secondary flex-shrink-0" style="width: 75px; font-size: 0.875rem;">
+                 <div class="rating-star-label d-flex align-items-center gap-1 fw-bold text-secondary flex-shrink-0" style="width: 60px; font-size: 0.8rem;">
                   <span><%= item[:stars] %></span>
                   <i class="bi bi-star-fill text-warning" style="font-size: 0.85rem;"></i>
-                  <span class="text-muted fw-normal" style="font-size: 0.75rem;"><%= item[:stars] == 1 ? 'star' : 'stars' %></span>
+                   <span class="text-muted fw-normal d-none d-sm-inline" style="font-size: 0.72rem;"><%= item[:stars] == 1 ? 'star' : 'stars' %></span>
                 </div>
 
                 <!-- Horizontal Progress Bar -->
@@ -178,7 +178,7 @@
                 </div>
 
                 <!-- Count and Percentage -->
-                <div class="rating-count-label text-end text-nowrap flex-shrink-0" style="width: 100px;">
+                 <div class="rating-count-label text-end text-nowrap flex-shrink-0" style="width: 80px;">
                   <span class="fw-bold text-dark small"><%= item[:count] %></span>
                   <span class="text-muted small ms-1" style="font-size: 0.75rem;">(<%= item[:percentage] %>%)</span>
                 </div>
@@ -193,21 +193,21 @@
   <!-- FILLED MULTI-CRITERIA FILTER TOOLBAR -->
   <div class="filled-toolbar mb-4">
     <%= form_with url: institute_admin_training_program_training_program_feedbacks_path(@training_program), method: :get, local: true, id: "feedbackFilterForm" do |f| %>
-      <div class="row g-3 align-items-center">
+      <div class="row g-2 align-items-center">
         <!-- Search Input -->
         <div class="col-12 col-md-4 col-lg-3">
-          <div class="input-group">
+          <div class="input-group input-group-sm">
             <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-search"></i></span>
             <input type="text" name="search" id="feedbackSearchInput" class="form-control border-start-0 ps-0" placeholder="Search name or comment..." value="<%= params[:search] %>">
           </div>
         </div>
 
         <!-- User Type Filter -->
-        <div class="col-12 col-sm-6 col-md-3 col-lg-2">
-          <div class="input-group">
+        <div class="col-6 col-sm-6 col-md-3 col-lg-2">
+          <div class="input-group input-group-sm">
             <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-person-badge"></i></span>
-            <select name="participant_type" id="userTypeFilter" class="form-select border-start-0 ps-0" onchange="this.form.submit()">
-              <option value="" <%= 'selected' if params[:participant_type].blank? %>>All User Types</option>
+            <select name="participant_type" id="userTypeFilter" class="form-select border-start-0 ps-0" onchange="this.form.submit()" data-bs-display="static">
+              <option value="" <%= 'selected' if params[:participant_type].blank? %>>All Types</option>
               <option value="student" <%= 'selected' if params[:participant_type] == 'student' %>>Student</option>
               <option value="guardian" <%= 'selected' if params[:participant_type] == 'guardian' %>>Guardian</option>
               <option value="employee" <%= 'selected' if params[:participant_type] == 'employee' %>>Employee</option>
@@ -216,49 +216,49 @@
         </div>
 
         <!-- Rating Filter -->
-        <div class="col-12 col-sm-6 col-md-3 col-lg-2">
-          <div class="input-group">
+        <div class="col-6 col-sm-6 col-md-2 col-lg-2">
+          <div class="input-group input-group-sm">
             <span class="input-group-text bg-white text-warning border-end-0"><i class="bi bi-star-fill"></i></span>
             <select name="rating" id="ratingFilter" class="form-select border-start-0 ps-0" onchange="this.form.submit()">
-              <option value="" <%= 'selected' if params[:rating].blank? %>>All Ratings</option>
-              <option value="5" <%= 'selected' if params[:rating] == '5' %>>5 Stars ★★★★★</option>
-              <option value="4" <%= 'selected' if params[:rating] == '4' %>>4 Stars ★★★★☆</option>
-              <option value="3" <%= 'selected' if params[:rating] == '3' %>>3 Stars ★★★☆☆</option>
-              <option value="2" <%= 'selected' if params[:rating] == '2' %>>2 Stars ★★☆☆☆</option>
-              <option value="1" <%= 'selected' if params[:rating] == '1' %>>1 Star ★☆☆☆☆</option>
+              <option value="" <%= 'selected' if params[:rating].blank? %>>All</option>
+              <option value="5" <%= 'selected' if params[:rating] == '5' %>>5 ★</option>
+              <option value="4" <%= 'selected' if params[:rating] == '4' %>>4 ★</option>
+              <option value="3" <%= 'selected' if params[:rating] == '3' %>>3 ★</option>
+              <option value="2" <%= 'selected' if params[:rating] == '2' %>>2 ★</option>
+              <option value="1" <%= 'selected' if params[:rating] == '1' %>>1 ★</option>
             </select>
           </div>
         </div>
 
         <!-- Submitted Date Filter -->
         <div class="col-12 col-sm-6 col-md-3 col-lg-3">
-          <div class="input-group">
+          <div class="input-group input-group-sm">
             <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-calendar-event"></i></span>
             <select name="date_range" id="dateRangeFilter" class="form-select border-start-0 ps-0" onchange="toggleCustomDateInputs(this)">
-              <option value="all" <%= 'selected' if params[:date_range].blank? || params[:date_range] == 'all' %>>All Submitted Dates</option>
+              <option value="all" <%= 'selected' if params[:date_range].blank? || params[:date_range] == 'all' %>>All Dates</option>
               <option value="today" <%= 'selected' if params[:date_range] == 'today' %>>Today</option>
               <option value="yesterday" <%= 'selected' if params[:date_range] == 'yesterday' %>>Yesterday</option>
               <option value="last_7_days" <%= 'selected' if params[:date_range] == 'last_7_days' %>>Last 7 Days</option>
               <option value="this_month" <%= 'selected' if params[:date_range] == 'this_month' %>>This Month</option>
-              <option value="custom" <%= 'selected' if params[:date_range] == 'custom' %>>Custom Date Range</option>
+              <option value="custom" <%= 'selected' if params[:date_range] == 'custom' %>>Custom Range</option>
             </select>
           </div>
         </div>
 
         <!-- Submit & Reset Action Buttons -->
-        <div class="col-12 col-md-2 col-lg-2 d-flex gap-2">
-          <button type="submit" class="btn btn-primary flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1 shadow-sm">
+        <div class="col-12 col-sm-6 col-md-auto d-flex gap-2">
+          <button type="submit" class="btn btn-primary btn-sm flex-grow-1 flex-md-grow-0 d-inline-flex align-items-center justify-content-center gap-1 shadow-sm">
             <i class="bi bi-funnel-fill"></i>
             <span>Filter</span>
           </button>
-          <%= link_to institute_admin_training_program_training_program_feedbacks_path(@training_program), class: "btn btn-outline-secondary d-inline-flex align-items-center justify-content-center px-2.5", title: "Reset All Filters" do %>
+          <%= link_to institute_admin_training_program_training_program_feedbacks_path(@training_program), class: "btn btn-outline-secondary btn-sm d-inline-flex align-items-center justify-content-center px-2", title: "Reset All Filters" do %>
             <i class="bi bi-arrow-counterclockwise"></i>
           <% end %>
         </div>
       </div>
 
       <!-- CUSTOM DATE RANGE INPUTS (Collapsible row when Custom is selected) -->
-      <div id="customDateRow" class="row g-3 mt-1 align-items-center <%= 'd-none' unless params[:date_range] == 'custom' %>">
+      <div id="customDateRow" class="row g-2 mt-1 align-items-center <%= 'd-none' unless params[:date_range] == 'custom' %>">
         <div class="col-12 col-sm-6 col-md-4 col-lg-3 offset-lg-7">
           <div class="input-group input-group-sm">
             <span class="input-group-text bg-white text-muted">From</span>
@@ -290,35 +290,35 @@
   <!-- MAIN DATA CARD (GOOGLE PLAY STORE REVIEW STYLE) -->
   <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
     <!-- Header Info Bar -->
-    <div class="card-header bg-white border-bottom py-3 px-4 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-      <div class="d-flex align-items-center gap-2.5">
-        <div class="d-flex align-items-center justify-content-center rounded-3 bg-primary-subtle text-primary" style="width: 38px; height: 38px;">
-          <i class="bi bi-chat-left-heart-fill fs-5"></i>
+    <div class="card-header bg-white border-bottom py-2 py-sm-3 px-3 px-sm-4 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2" style="flex-wrap: wrap;">
+      <div class="d-flex align-items-center gap-2" style="min-width: 0;">
+        <div class="d-flex align-items-center justify-content-center rounded-3 bg-primary-subtle text-primary flex-shrink-0" style="width: 34px; height: 34px;">
+          <i class="bi bi-chat-left-heart-fill"></i>
         </div>
-        <div>
-          <div class="d-flex align-items-center gap-2">
-            <h6 class="fw-bold mb-0 text-dark" style="font-size: 1.05rem;">Feedback Reviews</h6>
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-0.5 fw-semibold" style="font-size: 0.75rem;">
+        <div style="min-width: 0;">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;">Feedback Reviews</h6>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 fw-semibold" style="font-size: 0.72rem;">
               <%= @total_feedbacks_count %> Reviews
             </span>
           </div>
-          <p class="text-muted small mb-0" style="font-size: 0.75rem;">Participant comments and star ratings in Google Play Store review style</p>
+          <p class="text-muted mb-0 d-none d-md-block" style="font-size: 0.72rem;">Participant comments and star ratings</p>
         </div>
       </div>
       
-      <div class="d-flex align-items-center gap-3 flex-wrap">
+      <div class="d-flex align-items-center gap-2 flex-wrap">
         <!-- View Switcher (Feed / Table) -->
         <div class="btn-group btn-group-sm p-1 bg-light rounded-pill border" role="group" aria-label="View Switcher">
-          <button type="button" class="btn btn-sm rounded-pill fw-medium px-3 active-view-btn" id="btnViewFeed" onclick="switchFeedbackView('feed')" title="Google Play Review Feed View">
-            <i class="bi bi-view-list me-1"></i> Reviews Feed
+          <button type="button" class="btn btn-sm rounded-pill fw-medium px-2 px-sm-3 active-view-btn" id="btnViewFeed" onclick="switchFeedbackView('feed')" title="Review Feed View">
+            <i class="bi bi-view-list"></i><span class="ms-1">Feed</span>
           </button>
-          <button type="button" class="btn btn-sm rounded-pill fw-medium px-3 text-muted" id="btnViewTable" onclick="switchFeedbackView('table')" title="Tabular View">
-            <i class="bi bi-table me-1"></i> Table
+          <button type="button" class="btn btn-sm rounded-pill fw-medium px-2 px-sm-3 text-muted" id="btnViewTable" onclick="switchFeedbackView('table')" title="Table View">
+            <i class="bi bi-table"></i><span class="ms-1">Table</span>
           </button>
         </div>
 
-        <span class="badge bg-light text-secondary border px-2.5 py-1.5 rounded-3 fw-medium" id="visibleFeedbackCount">
-          Showing <%= @feedbacks.count %> of <%= @total_feedbacks_count %>
+        <span class="badge bg-light text-secondary border px-2 py-1 rounded-3 fw-medium" id="visibleFeedbackCount" style="font-size: 0.72rem;">
+          <%= @feedbacks.count %> / <%= @total_feedbacks_count %>
         </span>
       </div>
     </div>
@@ -357,74 +357,77 @@
                data-content="<%= feedback.content.to_s.downcase %>"
                data-user-type="<%= user_type.downcase %>"
                data-rating="<%= feedback.rating %>">
-            
-            <div class="d-flex align-items-start gap-3">
-              <!-- Google Play Avatar Circle -->
+
+            <!-- Row 1: Avatar + Meta header -->
+            <div class="d-flex align-items-start gap-2 gap-sm-3">
+              <!-- Avatar -->
               <div class="play-avatar" style="<%= avatar_style %>">
                 <%= avatar_initial %>
               </div>
 
-              <!-- Main Review Content Block -->
+              <!-- Meta: name + badge + stars + date -->
               <div class="flex-grow-1 min-w-0">
-                <!-- User Details + Rating Header Row -->
-                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-1 mb-1.5">
-                  <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <%= link_to institute_admin_participant_path(participant), class: "play-user-name text-decoration-none hover-primary" do %>
+                <!-- Name row: name badge on left, stars on right -->
+                <div class="d-flex align-items-start justify-content-between gap-1 mb-1">
+                  <div class="d-flex align-items-center gap-1 flex-wrap" style="min-width: 0;">
+                    <%= link_to institute_admin_participant_path(participant), class: "play-user-name text-decoration-none hover-primary text-truncate", style: "max-width: min(160px, 45vw);" do %>
                       <%= user&.full_name.presence || "Unknown User" %>
                     <% end %>
 
                     <% case user_type.downcase %>
                     <% when 'student' %>
-                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-0.5 play-user-badge">
-                        <i class="bi bi-mortarboard-fill me-1"></i>Student
+                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill play-user-badge">
+                        <i class="bi bi-mortarboard-fill"></i><span class="d-none d-sm-inline ms-1">Student</span>
                       </span>
                     <% when 'guardian' %>
-                      <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2.5 py-0.5 play-user-badge">
-                        <i class="bi bi-person-heart me-1"></i>Guardian
+                      <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill play-user-badge">
+                        <i class="bi bi-person-heart"></i><span class="d-none d-sm-inline ms-1">Guardian</span>
                       </span>
                     <% when 'employee' %>
-                      <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-0.5 play-user-badge">
-                        <i class="bi bi-briefcase-fill me-1"></i>Employee
+                      <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill play-user-badge">
+                        <i class="bi bi-briefcase-fill"></i><span class="d-none d-sm-inline ms-1">Employee</span>
                       </span>
                     <% else %>
-                      <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-0.5 play-user-badge">
-                        <i class="bi bi-person-fill me-1"></i><%= user_type.titleize %>
+                      <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill play-user-badge">
+                        <i class="bi bi-person-fill"></i><span class="d-none d-sm-inline ms-1"><%= user_type.titleize %></span>
                       </span>
-                    <% end %>
-
-                    <% if user&.email.present? %>
-                      <span class="text-muted d-none d-md-inline" style="font-size: 0.78rem;">• <%= user.email %></span>
-                    <% elsif participant&.phone_number.present? %>
-                      <span class="text-muted d-none d-md-inline" style="font-size: 0.78rem;">• <%= participant.phone_number %></span>
                     <% end %>
                   </div>
 
-                  <!-- Stars + Date in Google Play Style -->
-                  <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                    <div class="play-stars" title="<%= feedback.rating %> out of 5 stars">
-                      <% feedback.rating.times do %>
-                        <i class="bi bi-star-fill"></i>
-                      <% end %>
-                      <% (5 - feedback.rating).times do %>
-                        <i class="bi bi-star text-light-emphasis"></i>
-                      <% end %>
-                    </div>
-                    <span class="play-date">• <%= feedback.created_at.strftime("%b %d, %Y at %I:%M %p") %></span>
+                  <!-- Stars aligned to right -->
+                  <div class="play-stars flex-shrink-0" title="<%= feedback.rating %> out of 5 stars">
+                    <% feedback.rating.times do %>
+                      <i class="bi bi-star-fill"></i>
+                    <% end %>
+                    <% (5 - feedback.rating).times do %>
+                      <i class="bi bi-star text-light-emphasis"></i>
+                    <% end %>
                   </div>
                 </div>
 
-                <!-- HIGHLIGHTED FEEDBACK COMMENT CARD -->
-                <div class="play-comment-card mt-2">
-                  <div class="d-flex align-items-start gap-2">
-                    <i class="bi bi-chat-left-quote-fill text-primary opacity-75 flex-shrink-0 mt-1" style="font-size: 0.82rem;"></i>
-                    <div class="play-comment-text flex-grow-1">
-                      <% if feedback.content.present? %>
-                        <%= feedback.content %>
-                      <% else %>
-                        <span class="text-muted fst-italic small">No written comment provided.</span>
-                      <% end %>
-                    </div>
-                  </div>
+                <!-- Date sub-row -->
+                <div class="play-date mb-1">
+                  <i class="bi bi-clock me-1"></i><%= feedback.created_at.strftime("%b %d, %Y · %I:%M %p") %>
+                </div>
+
+                <% if user&.email.present? %>
+                  <div class="text-muted d-none d-md-block mb-1" style="font-size: 0.75rem;"><i class="bi bi-envelope me-1"></i><%= user.email %></div>
+                <% elsif participant&.phone_number.present? %>
+                  <div class="text-muted d-none d-md-block mb-1" style="font-size: 0.75rem;"><i class="bi bi-telephone me-1"></i><%= participant.phone_number %></div>
+                <% end %>
+              </div>
+            </div>
+
+            <!-- Row 2: Comment card — full width, no avatar offset on mobile -->
+            <div class="play-comment-card mt-2">
+              <div class="d-flex align-items-start gap-2">
+                <i class="bi bi-chat-left-quote-fill text-primary opacity-75 flex-shrink-0 mt-1" style="font-size: 0.82rem;"></i>
+                <div class="play-comment-text flex-grow-1">
+                  <% if feedback.content.present? %>
+                    <%= feedback.content %>
+                  <% else %>
+                    <span class="text-muted fst-italic small">No written comment provided.</span>
+                  <% end %>
                 </div>
               </div>
             </div>
@@ -674,7 +677,7 @@
     background: #ffffff;
   }
   .play-review-item {
-    padding: 1.35rem 1.5rem;
+    padding: 1.1rem 1.25rem;
     border-bottom: 1px solid #f1f5f9;
     transition: background-color 0.15s ease;
   }
@@ -685,42 +688,44 @@
     background-color: #fafbfd;
   }
   .play-avatar {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 1.05rem;
+    font-size: 1rem;
     flex-shrink: 0;
   }
   .play-user-name {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: #1e293b;
     line-height: 1.25;
   }
   .play-user-badge {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 500;
+    padding: 0.2rem 0.55rem;
   }
   .play-stars {
     color: #f59e0b;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     display: inline-flex;
     gap: 2px;
   }
   .play-date {
     color: #64748b;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
   }
+  /* Comment card — full width to maximise readability */
   .play-comment-card {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-left: 3.5px solid #4f46e5;
     border-radius: 8px;
-    padding: 0.85rem 1.15rem;
+    padding: 0.75rem 1rem;
     transition: all 0.2s ease;
   }
   .play-review-item:hover .play-comment-card {
@@ -729,16 +734,9 @@
     border-left-color: #4338ca;
     box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
   }
-  .play-comment-label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.65px;
-    color: #4f46e5;
-  }
   .play-comment-text {
     color: #0f172a;
-    font-size: 0.93rem;
+    font-size: 0.91rem;
     line-height: 1.65;
     white-space: pre-wrap;
     word-break: break-word;
@@ -749,11 +747,11 @@
     border: 1px solid #e2e8f0;
     border-left: 3.5px solid #4f46e5;
     border-radius: 8px;
-    padding: 0.85rem 1.15rem;
+    padding: 0.75rem 1rem;
   }
   .feedback-full-text {
     color: #0f172a;
-    font-size: 0.93rem;
+    font-size: 0.91rem;
     line-height: 1.65;
     white-space: pre-wrap;
     word-break: break-word;
@@ -772,21 +770,13 @@
   }
 
   .rating-hero-score {
-    font-size: clamp(2.75rem, 4.5vw, 3.5rem);
+    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
     letter-spacing: -0.03em;
     line-height: 1;
   }
 
   .border-lg-end {
     border-right: 1px solid rgba(148, 163, 184, 0.15);
-  }
-
-  @media (max-width: 991.98px) {
-    .border-lg-end {
-      border-right: none;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-      padding-bottom: 1.5rem;
-    }
   }
 
   .rating-breakdown-row {
@@ -804,23 +794,104 @@
     outline: 1px solid rgba(99, 102, 241, 0.3);
   }
 
-  .rating-bar-5 {
-    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  .rating-bar-5 { background: linear-gradient(90deg, #10b981 0%, #059669 100%); }
+  .rating-bar-4 { background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%); }
+  .rating-bar-3 { background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%); }
+  .rating-bar-2 { background: linear-gradient(90deg, #f97316 0%, #ea580c 100%); }
+  .rating-bar-1 { background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%); }
+
+  /* ── Tablet (768px – 991px) ─────────────────────────────── */
+  @media (max-width: 991.98px) {
+    .border-lg-end {
+      border-right: none;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+      padding-bottom: 1rem;
+    }
+    .rating-analytics-card .card-body {
+      padding: 1rem !important;
+    }
+    .play-review-item {
+      padding: 0.9rem 1rem;
+    }
   }
 
-  .rating-bar-4 {
-    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-  }
+  /* ── Mobile (< 576px) ──────────────────────────────────── */
+  @media (max-width: 575.98px) {
+    /* Page header */
+    .container-fluid.p-0 > div:first-child {
+      margin-bottom: 0.75rem !important;
+      padding-bottom: 0.75rem !important;
+    }
 
-  .rating-bar-3 {
-    background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
-  }
+    /* KPI cards: 2-column grid */
+    .row.g-3.mb-4 > [class*="col-sm-6"] {
+      flex: 0 0 50% !important;
+      max-width: 50% !important;
+    }
 
-  .rating-bar-2 {
-    background: linear-gradient(90deg, #f97316 0%, #ea580c 100%);
-  }
+    /* Rating analytics card */
+    .rating-analytics-card .card-body {
+      padding: 0.85rem !important;
+    }
+    .rating-hero-score {
+      font-size: 2.25rem;
+    }
 
-  .rating-bar-1 {
-    background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+    /* Filter toolbar */
+    .filled-toolbar {
+      padding: 0.75rem !important;
+    }
+
+    /* Review item: tighter padding, more room for text */
+    .play-review-item {
+      padding: 0.75rem 0.85rem;
+    }
+    .play-avatar {
+      width: 34px;
+      height: 34px;
+      font-size: 0.85rem;
+    }
+    .play-user-name {
+      font-size: 0.85rem;
+    }
+    .play-stars {
+      font-size: 0.75rem;
+    }
+    .play-comment-card {
+      padding: 0.6rem 0.8rem;
+      margin-top: 0.5rem !important;
+    }
+    .play-comment-text {
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    /* Rating distribution: compress labels */
+    .rating-star-label {
+      width: 44px !important;
+      font-size: 0.75rem !important;
+    }
+    .rating-count-label {
+      width: 60px !important;
+      font-size: 0.72rem !important;
+    }
+    .rating-breakdown-row {
+      gap: 0.4rem !important;
+      padding: 0.25rem 0.35rem !important;
+    }
+    .rating-breakdown-row:hover {
+      transform: none; /* prevent jitter on touch */
+    }
+
+    /* Table view: make scrollable */
+    #feedbacksTableView {
+      -webkit-overflow-scrolling: touch !important;
+      touch-action: pan-x pan-y !important;
+      overscroll-behavior-x: contain;
+    }
+    #feedbacksTableView table {
+      width: max-content !important;
+      min-width: 100% !important;
+    }
   }
 </style>
