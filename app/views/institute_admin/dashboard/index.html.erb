@@ -618,6 +618,8 @@
     .chart-segmented-control.sub-segmented-control {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
+      gap: 2px;
+      padding: 2px;
     }
 
     .sub-segmented-control .btn-sub-segment {
@@ -633,6 +635,9 @@
       white-space: nowrap;
       cursor: pointer;
       line-height: 1.25;
+      display: inline-flex;
+      align-items: center;
+      user-select: none;
     }
 
     .sub-segmented-control .btn-sub-segment:hover:not(.active) {
@@ -645,6 +650,42 @@
       color: #0f172a;
       font-weight: 700;
       box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 1px rgba(0, 0, 0, 0.04);
+    }
+
+    .sub-ptype-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-right: 5px;
+      vertical-align: middle;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .btn-sub-segment:not(.active) .sub-ptype-dot {
+      opacity: 0.35;
+      transform: scale(0.85);
+    }
+
+    .btn-sub-segment.active .sub-ptype-dot {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    #btn-sub-ptype-student.active {
+      color: #0e7490;
+    }
+
+    #btn-sub-ptype-guardian.active {
+      color: #b45309;
+    }
+
+    #btn-sub-ptype-employee.active {
+      color: #047857;
+    }
+
+    #btn-sub-ptype-all.active {
+      color: #4338ca;
     }
 
     /* Date Navigation Group */
@@ -738,7 +779,7 @@
       background: #ffffff !important;
       border: 1px solid #e2e8f0 !important;
       border-radius: 16px !important;
-      overflow: hidden;
+      overflow: visible !important;
       box-shadow: 
         0 1px 3px 0 rgba(15, 23, 42, 0.04),
         0 6px 18px -3px rgba(15, 23, 42, 0.07),
@@ -759,6 +800,21 @@
 
     .card-custom .card-body {
       background: #ffffff;
+      overflow: visible;
+    }
+
+    /* Prevent tooltip clipping on bar chart hover */
+    .apexcharts-tooltip {
+      white-space: normal !important;
+      max-width: 340px !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
+      z-index: 100 !important;
+    }
+
+    .apexcharts-tooltip-title {
+      white-space: normal !important;
+      word-break: break-word !important;
+      font-weight: 600 !important;
     }
 
     /* ── Unified Chart Card Header ────────────────────────────── */
@@ -1065,10 +1121,16 @@
 
               <!-- Participant Type Filter (Active in Submissions Only mode) -->
               <div class="chart-segmented-control sub-segmented-control" id="sub-ptype-group" role="group" aria-label="Participant Type Filter" style="display: none;">
-                <button type="button" class="btn-sub-segment active" id="btn-sub-ptype-all" onclick="filterSubmissionType('all')">All</button>
-                <button type="button" class="btn-sub-segment" id="btn-sub-ptype-student" onclick="filterSubmissionType('student')">Students</button>
-                <button type="button" class="btn-sub-segment" id="btn-sub-ptype-guardian" onclick="filterSubmissionType('guardian')">Guardians</button>
-                <button type="button" class="btn-sub-segment" id="btn-sub-ptype-employee" onclick="filterSubmissionType('employee')">Employees</button>
+                <button type="button" class="btn-sub-segment active" id="btn-sub-ptype-all" onclick="filterSubmissionType('all', event)" title="View all participant types">All</button>
+                <button type="button" class="btn-sub-segment active" id="btn-sub-ptype-student" onclick="filterSubmissionType('student', event)" title="Toggle Students">
+                  <span class="sub-ptype-dot" style="background-color: #06b6d4;"></span>Students
+                </button>
+                <button type="button" class="btn-sub-segment active" id="btn-sub-ptype-guardian" onclick="filterSubmissionType('guardian', event)" title="Toggle Guardians">
+                  <span class="sub-ptype-dot" style="background-color: #f59e0b;"></span>Guardians
+                </button>
+                <button type="button" class="btn-sub-segment active" id="btn-sub-ptype-employee" onclick="filterSubmissionType('employee', event)" title="Toggle Employees">
+                  <span class="sub-ptype-dot" style="background-color: #10b981;"></span>Employees
+                </button>
               </div>
             </div>
 
@@ -1211,7 +1273,11 @@
               <div class="d-flex align-items-center gap-2 flex-wrap">
                 <h5 class="chart-header-title mb-0">Not Submitted by Assignment</h5>
                 <span id="not-submitted-date-badge" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
-                  <%= @not_submitted_date.strftime("%b %d, %Y") %>
+                  <% if @not_submitted_start_date == @not_submitted_end_date %>
+                    <%= @not_submitted_start_date.strftime("%b %d, %Y") %>
+                  <% else %>
+                    <%= @not_submitted_start_date.strftime("%b %d") %> – <%= @not_submitted_end_date.strftime("%b %d, %Y") %>
+                  <% end %>
                 </span>
               </div>
               <p class="chart-header-subtitle">Top 10 assignments with highest pending participant count</p>
@@ -1230,15 +1296,15 @@
                   <i class="bi bi-chevron-right"></i>
                 </button>
               </div>
-              <div class="chart-datepicker-wrapper" style="min-width: 155px;">
+              <div class="chart-datepicker-wrapper" style="min-width: 175px;">
                 <input type="text" id="not_submitted_picker" class="form-control form-control-sm chart-datepicker-input"
-                       placeholder="Pick Date" readonly>
+                       placeholder="Pick Date / Range" readonly>
               </div>
             </div>
           </div>
         </div>
-        <div class="card-body pt-1">
-          <div id="not-submitted-assignment-chart" style="height:320px;"></div>
+        <div class="card-body pt-1 pb-1">
+          <div id="not-submitted-assignment-chart" style="height:310px;"></div>
         </div>
       </div>
     </div>
@@ -1255,7 +1321,11 @@
               <div class="d-flex align-items-center gap-2 flex-wrap">
                 <h5 class="chart-header-title mb-0">Pending by Section</h5>
                 <span id="pending-section-date-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
-                  <%= @pending_section_date.strftime("%b %d, %Y") %>
+                  <% if @pending_section_start_date == @pending_section_end_date %>
+                    <%= @pending_section_start_date.strftime("%b %d, %Y") %>
+                  <% else %>
+                    <%= @pending_section_start_date.strftime("%b %d") %> – <%= @pending_section_end_date.strftime("%b %d, %Y") %>
+                  <% end %>
                 </span>
               </div>
               <p class="chart-header-subtitle">Top 10 sections with pending submissions</p>
@@ -1274,15 +1344,15 @@
                   <i class="bi bi-chevron-right"></i>
                 </button>
               </div>
-              <div class="chart-datepicker-wrapper" style="min-width: 155px;">
+              <div class="chart-datepicker-wrapper" style="min-width: 175px;">
                 <input type="text" id="pending_section_picker" class="form-control form-control-sm chart-datepicker-input"
-                       placeholder="Pick Date" readonly>
+                       placeholder="Pick Date / Range" readonly>
               </div>
             </div>
           </div>
         </div>
-        <div class="card-body pt-1">
-          <div id="pending-section-chart" style="height:320px;"></div>
+        <div class="card-body pt-1 pb-1">
+          <div id="pending-section-chart" style="height:310px;"></div>
         </div>
       </div>
     </div>
@@ -1845,8 +1915,10 @@
   let currentSubEndDate = new Date("<%= @submission_end_date.iso8601 %>T00:00:00");
   let currentAssignDate = new Date("<%= @assignment_date.iso8601 %>T00:00:00");
   let currentSectionDate = new Date("<%= @section_date.iso8601 %>T00:00:00");
-  let currentNotSubDate = new Date("<%= @not_submitted_date.iso8601 %>T00:00:00");
-  let currentPendSecDate = new Date("<%= @pending_section_date.iso8601 %>T00:00:00");
+  let currentNotSubStartDate = new Date("<%= @not_submitted_start_date.iso8601 %>T00:00:00");
+  let currentNotSubEndDate = new Date("<%= @not_submitted_end_date.iso8601 %>T00:00:00");
+  let currentPendSecStartDate = new Date("<%= @pending_section_start_date.iso8601 %>T00:00:00");
+  let currentPendSecEndDate = new Date("<%= @pending_section_end_date.iso8601 %>T00:00:00");
 
   let submissionRawData = {
     labels: <%= raw @submissions_time_labels.to_json %>,
@@ -1857,7 +1929,7 @@
     backlog: <%= @backlog_data.to_json %>
   };
   let submissionViewMode = 'combined'; // 'combined', 'submissions', 'backlog'
-  let submissionPTypeFilter = 'all'; // 'all', 'student', 'guardian', 'employee'
+  let submissionSelectedTypes = ['student', 'guardian', 'employee'];
   
   // Function to initialize dashboard charts
   function initializeDashboardCharts() {
@@ -1866,30 +1938,8 @@
     
     // Ensure ApexCharts library is loaded before attempting initialization
     if (typeof ApexCharts === 'undefined') {
-      var existingApexScript = document.querySelector('script[src*="apexcharts"]');
-      if (existingApexScript) {
-        existingApexScript.addEventListener('load', function() {
-          initializeDashboardCharts();
-        });
-      } else {
-        var script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/apexcharts';
-        script.onload = function() {
-          initializeDashboardCharts();
-        };
-        document.head.appendChild(script);
-      }
-      // Poll briefly to catch when script execution finishes
-      var apexPollCount = 0;
-      var apexPollInterval = setInterval(function() {
-        apexPollCount++;
-        if (typeof ApexCharts !== 'undefined') {
-          clearInterval(apexPollInterval);
-          initializeDashboardCharts();
-        } else if (apexPollCount > 80) { // 4 seconds timeout
-          clearInterval(apexPollInterval);
-        }
-      }, 50);
+      console.warn('ApexCharts not yet available, deferring chart initialization.');
+      window.addEventListener('load', initializeDashboardCharts, { once: true });
       return;
     }
 
@@ -2120,8 +2170,10 @@
       currentBacklogEndDate = new Date("<%= @submission_end_date.iso8601 %>T00:00:00");
       currentAssignDate = new Date("<%= @assignment_date.iso8601 %>T00:00:00");
       currentSectionDate = new Date("<%= @section_date.iso8601 %>T00:00:00");
-      currentNotSubDate = new Date("<%= @not_submitted_date.iso8601 %>T00:00:00");
-      currentPendSecDate = new Date("<%= @pending_section_date.iso8601 %>T00:00:00");
+      currentNotSubStartDate = new Date("<%= @not_submitted_start_date.iso8601 %>T00:00:00");
+      currentNotSubEndDate = new Date("<%= @not_submitted_end_date.iso8601 %>T00:00:00");
+      currentPendSecStartDate = new Date("<%= @pending_section_start_date.iso8601 %>T00:00:00");
+      currentPendSecEndDate = new Date("<%= @pending_section_end_date.iso8601 %>T00:00:00");
 
       submissionRawData = {
         labels: <%= raw @submissions_time_labels.to_json %>,
@@ -2132,7 +2184,8 @@
         backlog: <%= @backlog_data.to_json %>
       };
       submissionViewMode = 'combined'; // 'combined', 'submissions', 'backlog'
-      submissionPTypeFilter = 'all'; // 'all', 'student', 'guardian', 'employee'
+      submissionSelectedTypes = ['student', 'guardian', 'employee'];
+      syncSubmissionTypeButtonUI();
 
       // Assignment Submission Chart (Apex)
       var submissionsContainer = document.querySelector('#submissions-over-time-chart');
@@ -2201,19 +2254,35 @@
             } 
           },
           dataLabels: { enabled: true, formatter: function(val){ return val; }, style: { fontSize: '12px', colors: ['#243b53'] } },
+          grid: {
+            padding: { bottom: 35, left: 30, right: 15 }
+          },
           xaxis: { 
             categories: <%= raw @assignment_labels.to_json %>, 
             labels: { 
-              rotate: -40,
+              rotate: -35,
               rotateAlways: true,
               trim: false,
-              style: { fontSize: '12px', fontWeight: 500 }
+              maxHeight: 180,
+              style: { fontSize: '11px', fontWeight: 500 }
             } 
           },
           yaxis: { title: { text: 'Participants' }, min: 0 },
           colors: ['#06b6d4'],
           fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#3b82f6'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.7, stops: [0, 100] } },
-          tooltip: { y: { formatter: function(val){ return val + ' participants'; } }, x: { formatter: function(val){ return val; } } },
+          tooltip: { 
+            theme: 'light',
+            y: { formatter: function(val){ return val + ' participants'; } }, 
+            x: { 
+              show: true,
+              formatter: function(val, opts){ 
+                if (opts && opts.w && opts.w.globals && opts.w.globals.labels && opts.w.globals.labels[opts.dataPointIndex]) {
+                  return opts.w.globals.labels[opts.dataPointIndex];
+                }
+                return val; 
+              } 
+            } 
+          },
           legend: { show: false },
           responsive: [{
             breakpoint: 768,
@@ -2238,19 +2307,35 @@
           series: [{ name: 'Submissions', data: <%= raw @submissions_section_data.to_json %> }],
           plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 4 } },
           dataLabels: { enabled: true, style: { fontSize: '12px' }, formatter: function(val){ return val; } },
+          grid: {
+            padding: { bottom: 35, left: 30, right: 15 }
+          },
           xaxis: { 
             categories: <%= raw @submissions_section_labels.to_json %>, 
             labels: { 
-              rotate: -40,
+              rotate: -35,
               rotateAlways: true,
               trim: false,
-              style: { fontSize: '12px', fontWeight: 500 }
+              maxHeight: 180,
+              style: { fontSize: '11px', fontWeight: 500 }
             } 
           },
           yaxis: { title: { text: 'Submissions' }, min: 0 },
           colors: ['#f97316'],
           fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#fb923c'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.7, stops: [0, 100] } },
-          tooltip: { y: { formatter: function(val){ return val + ' submissions'; } } },
+          tooltip: { 
+            theme: 'light',
+            y: { formatter: function(val){ return val + ' submissions'; } },
+            x: {
+              show: true,
+              formatter: function(val, opts){
+                if (opts && opts.w && opts.w.globals && opts.w.globals.labels && opts.w.globals.labels[opts.dataPointIndex]) {
+                  return opts.w.globals.labels[opts.dataPointIndex];
+                }
+                return val;
+              }
+            }
+          },
           legend: { show: false },
           responsive: [{ breakpoint: 768, options: { chart: { height: 300 }, xaxis: { labels: { rotate: -25 } } } }]
         };
@@ -2454,22 +2539,38 @@
       if (window.notSubmittedChart) { try { window.notSubmittedChart.destroy(); } catch(e) {} }
       if (notSubmittedContainer) {
         var notSubmittedOptions = {
-          chart: { type: 'bar', height: 320 },
+          chart: { type: 'bar', height: 310 },
           series: [{ name: 'Pending', data: <%= raw @not_submitted_assignment_data.to_json %> }],
+          grid: {
+            padding: { bottom: 0, left: 35, right: 15 }
+          },
           xaxis: { 
             categories: <%= raw @not_submitted_assignment_labels.to_json %>, 
             labels: { 
-              rotate: -40,
+              rotate: -35,
               rotateAlways: true,
               trim: false,
-              style: { fontSize: '12px', fontWeight: 500 }
+              maxHeight: 115,
+              style: { fontSize: '11px', fontWeight: 500 }
             } 
           },
           plotOptions: { bar: { horizontal: false, columnWidth: '60%', borderRadius: 4 } },
           dataLabels: { enabled: true, style: { fontSize: '12px' } },
           colors: ['#ef4444'],
           fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#f43f5e'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.7, stops: [0,100] } },
-          tooltip: { y: { formatter: function(val){ return val + ' pending'; } } },
+          tooltip: { 
+            theme: 'light',
+            y: { formatter: function(val){ return val + ' pending'; } },
+            x: {
+              show: true,
+              formatter: function(val, opts){
+                if (opts && opts.w && opts.w.globals && opts.w.globals.labels && opts.w.globals.labels[opts.dataPointIndex]) {
+                  return opts.w.globals.labels[opts.dataPointIndex];
+                }
+                return val;
+              }
+            }
+          },
           legend: { show: false }
         };
         window.notSubmittedChart = new ApexCharts(notSubmittedContainer, notSubmittedOptions);
@@ -2481,22 +2582,38 @@
       if (window.pendingSectionChart) { try { window.pendingSectionChart.destroy(); } catch(e) {} }
       if (pendingSectionContainer) {
         var pendingSectionOptions = {
-          chart: { type: 'bar', height: 320 },
+          chart: { type: 'bar', height: 310 },
           series: [{ name: 'Pending', data: <%= raw @pending_section_data.to_json %> }],
+          grid: {
+            padding: { bottom: 0, left: 35, right: 15 }
+          },
           xaxis: { 
             categories: <%= raw @pending_section_labels.to_json %>, 
             labels: { 
-              rotate: -40,
+              rotate: -35,
               rotateAlways: true,
               trim: false,
-              style: { fontSize: '12px', fontWeight: 500 }
+              maxHeight: 115,
+              style: { fontSize: '11px', fontWeight: 500 }
             } 
           },
           plotOptions: { bar: { horizontal: false, columnWidth: '60%', borderRadius: 4 } },
           dataLabels: { enabled: true, style: { fontSize: '12px' } },
           colors: ['#8b5cf6'],
           fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#ec4899'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.7, stops: [0,100] } },
-          tooltip: { y: { formatter: function(val){ return val + ' pending'; } } },
+          tooltip: { 
+            theme: 'light',
+            y: { formatter: function(val){ return val + ' pending'; } },
+            x: {
+              show: true,
+              formatter: function(val, opts){
+                if (opts && opts.w && opts.w.globals && opts.w.globals.labels && opts.w.globals.labels[opts.dataPointIndex]) {
+                  return opts.w.globals.labels[opts.dataPointIndex];
+                }
+                return val;
+              }
+            }
+          },
           legend: { show: false }
         };
         window.pendingSectionChart = new ApexCharts(pendingSectionContainer, pendingSectionOptions);
@@ -2542,22 +2659,24 @@
         ];
         colors = ['#4f46e5', '#ef4444'];
       } else if (submissionViewMode === 'submissions') {
-        if (submissionPTypeFilter === 'all') {
-          series = [
-            { name: 'Students', data: submissionRawData.student },
-            { name: 'Guardians', data: submissionRawData.guardian },
-            { name: 'Employees', data: submissionRawData.employee }
-          ];
-          colors = ['#06b6d4', '#f59e0b', '#10b981'];
-        } else if (submissionPTypeFilter === 'student') {
-          series = [{ name: 'Students', data: submissionRawData.student }];
-          colors = ['#06b6d4'];
-        } else if (submissionPTypeFilter === 'guardian') {
-          series = [{ name: 'Guardians', data: submissionRawData.guardian }];
-          colors = ['#f59e0b'];
-        } else if (submissionPTypeFilter === 'employee') {
-          series = [{ name: 'Employees', data: submissionRawData.employee }];
-          colors = ['#10b981'];
+        const typeConfig = [
+          { id: 'student', name: 'Students', color: '#06b6d4', data: submissionRawData.student },
+          { id: 'guardian', name: 'Guardians', color: '#f59e0b', data: submissionRawData.guardian },
+          { id: 'employee', name: 'Employees', color: '#10b981', data: submissionRawData.employee }
+        ];
+
+        typeConfig.forEach(cfg => {
+          if (submissionSelectedTypes.includes(cfg.id)) {
+            series.push({ name: cfg.name, data: cfg.data });
+            colors.push(cfg.color);
+          }
+        });
+
+        if (series.length === 0) {
+          typeConfig.forEach(cfg => {
+            series.push({ name: cfg.name, data: cfg.data });
+            colors.push(cfg.color);
+          });
         }
       } else if (submissionViewMode === 'backlog') {
         series = [{ name: 'Backlog', data: submissionRawData.backlog }];
@@ -2570,14 +2689,14 @@
         if (submissionViewMode === 'combined') {
           activeBadge.textContent = 'Viewing: Combined (Total & Backlog)';
         } else if (submissionViewMode === 'submissions') {
-          if (submissionPTypeFilter === 'all') {
+          if (submissionSelectedTypes.length === 3) {
             activeBadge.textContent = 'Viewing: Submissions (All Types)';
-          } else if (submissionPTypeFilter === 'student') {
-            activeBadge.textContent = 'Viewing: Submissions (Students)';
-          } else if (submissionPTypeFilter === 'guardian') {
-            activeBadge.textContent = 'Viewing: Submissions (Guardians)';
-          } else if (submissionPTypeFilter === 'employee') {
-            activeBadge.textContent = 'Viewing: Submissions (Employees)';
+          } else {
+            const names = [];
+            if (submissionSelectedTypes.includes('student')) names.push('Students');
+            if (submissionSelectedTypes.includes('guardian')) names.push('Guardians');
+            if (submissionSelectedTypes.includes('employee')) names.push('Employees');
+            activeBadge.textContent = `Viewing: Submissions (${names.join(', ')})`;
           }
         } else if (submissionViewMode === 'backlog') {
           activeBadge.textContent = 'Viewing: Backlog Only';
@@ -2587,8 +2706,6 @@
       // Update custom HTML legend pills
       const legendEl = document.getElementById('submission-chart-legend');
       if (legendEl) {
-        var seriesColor = colors[0] || '#4f46e5';
-        var seriesName  = (series[0] && series[0].name) || 'Total Submissions';
         if (submissionViewMode === 'combined') {
           legendEl.innerHTML =
             '<div class="d-flex align-items-center gap-2">' +
@@ -2600,11 +2717,15 @@
               '<span style="font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.01em;">Backlog</span>' +
             '</div>';
         } else {
-          legendEl.innerHTML =
-            '<div class="d-flex align-items-center gap-2">' +
-              '<span style="display:inline-block;width:28px;height:4px;border-radius:9999px;background:' + seriesColor + ';"></span>' +
-              '<span style="font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.01em;">' + seriesName + '</span>' +
-            '</div>';
+          legendEl.innerHTML = series.map((s, idx) => {
+            const c = colors[idx] || '#4f46e5';
+            return (
+              '<div class="d-flex align-items-center gap-2">' +
+                '<span style="display:inline-block;width:28px;height:4px;border-radius:9999px;background:' + c + ';"></span>' +
+                '<span style="font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.01em;">' + s.name + '</span>' +
+              '</div>'
+            );
+          }).join('');
         }
       }
 
@@ -2641,16 +2762,58 @@
       const ptypeGroup = document.getElementById('sub-ptype-group');
       if (ptypeGroup) {
         ptypeGroup.style.display = (mode === 'submissions' ? 'inline-flex' : 'none');
+        if (mode === 'submissions') {
+          syncSubmissionTypeButtonUI();
+        }
       }
       updateAssignmentSubmissionSeries();
     }
 
-    function filterSubmissionType(type) {
-      submissionPTypeFilter = type;
-      document.querySelectorAll('#sub-ptype-group button').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.getElementById(`btn-sub-ptype-${type}`);
-      if (activeBtn) activeBtn.classList.add('active');
+    function filterSubmissionType(type, evt) {
+      const allTypes = ['student', 'guardian', 'employee'];
+      
+      if (type === 'all') {
+        submissionSelectedTypes = [...allTypes];
+      } else {
+        const isModifier = evt && (evt.shiftKey || evt.ctrlKey || evt.metaKey);
+        
+        if (submissionSelectedTypes.length === 3 && !isModifier) {
+          // If all 3 were selected and user clicks one without modifier:
+          // isolate to this type (1 click to focus on Students/Guardians/Employees)
+          submissionSelectedTypes = [type];
+        } else {
+          const index = submissionSelectedTypes.indexOf(type);
+          if (index > -1) {
+            // Already selected: toggle off if more than 1 selected, or reset to all if last one
+            if (submissionSelectedTypes.length > 1) {
+              submissionSelectedTypes.splice(index, 1);
+            } else {
+              submissionSelectedTypes = [...allTypes];
+            }
+          } else {
+            // Not selected: add it
+            submissionSelectedTypes.push(type);
+          }
+        }
+      }
+
+      syncSubmissionTypeButtonUI();
       updateAssignmentSubmissionSeries();
+    }
+
+    function syncSubmissionTypeButtonUI() {
+      const allBtn = document.getElementById('btn-sub-ptype-all');
+      const isAll = submissionSelectedTypes.length === 3;
+      if (allBtn) {
+        allBtn.classList.toggle('active', isAll);
+      }
+      
+      ['student', 'guardian', 'employee'].forEach(t => {
+        const btn = document.getElementById(`btn-sub-ptype-${t}`);
+        if (btn) {
+          btn.classList.toggle('active', submissionSelectedTypes.includes(t));
+        }
+      });
     }
 
     // 14-day shift navigation for Assignment submission
@@ -2721,7 +2884,7 @@
             window.byAssignmentChart.updateOptions({
               xaxis: { 
                 categories: res.labels,
-                labels: { rotate: -40, rotateAlways: true, trim: false, style: { fontSize: '12px' } }
+                labels: { rotate: -35, rotateAlways: true, trim: false, maxHeight: 180, style: { fontSize: '11px', fontWeight: 500 } }
               }
             });
             window.byAssignmentChart.updateSeries([{ name: 'Participants', data: res.data }]);
@@ -2757,7 +2920,7 @@
             window.bySectionChart.updateOptions({
               xaxis: { 
                 categories: res.labels,
-                labels: { rotate: -40, rotateAlways: true, trim: false, style: { fontSize: '12px' } }
+                labels: { rotate: -35, rotateAlways: true, trim: false, maxHeight: 180, style: { fontSize: '11px', fontWeight: 500 } }
               }
             });
             window.bySectionChart.updateSeries([{ name: 'Submissions', data: res.data }]);
@@ -2768,28 +2931,52 @@
 
     // Not Submitted by Assignment navigation
     function shiftNotSubmittedDay(forward) {
-      currentNotSubDate.setDate(currentNotSubDate.getDate() + (forward ? 1 : -1));
-      fetchNotSubmittedByAssignment();
+      const step = forward ? 1 : -1;
+      const diffDays = Math.round((currentNotSubEndDate - currentNotSubStartDate) / (1000 * 60 * 60 * 24));
+      currentNotSubStartDate.setDate(currentNotSubStartDate.getDate() + step);
+      currentNotSubEndDate.setDate(currentNotSubEndDate.getDate() + step);
+      const sStr = formatDateIso(currentNotSubStartDate);
+      const eStr = formatDateIso(currentNotSubEndDate);
+      const picker = document.querySelector('#not_submitted_picker')?._flatpickr;
+      if (picker) {
+        picker.setDate(sStr === eStr ? [currentNotSubStartDate] : [currentNotSubStartDate, currentNotSubEndDate]);
+      }
+      fetchNotSubmittedByAssignment(sStr, eStr);
     }
 
     function resetNotSubmittedToday() {
-      currentNotSubDate = new Date();
-      fetchNotSubmittedByAssignment();
+      const diffDays = Math.round((currentNotSubEndDate - currentNotSubStartDate) / (1000 * 60 * 60 * 24));
+      currentNotSubEndDate = new Date();
+      currentNotSubStartDate = new Date();
+      if (diffDays > 0) {
+        currentNotSubStartDate.setDate(currentNotSubEndDate.getDate() - diffDays);
+      }
+      const sStr = formatDateIso(currentNotSubStartDate);
+      const eStr = formatDateIso(currentNotSubEndDate);
+      const picker = document.querySelector('#not_submitted_picker')?._flatpickr;
+      if (picker) {
+        picker.setDate(sStr === eStr ? [currentNotSubStartDate] : [currentNotSubStartDate, currentNotSubEndDate]);
+      }
+      fetchNotSubmittedByAssignment(sStr, eStr);
     }
 
-    function fetchNotSubmittedByAssignment(dateStr = null) {
-      const dStr = dateStr || formatDateIso(currentNotSubDate);
+    function fetchNotSubmittedByAssignment(startDate = null, endDate = null) {
+      const sStr = startDate || formatDateIso(currentNotSubStartDate);
+      const eStr = endDate || sStr;
+      const isRange = sStr !== eStr;
       const badge = document.getElementById('not-submitted-date-badge');
-      if (badge) badge.textContent = formatDayDisplay(currentNotSubDate);
+      if (badge) {
+        badge.textContent = isRange ? formatRangeDisplay(currentNotSubStartDate, currentNotSubEndDate) : formatDayDisplay(currentNotSubStartDate);
+      }
 
-      fetch(`/institute_admin/dashboard/chart_data?chart=not_submitted_assignment&date=${dStr}`)
+      fetch(`/institute_admin/dashboard/chart_data?chart=not_submitted_assignment&start_date=${sStr}&end_date=${eStr}`)
         .then(r => r.json())
         .then(res => {
           if (res.success && window.notSubmittedChart) {
             window.notSubmittedChart.updateOptions({
               xaxis: { 
                 categories: res.labels,
-                labels: { rotate: -40, rotateAlways: true, trim: false, style: { fontSize: '12px' } }
+                labels: { rotate: -35, rotateAlways: true, trim: false, maxHeight: 115, style: { fontSize: '11px', fontWeight: 500 } }
               }
             });
             window.notSubmittedChart.updateSeries([{ name: 'Pending', data: res.data }]);
@@ -2800,28 +2987,52 @@
 
     // Pending by Section navigation
     function shiftPendingSectionDay(forward) {
-      currentPendSecDate.setDate(currentPendSecDate.getDate() + (forward ? 1 : -1));
-      fetchPendingBySection();
+      const step = forward ? 1 : -1;
+      const diffDays = Math.round((currentPendSecEndDate - currentPendSecStartDate) / (1000 * 60 * 60 * 24));
+      currentPendSecStartDate.setDate(currentPendSecStartDate.getDate() + step);
+      currentPendSecEndDate.setDate(currentPendSecEndDate.getDate() + step);
+      const sStr = formatDateIso(currentPendSecStartDate);
+      const eStr = formatDateIso(currentPendSecEndDate);
+      const picker = document.querySelector('#pending_section_picker')?._flatpickr;
+      if (picker) {
+        picker.setDate(sStr === eStr ? [currentPendSecStartDate] : [currentPendSecStartDate, currentPendSecEndDate]);
+      }
+      fetchPendingBySection(sStr, eStr);
     }
 
     function resetPendingSectionToday() {
-      currentPendSecDate = new Date();
-      fetchPendingBySection();
+      const diffDays = Math.round((currentPendSecEndDate - currentPendSecStartDate) / (1000 * 60 * 60 * 24));
+      currentPendSecEndDate = new Date();
+      currentPendSecStartDate = new Date();
+      if (diffDays > 0) {
+        currentPendSecStartDate.setDate(currentPendSecEndDate.getDate() - diffDays);
+      }
+      const sStr = formatDateIso(currentPendSecStartDate);
+      const eStr = formatDateIso(currentPendSecEndDate);
+      const picker = document.querySelector('#pending_section_picker')?._flatpickr;
+      if (picker) {
+        picker.setDate(sStr === eStr ? [currentPendSecStartDate] : [currentPendSecStartDate, currentPendSecEndDate]);
+      }
+      fetchPendingBySection(sStr, eStr);
     }
 
-    function fetchPendingBySection(dateStr = null) {
-      const dStr = dateStr || formatDateIso(currentPendSecDate);
+    function fetchPendingBySection(startDate = null, endDate = null) {
+      const sStr = startDate || formatDateIso(currentPendSecStartDate);
+      const eStr = endDate || sStr;
+      const isRange = sStr !== eStr;
       const badge = document.getElementById('pending-section-date-badge');
-      if (badge) badge.textContent = formatDayDisplay(currentPendSecDate);
+      if (badge) {
+        badge.textContent = isRange ? formatRangeDisplay(currentPendSecStartDate, currentPendSecEndDate) : formatDayDisplay(currentPendSecStartDate);
+      }
 
-      fetch(`/institute_admin/dashboard/chart_data?chart=pending_section&date=${dStr}`)
+      fetch(`/institute_admin/dashboard/chart_data?chart=pending_section&start_date=${sStr}&end_date=${eStr}`)
         .then(r => r.json())
         .then(res => {
           if (res.success && window.pendingSectionChart) {
             window.pendingSectionChart.updateOptions({
               xaxis: { 
                 categories: res.labels,
-                labels: { rotate: -40, rotateAlways: true, trim: false, style: { fontSize: '12px' } }
+                labels: { rotate: -35, rotateAlways: true, trim: false, maxHeight: 115, style: { fontSize: '11px', fontWeight: 500 } }
               }
             });
             window.pendingSectionChart.updateSeries([{ name: 'Pending', data: res.data }]);
@@ -2880,23 +3091,31 @@
       });
 
       flatpickr("#not_submitted_picker", {
+        mode: "range",
         dateFormat: "Y-m-d",
-        defaultDate: "<%= @not_submitted_date.iso8601 %>",
+        defaultDate: <%= (@not_submitted_start_date == @not_submitted_end_date ? [@not_submitted_start_date.iso8601] : [@not_submitted_start_date.iso8601, @not_submitted_end_date.iso8601]).to_json.html_safe %>,
         onClose: function(selectedDates) {
-          if (selectedDates.length === 1) {
-            currentNotSubDate = selectedDates[0];
-            fetchNotSubmittedByAssignment(formatDateIso(selectedDates[0]));
+          if (selectedDates.length >= 1) {
+            currentNotSubStartDate = selectedDates[0];
+            currentNotSubEndDate = selectedDates.length === 2 ? selectedDates[1] : selectedDates[0];
+            const sStr = formatDateIso(selectedDates[0]);
+            const eStr = selectedDates.length === 2 ? formatDateIso(selectedDates[1]) : sStr;
+            fetchNotSubmittedByAssignment(sStr, eStr);
           }
         }
       });
 
       flatpickr("#pending_section_picker", {
+        mode: "range",
         dateFormat: "Y-m-d",
-        defaultDate: "<%= @pending_section_date.iso8601 %>",
+        defaultDate: <%= (@pending_section_start_date == @pending_section_end_date ? [@pending_section_start_date.iso8601] : [@pending_section_start_date.iso8601, @pending_section_end_date.iso8601]).to_json.html_safe %>,
         onClose: function(selectedDates) {
-          if (selectedDates.length === 1) {
-            currentPendSecDate = selectedDates[0];
-            fetchPendingBySection(formatDateIso(selectedDates[0]));
+          if (selectedDates.length >= 1) {
+            currentPendSecStartDate = selectedDates[0];
+            currentPendSecEndDate = selectedDates.length === 2 ? selectedDates[1] : selectedDates[0];
+            const sStr = formatDateIso(selectedDates[0]);
+            const eStr = selectedDates.length === 2 ? formatDateIso(selectedDates[1]) : sStr;
+            fetchPendingBySection(sStr, eStr);
           }
         }
       });

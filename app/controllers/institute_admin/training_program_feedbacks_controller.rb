@@ -128,10 +128,11 @@ module InstituteAdmin
     def generate_feedbacks_csv(feedbacks)
       require "csv"
       CSV.generate(headers: true) do |csv|
-        csv << [ "#", "Participant Name", "Email", "Phone", "User Type", "Rating", "Feedback Comment", "Submitted Date" ]
+        csv << [ "#", "Participant Name", "Email", "Phone", "User Type", "Rating", "Submitted Date" ]
         feedbacks.each_with_index do |feedback, idx|
           participant = feedback.participant
           user = participant&.user
+          # Row 1: Participant and rating metadata
           csv << [
             idx + 1,
             user&.full_name.presence || "Unknown User",
@@ -139,9 +140,20 @@ module InstituteAdmin
             participant&.phone_number,
             (participant&.participant_type.presence || "student").titleize,
             "#{feedback.rating}/5",
-            feedback.content,
             feedback.created_at.strftime("%Y-%m-%d %H:%M:%S")
           ]
+          # Row 2: Feedback comment as a dedicated row
+          csv << [
+            "",
+            "Feedback Comment:",
+            feedback.content.presence || "(No comment provided)",
+            "",
+            "",
+            "",
+            ""
+          ]
+          # Row 3: Blank separator between reviews
+          csv << []
         end
       end
     end

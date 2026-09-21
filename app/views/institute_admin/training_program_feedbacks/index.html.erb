@@ -287,59 +287,188 @@
     }
   </script>
 
-  <!-- MAIN DATA CARD -->
-  <div class="table-card">
-    <!-- Table Header Info Bar -->
-    <div class="table-card-header d-flex align-items-center justify-content-between">
-      <div class="d-flex align-items-center gap-2">
-        <i class="bi bi-chat-left-text text-primary fs-5"></i>
-        <h6 class="fw-bold mb-0 text-dark">Feedback Responses</h6>
+  <!-- MAIN DATA CARD (GOOGLE PLAY STORE REVIEW STYLE) -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <!-- Header Info Bar -->
+    <div class="card-header bg-white border-bottom py-3 px-4 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-2.5">
+        <div class="d-flex align-items-center justify-content-center rounded-3 bg-primary-subtle text-primary" style="width: 38px; height: 38px;">
+          <i class="bi bi-chat-left-heart-fill fs-5"></i>
+        </div>
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <h6 class="fw-bold mb-0 text-dark" style="font-size: 1.05rem;">Feedback Reviews</h6>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-0.5 fw-semibold" style="font-size: 0.75rem;">
+              <%= @total_feedbacks_count %> Reviews
+            </span>
+          </div>
+          <p class="text-muted small mb-0" style="font-size: 0.75rem;">Participant comments and star ratings in Google Play Store review style</p>
+        </div>
       </div>
-      <span class="badge bg-light text-secondary border px-2.5 py-1" id="visibleFeedbackCount">
-        Showing <%= @feedbacks.count %> of <%= @total_feedbacks_count %>
-      </span>
+      
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <!-- View Switcher (Feed / Table) -->
+        <div class="btn-group btn-group-sm p-1 bg-light rounded-pill border" role="group" aria-label="View Switcher">
+          <button type="button" class="btn btn-sm rounded-pill fw-medium px-3 active-view-btn" id="btnViewFeed" onclick="switchFeedbackView('feed')" title="Google Play Review Feed View">
+            <i class="bi bi-view-list me-1"></i> Reviews Feed
+          </button>
+          <button type="button" class="btn btn-sm rounded-pill fw-medium px-3 text-muted" id="btnViewTable" onclick="switchFeedbackView('table')" title="Tabular View">
+            <i class="bi bi-table me-1"></i> Table
+          </button>
+        </div>
+
+        <span class="badge bg-light text-secondary border px-2.5 py-1.5 rounded-3 fw-medium" id="visibleFeedbackCount">
+          Showing <%= @feedbacks.count %> of <%= @total_feedbacks_count %>
+        </span>
+      </div>
     </div>
 
-    <!-- Data Table -->
-    <div class="table-responsive">
+    <!-- 1. GOOGLE PLAY STORE REVIEW FEED VIEW (DEFAULT) -->
+    <div id="playReviewFeed" class="play-reviews-list">
+      <% if @feedbacks.empty? %>
+        <div class="text-center py-5" id="playEmptyState">
+          <div class="text-muted mb-2"><i class="bi bi-chat-square-quote fs-1"></i></div>
+          <h6 class="fw-bold text-dark mb-1">No Feedback Records Found</h6>
+          <p class="text-muted small mb-0">No feedbacks match the current filters or none have been submitted yet.</p>
+        </div>
+      <% else %>
+        <div class="text-center py-5 d-none" id="playEmptyFilteredState">
+          <div class="text-muted mb-2"><i class="bi bi-search fs-1"></i></div>
+          <h6 class="fw-bold text-dark mb-1">No Matching Reviews</h6>
+          <p class="text-muted small mb-0">No reviews found matching your filter criteria.</p>
+        </div>
+
+        <% @feedbacks.each_with_index do |feedback, idx| %>
+          <% 
+            participant = feedback.participant
+            user = participant&.user
+            user_type = participant&.participant_type.presence || 'student'
+            avatar_initial = user&.first_name.to_s.first.upcase.presence || "P"
+            
+            avatar_style = case user_type.downcase
+                           when 'student' then 'background: #e0f2fe; color: #0284c7; border: 1.5px solid #bae6fd;'
+                           when 'guardian' then 'background: #fef3c7; color: #d97706; border: 1.5px solid #fde68a;'
+                           when 'employee' then 'background: #d1fae5; color: #059669; border: 1.5px solid #a7f3d0;'
+                           else 'background: #f1f5f9; color: #475569; border: 1.5px solid #e2e8f0;'
+                           end
+          %>
+          <div class="play-review-item"
+               data-name="<%= user&.full_name.to_s.downcase %>"
+               data-content="<%= feedback.content.to_s.downcase %>"
+               data-user-type="<%= user_type.downcase %>"
+               data-rating="<%= feedback.rating %>">
+            
+            <div class="d-flex align-items-start gap-3">
+              <!-- Google Play Avatar Circle -->
+              <div class="play-avatar" style="<%= avatar_style %>">
+                <%= avatar_initial %>
+              </div>
+
+              <!-- Main Review Content Block -->
+              <div class="flex-grow-1 min-w-0">
+                <!-- User Details + Rating Header Row -->
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-1 mb-1.5">
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <%= link_to institute_admin_participant_path(participant), class: "play-user-name text-decoration-none hover-primary" do %>
+                      <%= user&.full_name.presence || "Unknown User" %>
+                    <% end %>
+
+                    <% case user_type.downcase %>
+                    <% when 'student' %>
+                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-0.5 play-user-badge">
+                        <i class="bi bi-mortarboard-fill me-1"></i>Student
+                      </span>
+                    <% when 'guardian' %>
+                      <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2.5 py-0.5 play-user-badge">
+                        <i class="bi bi-person-heart me-1"></i>Guardian
+                      </span>
+                    <% when 'employee' %>
+                      <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-0.5 play-user-badge">
+                        <i class="bi bi-briefcase-fill me-1"></i>Employee
+                      </span>
+                    <% else %>
+                      <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-0.5 play-user-badge">
+                        <i class="bi bi-person-fill me-1"></i><%= user_type.titleize %>
+                      </span>
+                    <% end %>
+
+                    <% if user&.email.present? %>
+                      <span class="text-muted d-none d-md-inline" style="font-size: 0.78rem;">• <%= user.email %></span>
+                    <% elsif participant&.phone_number.present? %>
+                      <span class="text-muted d-none d-md-inline" style="font-size: 0.78rem;">• <%= participant.phone_number %></span>
+                    <% end %>
+                  </div>
+
+                  <!-- Stars + Date in Google Play Style -->
+                  <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    <div class="play-stars" title="<%= feedback.rating %> out of 5 stars">
+                      <% feedback.rating.times do %>
+                        <i class="bi bi-star-fill"></i>
+                      <% end %>
+                      <% (5 - feedback.rating).times do %>
+                        <i class="bi bi-star text-light-emphasis"></i>
+                      <% end %>
+                    </div>
+                    <span class="play-date">• <%= feedback.created_at.strftime("%b %d, %Y at %I:%M %p") %></span>
+                  </div>
+                </div>
+
+                <!-- HIGHLIGHTED FEEDBACK COMMENT CARD -->
+                <div class="play-comment-card mt-2">
+                  <div class="d-flex align-items-start gap-2">
+                    <i class="bi bi-chat-left-quote-fill text-primary opacity-75 flex-shrink-0 mt-1" style="font-size: 0.82rem;"></i>
+                    <div class="play-comment-text flex-grow-1">
+                      <% if feedback.content.present? %>
+                        <%= feedback.content %>
+                      <% else %>
+                        <span class="text-muted fst-italic small">No written comment provided.</span>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- 2. TABULAR VIEW (Accessible via view toggle, with Comment as a clean full-width row) -->
+    <div id="feedbacksTableView" class="table-responsive d-none">
       <table class="table align-middle mb-0" id="feedbacksTable">
         <thead class="table-light">
           <tr>
             <th style="width: 50px;" class="text-center">#</th>
-            <th style="min-width: 200px;">Participant</th>
+            <th style="min-width: 220px;">Participant</th>
             <th style="min-width: 140px;">User Type</th>
-            <th style="min-width: 130px;">Rating</th>
-            <th style="min-width: 320px;">Feedback Comment</th>
+            <th style="min-width: 140px;">Rating</th>
             <th style="min-width: 160px;">Submitted On</th>
           </tr>
         </thead>
-        <tbody>
-          <% if @feedbacks.empty? %>
-            <tr id="emptyStateRow">
-              <td colspan="6" class="text-center py-5">
+        <% if @feedbacks.empty? %>
+          <tbody>
+            <tr id="emptyTableStateRow">
+              <td colspan="5" class="text-center py-5">
                 <div class="text-muted mb-2"><i class="bi bi-chat-square-quote fs-1"></i></div>
                 <h6 class="fw-bold text-dark mb-1">No Feedback Records Found</h6>
                 <p class="text-muted small mb-0">No feedbacks match the current filters or none have been submitted yet.</p>
               </td>
             </tr>
-          <% else %>
-            <% @feedbacks.each_with_index do |feedback, idx| %>
-              <% 
-                participant = feedback.participant
-                user = participant&.user
-                user_type = participant&.participant_type.presence || 'student'
-                content_length = feedback.content.to_s.length
-              %>
-              <tr class="feedback-row" 
-                  data-name="<%= user&.full_name.to_s.downcase %>" 
-                  data-content="<%= feedback.content.to_s.downcase %>" 
-                  data-user-type="<%= user_type.downcase %>" 
-                  data-rating="<%= feedback.rating %>">
-                
-                <!-- SL NO COLUMN -->
+          </tbody>
+        <% else %>
+          <% @feedbacks.each_with_index do |feedback, idx| %>
+            <% 
+              participant = feedback.participant
+              user = participant&.user
+              user_type = participant&.participant_type.presence || 'student'
+            %>
+            <tbody class="feedback-table-group"
+                   data-name="<%= user&.full_name.to_s.downcase %>"
+                   data-content="<%= feedback.content.to_s.downcase %>"
+                   data-user-type="<%= user_type.downcase %>"
+                   data-rating="<%= feedback.rating %>">
+              <tr class="feedback-meta-row border-bottom-0">
                 <td class="text-center fw-semibold text-secondary" style="font-size: 0.85rem;"><%= idx + 1 %></td>
-
-                <!-- PARTICIPANT COLUMN -->
                 <td>
                   <div class="d-flex align-items-center gap-2.5">
                     <div class="institute-avatar bg-light text-primary border fw-bold">
@@ -357,10 +486,8 @@
                     </div>
                   </div>
                 </td>
-
-                <!-- USER TYPE COLUMN -->
                 <td>
-                  <% case user_type.to_s.downcase %>
+                  <% case user_type.downcase %>
                   <% when 'student' %>
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-medium">
                       <i class="bi bi-mortarboard-fill me-1"></i> Student
@@ -379,8 +506,6 @@
                     </span>
                   <% end %>
                 </td>
-
-                <!-- RATING COLUMN -->
                 <td>
                   <div class="d-flex align-items-center gap-2">
                     <div class="d-inline-flex gap-1 text-warning" style="font-size: 0.9rem;">
@@ -394,19 +519,6 @@
                     <span class="fw-bold small text-secondary"><%= feedback.rating %>.0</span>
                   </div>
                 </td>
-
-                <!-- FULL FEEDBACK COMMENT COLUMN (MULTI-LINE WRAPPED) -->
-                <td class="feedback-comment-cell">
-                  <div class="p-3 bg-light rounded-3 border-start border-3 border-primary shadow-xs position-relative">
-                    <i class="bi bi-quote text-primary opacity-50 fs-5 d-block mb-1"></i>
-                    
-                    <div class="feedback-full-text text-dark fs-6" style="white-space: pre-wrap; word-break: break-word; line-height: 1.6;">
-                      <%= feedback.content %>
-                    </div>
-                  </div>
-                </td>
-
-                <!-- SUBMITTED ON COLUMN -->
                 <td class="text-muted small">
                   <div class="d-flex align-items-center gap-1 text-dark fw-medium">
                     <i class="bi bi-calendar-event text-secondary"></i>
@@ -415,45 +527,109 @@
                   <span class="d-block text-muted ms-3" style="font-size: 0.725rem;"><%= feedback.created_at.strftime("%I:%M %p") %></span>
                 </td>
               </tr>
-            <% end %>
+              <!-- COMMENT AS FULL-WIDTH ROW -->
+              <tr class="feedback-comment-row">
+                <td class="border-top-0 pt-0 pb-3 text-center">
+                  <i class="bi bi-chat-quote-fill text-primary opacity-40 fs-5"></i>
+                </td>
+                <td colspan="4" class="border-top-0 pt-0 pb-3 pe-4">
+                  <div class="feedback-table-card">
+                    <div class="d-flex align-items-start gap-2">
+                      <i class="bi bi-chat-left-quote-fill text-primary opacity-75 flex-shrink-0 mt-1" style="font-size: 0.82rem;"></i>
+                      <div class="feedback-full-text flex-grow-1">
+                        <%= feedback.content.presence || content_tag(:span, "No written comment provided.", class: "text-muted fst-italic small") %>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
           <% end %>
-        </tbody>
+        <% end %>
       </table>
     </div>
   </div>
 </div>
 
-<!-- LIVE CLIENT-SIDE FILTERING SCRIPT -->
+<!-- LIVE CLIENT-SIDE FILTERING & VIEW SWITCHER SCRIPT -->
 <script>
+  function switchFeedbackView(mode) {
+    const feed = document.getElementById('playReviewFeed');
+    const table = document.getElementById('feedbacksTableView');
+    const btnFeed = document.getElementById('btnViewFeed');
+    const btnTable = document.getElementById('btnViewTable');
+
+    if (!feed || !table || !btnFeed || !btnTable) return;
+
+    if (mode === 'table') {
+      feed.classList.add('d-none');
+      table.classList.remove('d-none');
+      btnTable.classList.add('active-view-btn');
+      btnTable.classList.remove('text-muted');
+      btnFeed.classList.remove('active-view-btn');
+      btnFeed.classList.add('text-muted');
+      try { localStorage.setItem('soul_feedback_view', 'table'); } catch(e) {}
+    } else {
+      table.classList.add('d-none');
+      feed.classList.remove('d-none');
+      btnFeed.classList.add('active-view-btn');
+      btnFeed.classList.remove('text-muted');
+      btnTable.classList.remove('active-view-btn');
+      btnTable.classList.add('text-muted');
+      try { localStorage.setItem('soul_feedback_view', 'feed'); } catch(e) {}
+    }
+  }
+
   function filterFeedbacksTable() {
     const searchVal = document.getElementById('feedbackSearchInput').value.toLowerCase().trim();
     const typeVal = document.getElementById('userTypeFilter').value.toLowerCase();
     const ratingVal = document.getElementById('ratingFilter').value;
 
-    const rows = document.querySelectorAll('#feedbacksTable tbody tr.feedback-row');
+    // Filter Play Store Feed Items
+    const playItems = document.querySelectorAll('#playReviewFeed .play-review-item');
     let visibleCount = 0;
 
-    rows.forEach(row => {
-      const name = row.getAttribute('data-name') || '';
-      const content = row.getAttribute('data-content') || '';
-      const userType = row.getAttribute('data-user-type') || '';
-      const rating = row.getAttribute('data-rating') || '';
+    playItems.forEach(item => {
+      const name = item.getAttribute('data-name') || '';
+      const content = item.getAttribute('data-content') || '';
+      const userType = item.getAttribute('data-user-type') || '';
+      const rating = item.getAttribute('data-rating') || '';
 
       const matchesSearch = !searchVal || name.includes(searchVal) || content.includes(searchVal);
-      const matchesType = (typeVal === 'all') || (userType === typeVal);
-      const matchesRating = (ratingVal === 'all') || (rating === ratingVal);
+      const matchesType = (typeVal === 'all' || typeVal === '') || (userType === typeVal);
+      const matchesRating = (ratingVal === 'all' || ratingVal === '') || (rating === ratingVal);
 
       if (matchesSearch && matchesType && matchesRating) {
-        row.style.display = '';
+        item.style.display = '';
         visibleCount++;
       } else {
-        row.style.display = 'none';
+        item.style.display = 'none';
       }
     });
 
-    const emptyState = document.getElementById('emptyStateRow');
-    if (emptyState) {
-      emptyState.style.display = visibleCount === 0 ? '' : 'none';
+    // Also filter Table Groups in sync
+    const tableGroups = document.querySelectorAll('#feedbacksTableView tbody.feedback-table-group');
+    tableGroups.forEach(group => {
+      const name = group.getAttribute('data-name') || '';
+      const content = group.getAttribute('data-content') || '';
+      const userType = group.getAttribute('data-user-type') || '';
+      const rating = group.getAttribute('data-rating') || '';
+
+      const matchesSearch = !searchVal || name.includes(searchVal) || content.includes(searchVal);
+      const matchesType = (typeVal === 'all' || typeVal === '') || (userType === typeVal);
+      const matchesRating = (ratingVal === 'all' || ratingVal === '') || (rating === ratingVal);
+
+      group.style.display = (matchesSearch && matchesType && matchesRating) ? '' : 'none';
+    });
+
+    // Empty states
+    const playEmpty = document.getElementById('playEmptyFilteredState');
+    if (playEmpty) {
+      playEmpty.classList.toggle('d-none', visibleCount > 0 || playItems.length === 0);
+    }
+    const emptyTableState = document.getElementById('emptyTableStateRow');
+    if (emptyTableState) {
+      emptyTableState.style.display = (visibleCount === 0 && playItems.length > 0) ? '' : 'none';
     }
 
     const countBadge = document.getElementById('visibleFeedbackCount');
@@ -464,8 +640,8 @@
 
   function resetFeedbackFilters() {
     document.getElementById('feedbackSearchInput').value = '';
-    document.getElementById('userTypeFilter').value = 'all';
-    document.getElementById('ratingFilter').value = 'all';
+    document.getElementById('userTypeFilter').value = '';
+    document.getElementById('ratingFilter').value = '';
     filterFeedbacksTable();
   }
 
@@ -480,9 +656,115 @@
       ratingSelect.form.submit();
     }
   }
+
+  // Restore preferred view from localStorage if saved
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      const saved = localStorage.getItem('soul_feedback_view');
+      if (saved === 'table') {
+        switchFeedbackView('table');
+      }
+    } catch(e) {}
+  });
 </script>
 
 <style>
+  /* ── Google Play Store Reviews Styling ────────────────────── */
+  .play-reviews-list {
+    background: #ffffff;
+  }
+  .play-review-item {
+    padding: 1.35rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.15s ease;
+  }
+  .play-review-item:last-child {
+    border-bottom: none;
+  }
+  .play-review-item:hover {
+    background-color: #fafbfd;
+  }
+  .play-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+  }
+  .play-user-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.25;
+  }
+  .play-user-badge {
+    font-size: 0.72rem;
+    font-weight: 500;
+  }
+  .play-stars {
+    color: #f59e0b;
+    font-size: 0.85rem;
+    display: inline-flex;
+    gap: 2px;
+  }
+  .play-date {
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+  .play-comment-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 3.5px solid #4f46e5;
+    border-radius: 8px;
+    padding: 0.85rem 1.15rem;
+    transition: all 0.2s ease;
+  }
+  .play-review-item:hover .play-comment-card {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    border-left-color: #4338ca;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+  }
+  .play-comment-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.65px;
+    color: #4f46e5;
+  }
+  .play-comment-text {
+    color: #0f172a;
+    font-size: 0.93rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-weight: 450;
+  }
+  .feedback-table-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 3.5px solid #4f46e5;
+    border-radius: 8px;
+    padding: 0.85rem 1.15rem;
+  }
+  .feedback-full-text {
+    color: #0f172a;
+    font-size: 0.93rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-weight: 450;
+  }
+  .active-view-btn {
+    background-color: #ffffff !important;
+    color: #4f46e5 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  }
+
   .rating-analytics-card {
     background: #ffffff;
     border: 1px solid rgba(148, 163, 184, 0.15) !important;

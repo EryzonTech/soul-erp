@@ -160,7 +160,8 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_includes json["labels"], "Test Section A"
   end
 
-  test "chart_data returns not submitted by assignment data" do
+  test "chart_data returns not submitted by assignment data with single date and date range" do
+    # Single date
     get institute_admin_dashboard_chart_data_url(
       chart: "not_submitted_assignment",
       date: Date.current.to_s
@@ -173,9 +174,24 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     assert json["data"].is_a?(Array)
     assert_includes json["labels"], "Daily Reflections Assignment"
     assert_equal [ 1 ], json["data"]
+
+    # Date range
+    get institute_admin_dashboard_chart_data_url(
+      chart: "not_submitted_assignment",
+      start_date: (Date.current - 2.days).to_s,
+      end_date: Date.current.to_s
+    )
+    assert_response :success
+
+    json_range = JSON.parse(response.body)
+    assert json_range["success"]
+    assert json_range["labels"].is_a?(Array)
+    assert json_range["data"].is_a?(Array)
+    assert_includes json_range["labels"], "Daily Reflections Assignment"
   end
 
-  test "chart_data returns pending by section data" do
+  test "chart_data returns pending by section data with single date and date range" do
+    # Single date
     get institute_admin_dashboard_chart_data_url(
       chart: "pending_section",
       date: Date.current.to_s
@@ -188,6 +204,20 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     assert json["data"].is_a?(Array)
     assert_includes json["labels"], "Test Section A"
     assert_equal [ 1 ], json["data"]
+
+    # Date range
+    get institute_admin_dashboard_chart_data_url(
+      chart: "pending_section",
+      start_date: (Date.current - 2.days).to_s,
+      end_date: Date.current.to_s
+    )
+    assert_response :success
+
+    json_range = JSON.parse(response.body)
+    assert json_range["success"]
+    assert json_range["labels"].is_a?(Array)
+    assert json_range["data"].is_a?(Array)
+    assert_includes json_range["labels"], "Test Section A"
   end
 
   test "chart_data returns backlog trend data for date range" do
@@ -254,5 +284,21 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, json["bottom"].first["rank"]
     assert_equal "Mary Guardian", json["bottom"].first["name"]
     assert_equal 0, json["bottom"].first["streak"]
+  end
+
+  test "dashboard index runs efficiently with bounded query count and no N+1 regression" do
+    query_count = 0
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _start, _finish, _id, payload|
+      next if payload[:name] == "SCHEMA" || payload[:sql] =~ /pg_tables|pg_attribute/i
+      query_count += 1
+    end
+
+    get institute_admin_root_url
+    assert_response :success
+
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+
+    # Ensure query count remains bounded and does not regress
+    assert query_count <= 35, "Expected dashboard to execute <= 35 queries, executed #{query_count}"
   end
 end

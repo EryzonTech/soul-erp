@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_20_140000) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_21_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -85,6 +85,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_20_140000) do
     t.datetime "updated_at", null: false
     t.integer "response_count"
     t.index ["assignment_id"], name: "index_assignment_response_logs_on_assignment_id"
+    t.index ["institute_id", "response_date"], name: "index_assignment_response_logs_on_institute_and_date"
     t.index ["institute_id"], name: "index_assignment_response_logs_on_institute_id"
     t.index ["participant_id"], name: "index_assignment_response_logs_on_participant_id"
   end
@@ -103,6 +104,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_20_140000) do
     t.index ["assignment_id"], name: "index_assignment_responses_on_assignment_id"
     t.index ["participant_id"], name: "index_assignment_responses_on_participant_id"
     t.index ["question_id"], name: "index_assignment_responses_on_question_id"
+    t.index ["response_date", "participant_id"], name: "index_assignment_responses_on_date_and_participant"
     t.index ["response_date"], name: "index_assignment_responses_on_response_date"
   end
 
@@ -257,6 +259,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_20_140000) do
     t.string "address_line1"
     t.string "address_line2"
     t.string "place"
+    t.index ["institute_id", "participant_type"], name: "index_participants_on_institute_and_type"
     t.index ["institute_id"], name: "index_participants_on_institute_id"
     t.index ["phone_number"], name: "index_participants_on_phone_number"
     t.index ["section_id"], name: "index_participants_on_section_id"
@@ -608,6 +611,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_20_140000) do
     t.datetime "updated_at", null: false
     t.integer "training_program_feedbacks_count", default: 0, null: false
     t.index ["institute_id", "program_type"], name: "index_training_programs_on_institute_id_and_program_type"
+    t.index ["institute_id", "status"], name: "index_training_programs_on_institute_and_status"
     t.index ["institute_id"], name: "index_training_programs_on_institute_id"
     t.index ["participant_id"], name: "index_training_programs_on_participant_id"
     t.index ["section_id"], name: "index_training_programs_on_section_id"
