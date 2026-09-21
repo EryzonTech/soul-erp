@@ -221,7 +221,7 @@
                 </span>
               </span>
             </button>
-            <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border" style="width: 300px; max-width: min(340px, calc(100vw - 2rem)); max-height: 360px; overflow-y: auto;">
+            <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border" style="width: 300px; max-width: min(340px, calc(100vw - 2rem));">
               <div class="px-1 mb-2">
                 <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search sections..." oninput="filterDropdownList(this)">
               </div>
@@ -265,7 +265,7 @@
                 </span>
               </span>
             </button>
-            <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border" style="width: 320px; max-width: min(360px, calc(100vw - 2rem)); max-height: 360px; overflow-y: auto;">
+            <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border" style="width: 320px; max-width: min(360px, calc(100vw - 2rem));">
               <div class="px-1 mb-2">
                 <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search assignments..." oninput="filterDropdownList(this)">
               </div>
@@ -811,7 +811,11 @@
         cb.checked = selectAll;
       }
     });
-    updateDropdownCounter(labelId, prefix, inputName);
+    if (inputName === 'submission_statuses[]') {
+      updateStatusDropdownCounter();
+    } else {
+      updateDropdownCounter(labelId, prefix, inputName);
+    }
   }
 
   function updateDropdownCounter(labelId, prefix, inputName) {
@@ -915,5 +919,141 @@
 
   .filter-dropdown-btn.show::after {
     transform: rotate(180deg);
+  }
+
+  /* Multi-Select Dropdown & Checkbox Alignment Fixes */
+  .multiselect-dropdown {
+    position: relative;
+  }
+
+  .multiselect-dropdown .dropdown-menu {
+    z-index: 1060 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 0.5rem !important;
+    overflow: hidden;
+  }
+
+  .multiselect-dropdown .multiselect-search {
+    border-radius: 8px !important;
+    border: 1px solid #cbd5e1 !important;
+    font-size: 0.82rem !important;
+    padding: 0.4rem 0.65rem !important;
+    background-color: #f8fafc !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease !important;
+  }
+
+  .multiselect-dropdown .multiselect-search:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15) !important;
+    background-color: #ffffff !important;
+    outline: none !important;
+  }
+
+  .multiselect-dropdown .multiselect-options-list {
+    max-height: 250px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #cbd5e1 transparent !important;
+    padding-right: 2px !important;
+  }
+
+  .multiselect-dropdown .multiselect-options-list::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .multiselect-dropdown .multiselect-options-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .multiselect-dropdown .multiselect-options-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
+  .multiselect-dropdown .multiselect-item {
+    display: flex !important;
+    padding: 0.42rem 0.65rem !important;
+    margin: 0 !important;
+    margin-bottom: 2px !important;
+    border-radius: 6px !important;
+    gap: 0.65rem !important;
+    min-height: auto !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    cursor: pointer !important;
+    color: #1e293b !important;
+    background-color: transparent;
+    transition: background-color 0.12s ease !important;
+  }
+
+  .multiselect-dropdown .multiselect-item:hover,
+  .multiselect-dropdown .multiselect-item:focus,
+  .multiselect-dropdown .multiselect-item:active {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+  }
+
+  .multiselect-dropdown .multiselect-item[style*="display: none"] {
+    display: none !important;
+  }
+
+  .multiselect-dropdown .multiselect-item .form-check-input {
+    float: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+    position: relative !important;
+    width: 1.1rem !important;
+    height: 1.1rem !important;
+    min-width: 1.1rem !important;
+    min-height: 1.1rem !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+    border: 1.5px solid #94a3b8 !important;
+    border-radius: 4px !important;
+    background-color: #ffffff;
+    transition: all 0.15s ease !important;
+  }
+
+  .multiselect-dropdown .multiselect-item.align-items-start .form-check-input {
+    margin-top: 0.18rem !important;
+  }
+
+  .multiselect-dropdown .multiselect-item.align-items-center .form-check-input {
+    margin-top: 0 !important;
+    align-self: center !important;
+  }
+
+  .multiselect-dropdown .multiselect-item .form-check-input:checked {
+    background-color: #6366f1 !important;
+    border-color: #6366f1 !important;
+  }
+
+  .multiselect-dropdown .multiselect-item .form-check-input:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+    outline: none !important;
+  }
+
+  .multiselect-dropdown .multiselect-item .form-check-label {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    color: #334155 !important;
+    line-height: 1.35 !important;
+    flex-grow: 1 !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  .cursor-pointer {
+    cursor: pointer !important;
   }
 </style>
