@@ -1,0 +1,657 @@
+<%= form_with(model: [:participant_portal, @assignment], data: { turbo: false }, html: { id: "custom_assignment_form", novalidate: true }) do |f| %>
+  <% if @assignment.errors.any? %>
+    <div class="alert alert-danger rounded-3 mb-4 shadow-sm">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+        <h6 class="mb-0 fw-bold">Please fix the following <%= 'error'.pluralize(@assignment.errors.count) %>:</h6>
+      </div>
+      <ul class="mb-0 ps-3 small">
+        <% @assignment.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <!-- Basic Info & Schedule Card -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+    <div class="card-header bg-white border-bottom p-3 p-md-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+        <i class="bi bi-pencil-square text-primary"></i> Basic Information & Schedule
+      </h5>
+      <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-bold" id="selected_duration_badge">
+        <i class="bi bi-calendar-range me-1"></i> <span id="duration_text">30 Days</span>
+      </span>
+    </div>
+
+    <div class="card-body p-3 p-md-4">
+      <div class="mb-3">
+        <%= f.label :title, "Assignment Title *", class: "form-label fw-semibold text-dark small mb-1" %>
+        <%= f.text_field :title, 
+            class: "form-control form-control-lg rounded-3 border-secondary-subtle", 
+            placeholder: "e.g. My Daily Self-Study Routine",
+            required: true %>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :description, "Description (optional)", class: "form-label fw-semibold text-dark small mb-1" %>
+        <%= f.text_area :description, 
+            class: "form-control rounded-3 border-secondary-subtle", 
+            rows: 2,
+            placeholder: "Personal notes, goals, or instructions for this custom assignment..." %>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <%= f.label :start_date, "Start Date *", class: "form-label fw-semibold text-dark small mb-1" %>
+          <%= f.date_field :start_date, 
+              class: "form-control rounded-3 border-secondary-subtle",
+              id: "assignment_start_date",
+              value: (@assignment.start_date&.to_date || Date.current),
+              required: true,
+              onchange: "updateDurationCount()" %>
+        </div>
+        <div class="col-md-6">
+          <%= f.label :end_date, "End Date *", class: "form-label fw-semibold text-dark small mb-1" %>
+          <%= f.date_field :end_date, 
+              class: "form-control rounded-3 border-secondary-subtle",
+              id: "assignment_end_date",
+              value: (@assignment.end_date&.to_date || (Date.current + 30.days)),
+              required: true,
+              onchange: "updateDurationCount()" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question Selection Workspace Card -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+    <div class="card-header bg-white border-bottom p-3 p-md-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-patch-question text-primary"></i> Select Your Custom Questions
+        </h5>
+        <span class="badge bg-light text-secondary border rounded-pill ms-1" id="total_questions_badge">
+          <%= @my_questions.size %> Available
+        </span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-primary text-white rounded-pill px-3 py-1.5 fw-bold" id="selected_questions_count_badge">
+          0 Selected
+        </span>
+        <button type="button" class="btn btn-sm btn-outline-primary rounded-3" data-bs-toggle="modal" data-bs-target="#quickNewQuestionModal">
+          <i class="bi bi-plus-lg me-1"></i> Quick Create Question
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body p-3 p-md-4">
+      <!-- Search filter within question picker -->
+      <div class="mb-3 position-relative">
+        <i class="bi bi-search position-absolute text-muted" style="left: 14px; top: 12px;"></i>
+        <input type="text" id="question_filter_input" class="form-control ps-5 rounded-3 border-secondary-subtle" 
+               placeholder="Search your questions by title or type..." oninput="filterQuestionsList(this.value)">
+      </div>
+
+      <!-- Question List (Strictly participant's own custom questions) -->
+      <div id="questions_container">
+        <% if @my_questions.any? %>
+          <div class="list-group rounded-3 border overflow-auto" style="max-height: 380px;" id="my_questions_list">
+            <% @my_questions.each do |q| %>
+              <% is_checked = @selected_question_ids.include?(q.id) %>
+              <label class="list-group-item list-group-item-action p-3 border-bottom d-flex align-items-start gap-3 question-row-item cursor-pointer"
+                     data-question-title="<%= q.title.downcase %> <%= q.question_type %>">
+                <input type="checkbox" name="assignment[question_ids][]" value="<%= q.id %>"
+                       class="form-check-input question-checkbox mt-1 cursor-pointer flex-shrink-0"
+                       data-question-id="<%= q.id %>"
+                       data-question-title="<%= q.title %>"
+                       data-question-type="<%= q.question_type.titleize %>"
+                       <%= 'checked' if is_checked %>
+                       onchange="updateSelectedQuestionsTray()">
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                    <span class="fw-bold text-dark"><%= q.title %></span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size: 0.72rem;">
+                      <%= q.question_type.titleize %>
+                    </span>
+                  </div>
+                  <% if q.description.present? %>
+                    <small class="text-muted d-block text-truncate" style="max-width: 550px;"><%= q.description %></small>
+                  <% end %>
+                  <% if q.requires_options? && q.options.any? %>
+                    <div class="d-flex flex-wrap gap-1 mt-1.5">
+                      <% q.options.limit(3).each do |opt| %>
+                        <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;"><%= opt.text %></span>
+                      <% end %>
+                      <% if q.options.size > 3 %>
+                        <span class="badge bg-light text-muted" style="font-size: 0.68rem;">+<%= q.options.size - 3 %> more</span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </label>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="border rounded-3 p-4 text-center bg-light" id="no_my_questions_banner">
+            <i class="bi bi-patch-question fs-2 text-muted mb-2 d-block"></i>
+            <h6 class="fw-bold text-dark mb-1">No Custom Questions Yet</h6>
+            <p class="text-muted mb-3 small">Create your questions first using the button below, then select them for this assignment.</p>
+            <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#quickNewQuestionModal">
+              <i class="bi bi-plus-lg me-1"></i> Create Your First Question
+            </button>
+          </div>
+          <div class="list-group rounded-3 border overflow-auto d-none" style="max-height: 380px;" id="my_questions_list"></div>
+        <% end %>
+      </div>
+
+      <!-- Selected Questions Summary Tray -->
+      <div class="mt-4 p-3 rounded-3 bg-light border" id="selected_tray_wrapper">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="fw-bold text-dark small text-uppercase">
+            <i class="bi bi-check-all text-primary me-1"></i> Selected Questions in this Assignment:
+          </span>
+          <button type="button" class="btn btn-link btn-sm text-danger p-0 text-decoration-none" onclick="clearAllSelectedQuestions()">
+            Clear All
+          </button>
+        </div>
+        <div id="selected_questions_chips" class="d-flex flex-wrap gap-2">
+          <!-- Populated by JS -->
+          <span class="text-muted small" id="no_questions_selected_text">No questions selected yet. Please check questions from above.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Footer Actions -->
+    <div class="card-footer bg-light p-3 p-md-4 d-flex justify-content-between align-items-center">
+      <%= link_to participant_portal_assignments_path, class: "btn btn-outline-secondary px-3 py-2 rounded-3" do %>
+        <i class="bi bi-x-lg me-1"></i> Cancel
+      <% end %>
+      <%= f.submit (@assignment.persisted? ? "Update Assignment" : "Create Assignment"), 
+          class: "btn btn-primary px-4 py-2 rounded-3 shadow-sm fw-semibold",
+          onclick: "return validateAssignmentFormSubmission();" %>
+    </div>
+  </div>
+<% end %>
+
+<!-- Modal: Quick Create Question Inline -->
+<div class="modal fade" id="quickNewQuestionModal" tabindex="-1" aria-labelledby="quickNewQuestionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-bottom p-3 p-md-4">
+        <h5 class="modal-title fw-bold text-dark" id="quickNewQuestionModalLabel">
+          <i class="bi bi-patch-question-fill text-primary me-2"></i>Quick Create Question
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3 p-md-4">
+        <div id="modal_error_banner" class="alert alert-danger rounded-3 d-none mb-3"></div>
+
+        <form id="quick_question_form">
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small mb-1">Question Title *</label>
+            <input type="text" id="modal_q_title" class="form-control rounded-3" placeholder="e.g. Did you read 10 pages today?">
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark small mb-1">Question Type *</label>
+              <select id="modal_q_type" class="form-select rounded-3" onchange="toggleModalQuestionType(this.value)">
+                <option value="short_answer">Short Answer</option>
+                <option value="paragraph">Paragraph</option>
+                <option value="multiple_choice">Multiple Choice (Single Option)</option>
+                <option value="checkboxes">Checkboxes (Multiple Options)</option>
+                <option value="dropdown">Dropdown</option>
+                <option value="rating">Rating (Stars)</option>
+                <option value="yes_or_no">Yes / No</option>
+                <option value="number">Number</option>
+                <option value="date">Date</option>
+                <option value="time">Time</option>
+              </select>
+            </div>
+            <div class="col-md-6" id="modal_rating_wrapper" style="display: none;">
+              <label class="form-label fw-semibold text-dark small mb-1">Max Stars (Rating)</label>
+              <select id="modal_q_max_rating" class="form-select rounded-3">
+                <option value="5" selected>5 Stars</option>
+                <option value="10">10 Stars</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark small mb-1">Description (optional)</label>
+            <textarea id="modal_q_desc" class="form-control rounded-3" rows="2" placeholder="Guidance for this question..."></textarea>
+          </div>
+
+          <!-- Answer options for choice types -->
+          <div id="modal_options_wrapper" style="display: none;" class="mb-3 p-3 bg-light rounded-3 border">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <label class="form-label fw-bold text-dark small text-uppercase mb-0">Answer Options *</label>
+                <div class="text-muted" style="font-size: 0.75rem;">Enter at least 2 options for participants to select from.</div>
+              </div>
+              <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5" onclick="addModalOptionRow()">
+                <i class="bi bi-plus-lg me-1"></i> Add Option
+              </button>
+            </div>
+            <div id="modal_options_container" class="d-flex flex-column gap-2">
+              <div class="d-flex align-items-center gap-2 modal-opt-row">
+                <input type="text" class="form-control form-control-sm rounded-3 modal-opt-input" placeholder="Option 1" value="">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeModalOptionRow(this)" title="Remove option"><i class="bi bi-trash"></i></button>
+              </div>
+              <div class="d-flex align-items-center gap-2 modal-opt-row">
+                <input type="text" class="form-control form-control-sm rounded-3 modal-opt-input" placeholder="Option 2" value="">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeModalOptionRow(this)" title="Remove option"><i class="bi bi-trash"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-check form-switch mb-2">
+            <input type="checkbox" id="modal_q_required" class="form-check-input">
+            <label for="modal_q_required" class="form-check-label small fw-semibold text-dark">Required Question</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-top p-3 d-flex justify-content-between">
+        <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary rounded-3 px-4 fw-semibold" id="btn_save_modal_question" onclick="submitQuickQuestionModal()">
+          <span id="modal_save_spinner" class="spinner-border spinner-border-sm me-1 d-none"></span>
+          Save & Add to Assignment
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function updateDurationCount() {
+    const startVal = document.getElementById('assignment_start_date')?.value;
+    const endVal = document.getElementById('assignment_end_date')?.value;
+    if (startVal && endVal) {
+      const d1 = new Date(startVal);
+      const d2 = new Date(endVal);
+      const diffTime = d2 - d1;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      const text = diffDays > 0 ? (diffDays + (diffDays === 1 ? ' Day' : ' Days')) : 'Invalid Range';
+      const label = document.getElementById('duration_text');
+      if (label) label.textContent = text;
+    }
+  }
+
+  function filterQuestionsList(query) {
+    const q = query.trim().toLowerCase();
+    const rows = document.querySelectorAll('.question-row-item');
+    rows.forEach(r => {
+      const title = r.getAttribute('data-question-title') || '';
+      if (!q || title.includes(q)) {
+        r.style.display = '';
+      } else {
+        r.style.display = 'none';
+      }
+    });
+  }
+
+  function updateSelectedQuestionsTray() {
+    const cbs = document.querySelectorAll('.question-checkbox:checked');
+    const badge = document.getElementById('selected_questions_count_badge');
+    const chipsContainer = document.getElementById('selected_questions_chips');
+
+    if (badge) badge.textContent = cbs.length + ' Selected';
+
+    if (!chipsContainer) return;
+
+    if (cbs.length === 0) {
+      chipsContainer.innerHTML = '<span class="text-muted small" id="no_questions_selected_text">No questions selected yet. Please check questions from above.</span>';
+      return;
+    }
+
+    let chipsHtml = '';
+    cbs.forEach((cb, idx) => {
+      const qid = cb.getAttribute('data-question-id');
+      const qtitle = cb.getAttribute('data-question-title');
+      const qtype = cb.getAttribute('data-question-type');
+      chipsHtml += `
+        <span class="badge bg-white text-dark border p-2 d-inline-flex align-items-center gap-1.5 shadow-xs" style="font-size: 0.8rem;">
+          <span class="text-primary fw-bold">${idx + 1}.</span>
+          <span class="fw-semibold">${escapeHtml(qtitle)}</span>
+          <span class="text-muted small">(${escapeHtml(qtype)})</span>
+          <i class="bi bi-x-circle text-danger ms-1 cursor-pointer" onclick="uncheckQuestion('${qid}')" title="Remove"></i>
+        </span>
+      `;
+    });
+
+    chipsContainer.innerHTML = chipsHtml;
+  }
+
+  function uncheckQuestion(qid) {
+    const cb = document.querySelector(`.question-checkbox[data-question-id="${qid}"]`);
+    if (cb) {
+      cb.checked = false;
+      updateSelectedQuestionsTray();
+    }
+  }
+
+  function clearAllSelectedQuestions() {
+    document.querySelectorAll('.question-checkbox:checked').forEach(cb => cb.checked = false);
+    updateSelectedQuestionsTray();
+  }
+
+  function validateAssignmentFormSubmission() {
+    const titleInput = document.querySelector('input[name="assignment[title]"]');
+    if (!titleInput || !titleInput.value.trim()) {
+      alert("Please enter an assignment title.");
+      titleInput?.focus();
+      return false;
+    }
+
+    const checkedQuestions = document.querySelectorAll('.question-checkbox:checked');
+    if (checkedQuestions.length === 0) {
+      alert("Please select at least one of your custom questions for this assignment.");
+      return false;
+    }
+
+    return true;
+  }
+
+  function toggleModalQuestionType(val) {
+    const optWrapper = document.getElementById('modal_options_wrapper');
+    const ratingWrapper = document.getElementById('modal_rating_wrapper');
+    
+    if (['multiple_choice', 'checkboxes', 'dropdown'].includes(val)) {
+      if (optWrapper) optWrapper.style.display = 'block';
+      if (ratingWrapper) ratingWrapper.style.display = 'none';
+      ensureMinimumModalOptions();
+    } else if (val === 'rating') {
+      if (optWrapper) optWrapper.style.display = 'none';
+      if (ratingWrapper) ratingWrapper.style.display = 'block';
+    } else {
+      if (optWrapper) optWrapper.style.display = 'none';
+      if (ratingWrapper) ratingWrapper.style.display = 'none';
+    }
+  }
+
+  function ensureMinimumModalOptions() {
+    const container = document.getElementById('modal_options_container');
+    if (!container) return;
+    const currentRows = container.querySelectorAll('.modal-opt-row').length;
+    for (let i = currentRows; i < 2; i++) {
+      addModalOptionRow();
+    }
+  }
+
+  function addModalOptionRow() {
+    const container = document.getElementById('modal_options_container');
+    if (!container) return;
+    const count = container.querySelectorAll('.modal-opt-row').length + 1;
+    const row = document.createElement('div');
+    row.className = 'd-flex align-items-center gap-2 modal-opt-row';
+    row.innerHTML = `
+      <input type="text" class="form-control form-control-sm rounded-3 modal-opt-input" placeholder="Option ${count}" value="">
+      <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeModalOptionRow(this)" title="Remove option"><i class="bi bi-trash"></i></button>
+    `;
+    container.appendChild(row);
+    const inp = row.querySelector('.modal-opt-input');
+    if (inp) {
+      inp.addEventListener('input', () => {
+        inp.classList.remove('is-invalid');
+        const errorBanner = document.getElementById('modal_error_banner');
+        if (errorBanner) errorBanner.classList.add('d-none');
+      });
+      inp.focus();
+    }
+  }
+
+  function removeModalOptionRow(btn) {
+    const container = document.getElementById('modal_options_container');
+    const rows = container?.querySelectorAll('.modal-opt-row');
+    const errorBanner = document.getElementById('modal_error_banner');
+    if (rows && rows.length <= 2) {
+      if (errorBanner) {
+        errorBanner.textContent = "A minimum of 2 options is required for this question type.";
+        errorBanner.classList.remove('d-none');
+      }
+      return;
+    }
+    btn.closest('.modal-opt-row')?.remove();
+    renumberModalOptionPlaceholders();
+    if (errorBanner) errorBanner.classList.add('d-none');
+  }
+
+  function renumberModalOptionPlaceholders() {
+    const container = document.getElementById('modal_options_container');
+    if (!container) return;
+    const inputs = container.querySelectorAll('.modal-opt-input');
+    inputs.forEach((inp, idx) => {
+      inp.placeholder = `Option ${idx + 1}`;
+    });
+  }
+
+  function resetQuickQuestionModal() {
+    const form = document.getElementById('quick_question_form');
+    if (form) form.reset();
+
+    const titleInput = document.getElementById('modal_q_title');
+    if (titleInput) titleInput.classList.remove('is-invalid');
+
+    const errorBanner = document.getElementById('modal_error_banner');
+    if (errorBanner) {
+      errorBanner.textContent = '';
+      errorBanner.classList.add('d-none');
+    }
+
+    const container = document.getElementById('modal_options_container');
+    if (container) {
+      container.innerHTML = `
+        <div class="d-flex align-items-center gap-2 modal-opt-row">
+          <input type="text" class="form-control form-control-sm rounded-3 modal-opt-input" placeholder="Option 1" value="">
+          <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeModalOptionRow(this)" title="Remove option"><i class="bi bi-trash"></i></button>
+        </div>
+        <div class="d-flex align-items-center gap-2 modal-opt-row">
+          <input type="text" class="form-control form-control-sm rounded-3 modal-opt-input" placeholder="Option 2" value="">
+          <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeModalOptionRow(this)" title="Remove option"><i class="bi bi-trash"></i></button>
+        </div>
+      `;
+      container.querySelectorAll('.modal-opt-input').forEach(inp => {
+        inp.addEventListener('input', () => {
+          inp.classList.remove('is-invalid');
+          if (errorBanner) errorBanner.classList.add('d-none');
+        });
+      });
+    }
+
+    toggleModalQuestionType('short_answer');
+  }
+
+  async function submitQuickQuestionModal() {
+    const titleInput = document.getElementById('modal_q_title');
+    const title = titleInput?.value.trim();
+    const qType = document.getElementById('modal_q_type')?.value;
+    const maxRating = document.getElementById('modal_q_max_rating')?.value;
+    const desc = document.getElementById('modal_q_desc')?.value.trim();
+    const required = document.getElementById('modal_q_required')?.checked;
+    const errorBanner = document.getElementById('modal_error_banner');
+    const spinner = document.getElementById('modal_save_spinner');
+    const btn = document.getElementById('btn_save_modal_question');
+
+    // Reset validation errors
+    if (errorBanner) {
+      errorBanner.classList.add('d-none');
+      errorBanner.innerHTML = '';
+    }
+    titleInput?.classList.remove('is-invalid');
+    document.querySelectorAll('.modal-opt-input').forEach(inp => inp.classList.remove('is-invalid'));
+
+    if (!title) {
+      if (errorBanner) {
+        errorBanner.textContent = "Question Title is required.";
+        errorBanner.classList.remove('d-none');
+      }
+      titleInput?.classList.add('is-invalid');
+      titleInput?.focus();
+      return;
+    }
+
+    const payload = {
+      question: {
+        title: title,
+        question_type: qType,
+        max_rating: maxRating,
+        description: desc,
+        required: required,
+        active: true
+      }
+    };
+
+    if (['multiple_choice', 'checkboxes', 'dropdown'].includes(qType)) {
+      const optInputs = Array.from(document.querySelectorAll('.modal-opt-input'));
+      const opts = [];
+      let hasEmptyOption = false;
+      let firstEmptyInput = null;
+
+      optInputs.forEach(inp => {
+        const val = inp.value.trim();
+        if (val) {
+          opts.push({ text: val, value: val });
+        } else {
+          hasEmptyOption = true;
+          inp.classList.add('is-invalid');
+          if (!firstEmptyInput) firstEmptyInput = inp;
+        }
+      });
+
+      if (optInputs.length < 2) {
+        if (errorBanner) {
+          errorBanner.textContent = "Questions of this type require at least 2 options.";
+          errorBanner.classList.remove('d-none');
+        }
+        return;
+      }
+
+      if (hasEmptyOption || opts.length < 2) {
+        if (errorBanner) {
+          if (opts.length === 0) {
+            errorBanner.textContent = "Please enter text for at least 2 options.";
+          } else {
+            errorBanner.textContent = "Option fields cannot be empty. Please enter text or remove unused options.";
+          }
+          errorBanner.classList.remove('d-none');
+        }
+        if (firstEmptyInput) firstEmptyInput.focus();
+        return;
+      }
+
+      payload.question.options_attributes = opts;
+    }
+
+    try {
+      if (spinner) spinner.classList.remove('d-none');
+      if (btn) btn.disabled = true;
+      if (errorBanner) errorBanner.classList.add('d-none');
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+      const resp = await fetch('/participant_portal/questions.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await resp.json();
+
+      if (resp.ok && data.status === 'success') {
+        // Append newly created question to My Questions list
+        const q = data.question;
+        const list = document.getElementById('my_questions_list');
+        const emptyBanner = document.getElementById('no_my_questions_banner');
+        if (emptyBanner) emptyBanner.classList.add('d-none');
+        if (list) list.classList.remove('d-none');
+
+        const newRow = document.createElement('label');
+        newRow.className = 'list-group-item list-group-item-action p-3 border-bottom d-flex align-items-start gap-3 question-row-item cursor-pointer';
+        newRow.setAttribute('data-question-title', `${q.title.toLowerCase()} ${q.question_type}`);
+        newRow.innerHTML = `
+          <input type="checkbox" name="assignment[question_ids][]" value="${q.id}"
+                 class="form-check-input question-checkbox mt-1 cursor-pointer flex-shrink-0"
+                 data-question-id="${q.id}"
+                 data-question-title="${escapeHtml(q.title)}"
+                 data-question-type="${escapeHtml(q.question_type)}"
+                 checked
+                 onchange="updateSelectedQuestionsTray()">
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+              <span class="fw-bold text-dark">${escapeHtml(q.title)} <span class="badge bg-success-subtle text-success ms-1">New</span></span>
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size: 0.72rem;">
+                ${escapeHtml(q.question_type)}
+              </span>
+            </div>
+            ${q.description ? `<small class="text-muted d-block text-truncate" style="max-width: 550px;">${escapeHtml(q.description)}</small>` : ''}
+          </div>
+        `;
+        list.prepend(newRow);
+
+        updateSelectedQuestionsTray();
+
+        // Update available badge
+        const totalBadge = document.getElementById('total_questions_badge');
+        if (totalBadge) {
+          const currentCount = parseInt(totalBadge.textContent) || 0;
+          totalBadge.textContent = (currentCount + 1) + ' Available';
+        }
+
+        // Close modal
+        const modalEl = document.getElementById('quickNewQuestionModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+
+        resetQuickQuestionModal();
+      } else {
+        const errs = data.errors || [data.error || 'Failed to save question'];
+        if (errorBanner) {
+          errorBanner.innerHTML = errs.join('<br>');
+          errorBanner.classList.remove('d-none');
+        }
+      }
+    } catch (e) {
+      if (errorBanner) {
+        errorBanner.textContent = "Network error: " + e.message;
+        errorBanner.classList.remove('d-none');
+      }
+    } finally {
+      if (spinner) spinner.classList.add('d-none');
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateDurationCount();
+    updateSelectedQuestionsTray();
+
+    // Attach real-time validation listeners to quick question modal inputs
+    document.getElementById('modal_q_title')?.addEventListener('input', function() {
+      this.classList.remove('is-invalid');
+      const errorBanner = document.getElementById('modal_error_banner');
+      if (errorBanner) errorBanner.classList.add('d-none');
+    });
+
+    document.querySelectorAll('.modal-opt-input').forEach(inp => {
+      inp.addEventListener('input', function() {
+        this.classList.remove('is-invalid');
+        const errorBanner = document.getElementById('modal_error_banner');
+        if (errorBanner) errorBanner.classList.add('d-none');
+      });
+    });
+
+    const modalEl = document.getElementById('quickNewQuestionModal');
+    if (modalEl) {
+      modalEl.addEventListener('hidden.bs.modal', resetQuickQuestionModal);
+    }
+  });
+</script>

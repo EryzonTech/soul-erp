@@ -66,10 +66,10 @@
     <thead>
       <tr>
         <th style="width: 5%; text-align: center;">#</th>
-        <th style="width: 24%;">Participant Details</th>
-        <th style="width: 14%;">User Type</th>
-        <th style="width: 16%;">Rating</th>
-        <th style="width: 42%;">Feedback Comment</th>
+        <th style="width: 32%;">Participant Details</th>
+        <th style="width: 18%;">User Type</th>
+        <th style="width: 18%;">Rating</th>
+        <th style="width: 27%; text-align: right;">Submitted Date</th>
       </tr>
     </thead>
     <tbody>
@@ -85,14 +85,16 @@
             participant = fb.participant
             user = participant&.user
             user_type = participant&.participant_type.presence || 'student'
+            row_parity = idx.even? ? 'item-even' : 'item-odd'
           %>
-          <tr>
-            <td style="text-align: center; font-weight: 700; color: #64748b;"><%= idx + 1 %></td>
+          <!-- ROW 1: PARTICIPANT & RATING METADATA -->
+          <tr class="feedback-meta-row <%= row_parity %>">
+            <td style="text-align: center; font-weight: 700; color: #64748b; vertical-align: middle;"><%= idx + 1 %></td>
             <td>
               <div style="font-weight: 700; color: #0f172a; font-size: 11.5px;"><%= user&.full_name.presence || "Unknown User" %></div>
               <div style="font-size: 10px; color: #64748b; margin-top: 2px;"><%= user&.email.presence || participant&.phone_number %></div>
             </td>
-            <td>
+            <td style="vertical-align: middle;">
               <% case user_type.downcase %>
               <% when 'student' %>
                 <span class="user-badge badge-student">Student</span>
@@ -104,7 +106,7 @@
                 <span class="user-badge" style="background-color: #64748b; color: #ffffff;"><%= user_type.titleize %></span>
               <% end %>
             </td>
-            <td>
+            <td style="vertical-align: middle;">
               <div class="rating-badge">
                 <span class="rating-stars">
                   <% fb.rating.times do %>★<% end %><% (5 - fb.rating).times do %>☆<% end %>
@@ -112,12 +114,31 @@
                 <span><%= fb.rating %>.0</span>
               </div>
             </td>
-            <td>
-              <div class="feedback-box">
-                <%= fb.content %>
+            <td style="text-align: right; vertical-align: middle;">
+              <div style="font-size: 10.5px; color: #475569; font-weight: 600;">
+                <%= fb.created_at.strftime("%b %d, %Y") %>
               </div>
-              <div style="font-size: 9.5px; color: #94a3b8; margin-top: 5px; font-weight: 500;">
-                Submitted on <%= fb.created_at.strftime("%b %d, %Y at %I:%M %p") %>
+              <div style="font-size: 9.5px; color: #94a3b8; margin-top: 1px;">
+                <%= fb.created_at.strftime("%I:%M %p") %>
+              </div>
+            </td>
+          </tr>
+
+          <!-- ROW 2: FULL-WIDTH FEEDBACK COMMENT -->
+          <tr class="feedback-comment-row <%= row_parity %>">
+            <td class="comment-spacer-td"></td>
+            <td colspan="4" class="feedback-comment-td">
+              <div class="feedback-box">
+                <div style="display: flex; align-items: flex-start; gap: 7px;">
+                  <div style="flex-shrink: 0; margin-top: 2px;">
+                    <svg width="11" height="11" viewBox="0 0 16 16" fill="#4f46e5" style="display: block;">
+                      <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4.414a1 1 0 0 0-.707.293L.854 15.146A.5.5 0 0 1 0 14.793V2zm7.066 3.125c.088-.444.163-.997.163-1.637 0-.57-.08-1.02-.194-1.39-.115-.37-.282-.647-.487-.83-.206-.183-.453-.274-.741-.274-.352 0-.649.12-.89.36-.242.24-.393.578-.454 1.014-.06.436-.09.972-.09 1.608 0 .61.033 1.127.1 1.55.067.424.167.758.3 1.002.133.244.305.414.516.51.21.096.467.144.77.144.444 0 .807-.156 1.09-.468.282-.312.423-.746.423-1.302 0-.256-.032-.5-.096-.732a1.5 1.5 0 0 0-.244-.555zm4.8 0c.088-.444.163-.997.163-1.637 0-.57-.08-1.02-.194-1.39-.115-.37-.282-.647-.487-.83-.206-.183-.453-.274-.741-.274-.352 0-.649.12-.89.36-.242.24-.393.578-.454 1.014-.06.436-.09.972-.09 1.608 0 .61.033 1.127.1 1.55.067.424.167.758.3 1.002.133.244.305.414.516.51.21.096.467.144.77.144.444 0 .807-.156 1.09-.468.282-.312.423-.746.423-1.302 0-.256-.032-.5-.096-.732a1.5 1.5 0 0 0-.244-.555z"/>
+                    </svg>
+                  </div>
+                  <div class="feedback-box-text" style="flex: 1 1 auto; min-width: 0;">
+                    <%= fb.content.presence || "(No written comment provided)" %>
+                  </div>
+                </div>
               </div>
             </td>
           </tr>

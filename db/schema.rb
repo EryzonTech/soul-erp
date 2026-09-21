@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_04_180500) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_21_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -85,6 +85,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_04_180500) do
     t.datetime "updated_at", null: false
     t.integer "response_count"
     t.index ["assignment_id"], name: "index_assignment_response_logs_on_assignment_id"
+    t.index ["institute_id", "response_date"], name: "index_assignment_response_logs_on_institute_and_date"
     t.index ["institute_id"], name: "index_assignment_response_logs_on_institute_id"
     t.index ["participant_id"], name: "index_assignment_response_logs_on_participant_id"
   end
@@ -103,6 +104,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_04_180500) do
     t.index ["assignment_id"], name: "index_assignment_responses_on_assignment_id"
     t.index ["participant_id"], name: "index_assignment_responses_on_participant_id"
     t.index ["question_id"], name: "index_assignment_responses_on_question_id"
+    t.index ["response_date", "participant_id"], name: "index_assignment_responses_on_date_and_participant"
     t.index ["response_date"], name: "index_assignment_responses_on_response_date"
   end
 
@@ -127,7 +129,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_04_180500) do
     t.string "assignment_type", default: "individual"
     t.integer "section_id"
     t.bigint "question_category_id"
+    t.bigint "participant_id"
     t.index ["institute_id"], name: "index_assignments_on_institute_id"
+    t.index ["participant_id"], name: "index_assignments_on_participant_id"
     t.index ["question_category_id"], name: "index_assignments_on_question_category_id"
     t.index ["section_id"], name: "index_assignments_on_section_id"
   end
@@ -255,6 +259,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_04_180500) do
     t.string "address_line1"
     t.string "address_line2"
     t.string "place"
+    t.index ["institute_id", "participant_type"], name: "index_participants_on_institute_and_type"
     t.index ["institute_id"], name: "index_participants_on_institute_id"
     t.index ["phone_number"], name: "index_participants_on_phone_number"
     t.index ["section_id"], name: "index_participants_on_section_id"
@@ -369,7 +374,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_04_180500) do
     t.integer "duration_days"
     t.integer "from_day", default: 1, null: false
     t.integer "to_day"
+    t.bigint "participant_id"
     t.index ["institute_id"], name: "index_questions_on_institute_id"
+    t.index ["participant_id"], name: "index_questions_on_participant_id"
     t.index ["question_category_id"], name: "index_questions_on_question_category_id"
   end
 
@@ -604,6 +611,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_04_180500) do
     t.datetime "updated_at", null: false
     t.integer "training_program_feedbacks_count", default: 0, null: false
     t.index ["institute_id", "program_type"], name: "index_training_programs_on_institute_id_and_program_type"
+    t.index ["institute_id", "status"], name: "index_training_programs_on_institute_and_status"
     t.index ["institute_id"], name: "index_training_programs_on_institute_id"
     t.index ["participant_id"], name: "index_training_programs_on_participant_id"
     t.index ["section_id"], name: "index_training_programs_on_section_id"
@@ -631,6 +639,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_04_180500) do
     t.string "current_sign_in_ip"
     t.string "last_sign_in_ip"
     t.string "phone"
+    t.boolean "view_only", default: false, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["first_name", "last_name"], name: "index_users_on_first_name_and_last_name"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -654,6 +663,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_04_180500) do
   add_foreign_key "assignment_sections", "assignments"
   add_foreign_key "assignment_sections", "sections"
   add_foreign_key "assignments", "institutes"
+  add_foreign_key "assignments", "participants"
   add_foreign_key "assignments", "question_categories"
   add_foreign_key "attendances", "participants"
   add_foreign_key "attendances", "training_programs"
@@ -682,6 +692,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_04_180500) do
   add_foreign_key "question_set_items", "questions"
   add_foreign_key "question_sets", "institutes"
   add_foreign_key "questions", "institutes"
+  add_foreign_key "questions", "participants"
   add_foreign_key "questions", "question_categories"
   add_foreign_key "sections", "institutes"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

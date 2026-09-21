@@ -113,6 +113,8 @@ Rails.application.routes.draw do
   authenticate :user, lambda { |u| u.institute_admin? || u.master_admin? } do
     namespace :institute_admin do
       root "dashboard#index"
+      get "dashboard/chart_data", to: "dashboard#chart_data"
+      get "dashboard/streak_leaderboards", to: "dashboard#streak_leaderboards"
 
       # Add profile routes
       get "profile", to: "profile#show"
@@ -276,7 +278,8 @@ Rails.application.routes.draw do
         resources :sessions, only: [ :show ]
         resources :feedbacks, only: [ :new, :create ], controller: "training_program_feedbacks"
       end
-      resources :assignments, only: [ :index, :show ] do
+      resources :questions
+      resources :assignments do
         member do
           get :take_assignment
           post :submit

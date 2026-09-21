@@ -4,7 +4,7 @@ module InstituteAdmin
 
     def index
       @institute = current_institute
-      @all_questions = @institute.questions.includes(:options).order(position: :asc, created_at: :asc, id: :asc)
+      @all_questions = @institute.questions.where(participant_id: nil).includes(:options).order(position: :asc, created_at: :asc, id: :asc)
       @questions = @all_questions
       @question_types = Question.question_types.keys
 

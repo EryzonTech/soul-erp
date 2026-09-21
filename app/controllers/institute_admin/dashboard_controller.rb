@@ -1,220 +1,69 @@
 module InstituteAdmin
   class DashboardController < InstituteAdmin::BaseController
     def index
-      # Total counts
-      @total_participants = current_institute.participants.count
-  # Today's assignment responses count for this institute
-  # Count distinct (assignment_id, participant_id) so multiple answers from same participant for
-  # the same assignment on the same day are counted once.
-  @today_responses_count = AssignmentResponse.joins(:participant)
-            .where(participants: { institute_id: current_institute.id }, response_date: Date.current)
-            .count("DISTINCT (assignment_responses.assignment_id, assignment_responses.participant_id)")
-      @active_participants = current_institute.participants.active.count
+      # Total counts & participant type distribution (single query)
+      @participant_type_distribution = current_institute.participants
+                                                        .group(:participant_type)
+                                                        .count
+                                                        .transform_keys(&:to_s)
+      @total_participants = @participant_type_distribution.values.sum
+
+      # Today's assignment responses count & distribution (single grouped query)
+      @today_responses_by_type = fetch_today_responses_by_type(Date.current)
+      @today_responses_count = @today_responses_by_type.values.sum
+
       @total_trainers = current_institute.trainers.count
-      @active_trainers = current_institute.active_trainers_count
       @total_sections = current_institute.sections.count
-      @active_sections = current_institute.sections.active.count
       @total_questions = current_institute.questions.count
-      @total_question_sets = current_institute.question_sets.count
       @total_assignments = current_institute.assignments.count
+      @assignment_type_distribution = fetch_assignment_type_distribution
+
       @total_training_programs = current_institute.training_programs.count
-      begin
-  # Use AssignmentResponse as the base and LEFT JOIN assignments so we include responses
-  # even if the assignment record is missing/soft-deleted. COALESCE the title for display.
-  # Use Arel.sql to safely include raw SQL expressions (COALESCE and COUNT DISTINCT)
-  assignment_counts = AssignmentResponse.joins(:participant)
-        .left_joins(:assignment)
-        .where(participants: { institute_id: current_institute.id }, response_date: Date.current)
-        .group("assignments.id", Arel.sql("COALESCE(assignments.title, 'Deleted Assignment')"))
-        .order(Arel.sql("COUNT(DISTINCT assignment_responses.participant_id) DESC"))
-        .limit(10)
-        .pluck(Arel.sql("COALESCE(assignments.title, 'Deleted Assignment')"), Arel.sql("COUNT(DISTINCT assignment_responses.participant_id)"))
+      @training_programs_by_type = fetch_training_programs_by_type
 
-        @assignment_labels = assignment_counts.map { |t, _| t || "Untitled" }
-        @assignment_data = assignment_counts.map { |_, c| c }
+      # Submissions Over Time & Backlog Trend (default: last 14 days)
+      @submission_start_date = params[:submission_start_date].present? ? (Date.parse(params[:submission_start_date]) rescue (Date.current - 13.days)) : (Date.current - 13.days)
+      @submission_end_date = params[:submission_end_date].present? ? (Date.parse(params[:submission_end_date]) rescue Date.current) : Date.current
+      @submission_start_date, @submission_end_date = @submission_end_date, @submission_start_date if @submission_start_date > @submission_end_date
 
-        # If no data found, log a helpful debug message
-        if @assignment_data.blank?
-          Rails.logger.info "Submissions by Assignment: no results for institute=#{current_institute.id} date=#{Date.current} (assignment_counts empty)"
-        end
-      rescue => e
-        Rails.logger.error "Error preparing submissions by assignment data: #{e.message}"
-        @assignment_labels = []
-        @assignment_data = []
-      end
+      sub_data = fetch_assignment_submission_data(@submission_start_date, @submission_end_date)
+      @submissions_time_labels = sub_data[:labels]
+      @submissions_time_data = sub_data[:total_data]
+      @student_submissions_data = sub_data[:student_data]
+      @guardian_submissions_data = sub_data[:guardian_data]
+      @employee_submissions_data = sub_data[:employee_data]
+      @backlog_labels = sub_data[:labels]
+      @backlog_data = sub_data[:backlog_data]
 
-      # Submissions by Section (today) - count distinct (assignment_id, participant_id) per section
-      begin
-  section_counts = AssignmentResponse.joins(participant: :section)
-        .where(participants: { institute_id: current_institute.id }, response_date: Date.current)
-        .group("sections.id", "sections.name")
-        .order(Arel.sql("COUNT(DISTINCT (assignment_responses.assignment_id, assignment_responses.participant_id)) DESC"))
-        .limit(10)
-        .pluck("sections.name", Arel.sql("COUNT(DISTINCT (assignment_responses.assignment_id, assignment_responses.participant_id))"))
+      # Submissions by Assignment (Today / default: Date.current)
+      @assignment_date = params[:assignment_date].present? ? (Date.parse(params[:assignment_date]) rescue Date.current) : Date.current
+      asg_data = fetch_submissions_by_assignment(@assignment_date, @assignment_date)
+      @assignment_labels = asg_data[:labels]
+      @assignment_data = asg_data[:data]
 
-        @submissions_section_labels = section_counts.map { |t, _| t || "No Section" }
-        @submissions_section_data = section_counts.map { |_, c| c }
-      rescue => e
-        Rails.logger.error "Error preparing submissions by section data: #{e.message}"
-        @submissions_section_labels = []
-        @submissions_section_data = []
-      end
-
-      # ...completion rate chart removed
+      # Submissions by Section (Today / default: Date.current)
+      @section_date = params[:section_date].present? ? (Date.parse(params[:section_date]) rescue Date.current) : Date.current
+      sec_data = fetch_submissions_by_section(@section_date, @section_date)
+      @submissions_section_labels = sec_data[:labels]
+      @submissions_section_data = sec_data[:data]
 
       # Not-submitted by Assignment (Top 10)
-      begin
-        date = Date.current
-        institute_id = current_institute.id
+      @not_submitted_start_date = params[:not_submitted_start_date].present? ? (Date.parse(params[:not_submitted_start_date]) rescue Date.current) : (params[:not_submitted_date].present? ? (Date.parse(params[:not_submitted_date]) rescue Date.current) : Date.current)
+      @not_submitted_end_date = params[:not_submitted_end_date].present? ? (Date.parse(params[:not_submitted_end_date]) rescue @not_submitted_start_date) : @not_submitted_start_date
+      @not_submitted_start_date, @not_submitted_end_date = @not_submitted_end_date, @not_submitted_start_date if @not_submitted_start_date > @not_submitted_end_date
+      @not_submitted_date = @not_submitted_end_date
+      not_sub_data = fetch_not_submitted_by_assignment(@not_submitted_start_date, @not_submitted_end_date)
+      @not_submitted_assignment_labels = not_sub_data[:labels]
+      @not_submitted_assignment_data = not_sub_data[:data]
 
-        assignments_sql = <<-SQL
-          SELECT a.id, a.title,
-            COUNT(DISTINCT p.id) AS expected_count,
-            COALESCE(cc.completed_count, 0) AS completed_count,
-            (COUNT(DISTINCT p.id) - COALESCE(cc.completed_count, 0)) AS pending_count
-          FROM assignments a
-          LEFT JOIN assignment_participants ap ON ap.assignment_id = a.id
-          LEFT JOIN assignment_sections asg ON asg.assignment_id = a.id
-          LEFT JOIN participants p ON (ap.participant_id = p.id OR p.section_id = asg.section_id)
-          LEFT JOIN users u ON u.id = p.user_id AND u.active = true
-          LEFT JOIN (
-            SELECT assignment_id, COUNT(DISTINCT participant_id) AS completed_count
-            FROM assignment_response_logs
-            WHERE response_date = '#{date}' AND institute_id = #{institute_id}
-            GROUP BY assignment_id
-          ) cc ON cc.assignment_id = a.id
-          WHERE a.active = true
-            AND DATE(a.start_date) <= '#{date}' AND DATE(a.end_date) >= '#{date}'
-            AND p.institute_id = #{institute_id}
-          GROUP BY a.id, a.title, cc.completed_count
-          HAVING (COUNT(DISTINCT p.id) - COALESCE(cc.completed_count, 0)) > 0
-          ORDER BY pending_count DESC
-          LIMIT 10
-        SQL
-
-        rows = ActiveRecord::Base.connection.exec_query(assignments_sql).to_a
-        @not_submitted_assignment_labels = rows.map { |r| r["title"] }
-        @not_submitted_assignment_data = rows.map { |r| r["pending_count"].to_i }
-      rescue => e
-        Rails.logger.error "Error preparing not-submitted-by-assignment data: #{e.message}"
-        @not_submitted_assignment_labels = []
-        @not_submitted_assignment_data = []
-      end
-
-      # Pending by Section (today)
-      begin
-        date = Date.current
-        institute_id = current_institute.id
-        sections_sql = <<-SQL
-          SELECT s.id, s.name,
-            COUNT(DISTINCT p.id) AS expected_count,
-            COALESCE(sc.completed_count, 0) AS completed_count,
-            (COUNT(DISTINCT p.id) - COALESCE(sc.completed_count, 0)) AS pending_count
-          FROM sections s
-          JOIN participants p ON p.section_id = s.id
-          LEFT JOIN assignment_sections asg ON asg.section_id = s.id
-          LEFT JOIN assignments a ON a.id = asg.assignment_id
-          LEFT JOIN users u ON u.id = p.user_id AND u.active = true
-          LEFT JOIN (
-            SELECT participant_id, COUNT(DISTINCT assignment_id) AS completed_count, NULL as section_id
-            FROM assignment_response_logs
-            WHERE response_date = '#{date}' AND institute_id = #{institute_id}
-            GROUP BY participant_id
-          ) sc ON sc.participant_id = p.id
-          WHERE p.institute_id = #{institute_id}
-            AND a.active = true
-            AND DATE(a.start_date) <= '#{date}' AND DATE(a.end_date) >= '#{date}'
-          GROUP BY s.id, s.name, sc.completed_count
-          HAVING (COUNT(DISTINCT p.id) - COALESCE(sc.completed_count, 0)) > 0
-          ORDER BY pending_count DESC
-          LIMIT 10
-        SQL
-
-        sec_rows = ActiveRecord::Base.connection.exec_query(sections_sql).to_a
-        if sec_rows.blank?
-          # Fallback method: compute expected per section from participants and subtract completed per section
-          begin
-            sections = current_institute.sections
-                        .joins(:participants)
-                        .where(participants: { institute_id: institute_id })
-                        .select("sections.id, sections.name, COUNT(DISTINCT participants.id) as expected_count")
-                        .group("sections.id, sections.name")
-
-            completed_by_section = AssignmentResponse.joins(:participant)
-                                     .where(response_date: date, participants: { institute_id: institute_id })
-                                     .group("participants.section_id")
-                                     .count("DISTINCT (assignment_responses.assignment_id, assignment_responses.participant_id)")
-
-            @pending_section_labels = []
-            @pending_section_data = []
-            sections.each do |s|
-              expected = s.expected_count.to_i
-              completed = completed_by_section[s.id] || 0
-              pending = [ expected - completed, 0 ].max
-              if pending > 0
-                @pending_section_labels << s.name
-                @pending_section_data << pending
-              end
-            end
-            # keep only top 10 by pending
-            if @pending_section_labels.present?
-              combined = @pending_section_labels.zip(@pending_section_data)
-              combined = combined.sort_by { |_, v| -v }[0, 10]
-              @pending_section_labels, @pending_section_data = combined.map(&:first), combined.map(&:last)
-            end
-          rescue => fb_e
-            Rails.logger.error "Fallback preparing pending-by-section failed: #{fb_e.message}"
-            @pending_section_labels = []
-            @pending_section_data = []
-          end
-        else
-          @pending_section_labels = sec_rows.map { |r| r["name"] }
-          @pending_section_data = sec_rows.map { |r| r["pending_count"].to_i }
-        end
-      rescue => e
-        Rails.logger.error "Error preparing pending-by-section data: #{e.message}"
-        @pending_section_labels = []
-        @pending_section_data = []
-      end
-
-      # Backlog trend (last 14 days) - pending totals per day
-      begin
-        date_range = (Date.current - 13)..Date.current
-        backlog_labels = []
-        backlog_data = []
-        date_range.each do |d|
-          # expected pairs
-          expected_q = ActiveRecord::Base.connection.exec_query(<<-SQL, "SQL")
-            SELECT COUNT(DISTINCT (a.id, p.id)) AS expected_count
-            FROM assignments a
-            LEFT JOIN assignment_participants ap ON ap.assignment_id = a.id
-            LEFT JOIN assignment_sections asg ON asg.assignment_id = a.id
-            LEFT JOIN participants p ON (ap.participant_id = p.id OR p.section_id = asg.section_id)
-            LEFT JOIN users u ON u.id = p.user_id
-            WHERE a.active = true
-              AND DATE(a.start_date) <= '#{d}' AND DATE(a.end_date) >= '#{d}'
-              AND p.institute_id = #{institute_id} AND u.active = true
-          SQL
-          expected = expected_q.rows.present? ? expected_q.rows.first.first.to_i : 0
-
-          completed_q = ActiveRecord::Base.connection.exec_query(<<-SQL, "SQL")
-            SELECT COUNT(DISTINCT (assignment_id, participant_id)) AS completed_count
-            FROM assignment_response_logs
-            WHERE institute_id = #{institute_id} AND response_date = '#{d}'
-          SQL
-          completed = completed_q.rows.present? ? completed_q.rows.first.first.to_i : 0
-
-          backlog_labels << d.strftime("%b %d")
-          backlog_data << [ expected - completed, 0 ].max
-        end
-
-        @backlog_labels = backlog_labels
-        @backlog_data = backlog_data
-      rescue => e
-        Rails.logger.error "Error preparing backlog trend data: #{e.message}"
-        @backlog_labels = []
-        @backlog_data = []
-      end
+      # Pending by Section (Top 10)
+      @pending_section_start_date = params[:pending_section_start_date].present? ? (Date.parse(params[:pending_section_start_date]) rescue Date.current) : (params[:pending_section_date].present? ? (Date.parse(params[:pending_section_date]) rescue Date.current) : Date.current)
+      @pending_section_end_date = params[:pending_section_end_date].present? ? (Date.parse(params[:pending_section_end_date]) rescue @pending_section_start_date) : @pending_section_start_date
+      @pending_section_start_date, @pending_section_end_date = @pending_section_end_date, @pending_section_start_date if @pending_section_start_date > @pending_section_end_date
+      @pending_section_date = @pending_section_end_date
+      pend_data = fetch_pending_by_section(@pending_section_start_date, @pending_section_end_date)
+      @pending_section_labels = pend_data[:labels]
+      @pending_section_data = pend_data[:data]
 
       # Section-wise participant data
       section_data = current_institute.sections.active
@@ -231,47 +80,31 @@ module InstituteAdmin
         capacity: section_data.map(&:capacity)
       }
 
-      # If no section data, provide default empty arrays
       if @section_labels.empty?
         @section_labels = []
         @section_data = { participants: [], capacity: [] }
       end
 
-      # Participant type data
-      participant_types = current_institute.participants
-        .joins(:user)
-        .where(users: { active: true })
-        .group(:participant_type)
-        .count
-
+      # Participant type chart data (derived in memory from distribution)
       @type_labels = [ "Student", "Guardian", "Employee" ]
-      @type_data = @type_labels.map { |type| participant_types[type.downcase] || 0 }
-
-      # Training program statistics
-      @active_programs_count = current_institute.training_programs.where(status: :ongoing).count
-      @active_programs_percentage = calculate_percentage(@active_programs_count, @total_training_programs)
-
-      # Submissions over time (last 14 days) - count distinct (assignment, participant) per day
-      begin
-        date_range = (Date.current - 13)..Date.current
-        submissions_by_date = AssignmentResponse.joins(:participant)
-                                .where(participants: { institute_id: current_institute.id }, response_date: date_range)
-                                .group(:response_date)
-                                .count("DISTINCT (assignment_responses.assignment_id, assignment_responses.participant_id)")
-
-        @submissions_time_labels = date_range.map { |d| d.strftime("%b %d") }
-        @submissions_time_data = date_range.map { |d| submissions_by_date[d] || 0 }
-      rescue => e
-        Rails.logger.error "Error preparing submissions over time data: #{e.message}"
-        @submissions_time_labels = []
-        @submissions_time_data = []
-      end
+      @type_data = @type_labels.map { |type| @participant_type_distribution[type.downcase] || 0 }
 
       # Feedback statistics
+      @feedback_by_type = fetch_feedback_by_type
       calculate_feedback_statistics
 
       # Training program feedback data
       @program_feedback_data = get_program_feedback_data
+
+      # Streak leaderboards initial data
+      @available_assignments = current_institute.assignments.select(:id, :title, :start_date, :end_date, :section_id).order(created_at: :desc)
+      @default_assignment = @available_assignments.first
+      streak_data = fetch_streak_leaderboard_data(@default_assignment, 10, 10)
+      @top_submitting_participants = streak_data[:top]
+      @bottom_submitting_participants = streak_data[:bottom]
+
+      # Recent feedback programs for accordion
+      @recent_feedback_programs = fetch_recent_feedback_programs
 
       # Recent training programs
       @recent_programs = current_institute.training_programs
@@ -297,21 +130,332 @@ module InstituteAdmin
         end
     end
 
+    # AJAX endpoint for interactive chart filtering without full-page reload
+    def chart_data
+      case params[:chart]
+      when "assignment_submission"
+        start_date = params[:start_date].present? ? (Date.parse(params[:start_date]) rescue (Date.current - 13.days)) : (Date.current - 13.days)
+        end_date = params[:end_date].present? ? (Date.parse(params[:end_date]) rescue Date.current) : Date.current
+        start_date, end_date = end_date, start_date if start_date > end_date
+        render json: { success: true, **fetch_assignment_submission_data(start_date, end_date) }
+
+      when "submissions_by_assignment"
+        start_date = params[:start_date].present? ? (Date.parse(params[:start_date]) rescue Date.current) : (params[:date].present? ? (Date.parse(params[:date]) rescue Date.current) : Date.current)
+        end_date = params[:end_date].present? ? (Date.parse(params[:end_date]) rescue start_date) : start_date
+        start_date, end_date = end_date, start_date if start_date > end_date
+        render json: { success: true, **fetch_submissions_by_assignment(start_date, end_date) }
+
+      when "submissions_by_section"
+        start_date = params[:start_date].present? ? (Date.parse(params[:start_date]) rescue Date.current) : (params[:date].present? ? (Date.parse(params[:date]) rescue Date.current) : Date.current)
+        end_date = params[:end_date].present? ? (Date.parse(params[:end_date]) rescue start_date) : start_date
+        start_date, end_date = end_date, start_date if start_date > end_date
+        render json: { success: true, **fetch_submissions_by_section(start_date, end_date) }
+
+      when "not_submitted_assignment"
+        start_date = params[:start_date].present? ? (Date.parse(params[:start_date]) rescue Date.current) : (params[:date].present? ? (Date.parse(params[:date]) rescue Date.current) : Date.current)
+        end_date = params[:end_date].present? ? (Date.parse(params[:end_date]) rescue start_date) : start_date
+        start_date, end_date = end_date, start_date if start_date > end_date
+        render json: { success: true, **fetch_not_submitted_by_assignment(start_date, end_date) }
+
+      when "pending_section"
+        start_date = params[:start_date].present? ? (Date.parse(params[:start_date]) rescue Date.current) : (params[:date].present? ? (Date.parse(params[:date]) rescue Date.current) : Date.current)
+        end_date = params[:end_date].present? ? (Date.parse(params[:end_date]) rescue start_date) : start_date
+        start_date, end_date = end_date, start_date if start_date > end_date
+        render json: { success: true, **fetch_pending_by_section(start_date, end_date) }
+
+      when "backlog_trend"
+        start_date = params[:start_date].present? ? (Date.parse(params[:start_date]) rescue (Date.current - 13.days)) : (Date.current - 13.days)
+        end_date = params[:end_date].present? ? (Date.parse(params[:end_date]) rescue Date.current) : Date.current
+        start_date, end_date = end_date, start_date if start_date > end_date
+        date_range = (start_date..end_date).to_a
+        render json: {
+          success: true,
+          labels: date_range.map { |d| d.strftime("%b %d") },
+          raw_dates: date_range.map(&:to_s),
+          data: fetch_backlog_data_for_range(start_date, end_date, date_range)
+        }
+
+      else
+        render json: { success: false, error: "Invalid chart requested" }, status: :bad_request
+      end
+    rescue => e
+      Rails.logger.error "DashboardController#chart_data error: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+      render json: { success: false, error: e.message }, status: :internal_server_error
+    end
+
+    def streak_leaderboards
+      top_limit = params[:top_limit].present? ? [ params[:top_limit].to_i, 1 ].max : 10
+      bottom_limit = params[:bottom_limit].present? ? [ params[:bottom_limit].to_i, 1 ].max : 10
+
+      data = fetch_streak_leaderboard_data(params[:assignment_id], top_limit, bottom_limit)
+      render json: { success: true, **data }
+    rescue => e
+      Rails.logger.error "DashboardController#streak_leaderboards error: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+      render json: { success: false, error: e.message }, status: :internal_server_error
+    end
+
     private
+
+    def fetch_assignment_submission_data(start_date, end_date)
+      date_range = (start_date..end_date).to_a
+      labels = date_range.map { |d| d.strftime("%b %d") }
+
+      # Group submissions by date and participant_type
+      subs_by_type = AssignmentResponse.joins(:participant)
+        .where(participants: { institute_id: current_institute.id }, response_date: start_date..end_date)
+        .group("assignment_responses.response_date", "participants.participant_type")
+        .count("DISTINCT (assignment_responses.assignment_id, assignment_responses.participant_id)")
+
+      # Total submissions per date derived in memory without redundant query
+      subs_totals_by_date = Hash.new(0)
+      subs_by_type.each do |(date, _type), count|
+        subs_totals_by_date[date] += count
+      end
+
+      student_data = date_range.map { |d| subs_by_type[[ d, "student" ]] || 0 }
+      guardian_data = date_range.map { |d| subs_by_type[[ d, "guardian" ]] || 0 }
+      employee_data = date_range.map { |d| subs_by_type[[ d, "employee" ]] || 0 }
+      total_data = date_range.map { |d| subs_totals_by_date[d] || 0 }
+
+      backlog_data = fetch_backlog_data_for_range(start_date, end_date, date_range)
+
+      {
+        labels: labels,
+        raw_dates: date_range.map(&:to_s),
+        student_data: student_data,
+        guardian_data: guardian_data,
+        employee_data: employee_data,
+        total_data: total_data,
+        backlog_data: backlog_data
+      }
+    rescue => e
+      Rails.logger.error "Error preparing assignment submission data: #{e.message}"
+      { labels: [], raw_dates: [], student_data: [], guardian_data: [], employee_data: [], total_data: [], backlog_data: [] }
+    end
+
+    def fetch_backlog_data_for_range(start_date, end_date, date_range)
+      comp_counts = AssignmentResponseLog.where(institute_id: current_institute.id, response_date: start_date.beginning_of_day..end_date.end_of_day)
+        .group("DATE(response_date)")
+        .count("DISTINCT (assignment_id, participant_id)")
+        .transform_keys { |k| k.is_a?(String) ? Date.parse(k) : k.to_date }
+
+      exp_sql = ActiveRecord::Base.sanitize_sql_array([ <<-SQL, current_institute.id, end_date, start_date ])
+        SELECT a.id, DATE(a.start_date) as s_date, DATE(a.end_date) as e_date, COUNT(DISTINCT p.id) as expected_count
+        FROM assignments a
+        LEFT JOIN assignment_participants ap ON ap.assignment_id = a.id
+        LEFT JOIN assignment_sections asg ON asg.assignment_id = a.id
+        LEFT JOIN participants p ON (ap.participant_id = p.id OR p.section_id = asg.section_id OR p.section_id = a.section_id)
+        LEFT JOIN users u ON u.id = p.user_id
+        WHERE a.active = true
+          AND a.institute_id = ?
+          AND u.active = true
+          AND DATE(a.start_date) <= ? AND DATE(a.end_date) >= ?
+        GROUP BY a.id, a.start_date, a.end_date
+      SQL
+      exp_assignments = ActiveRecord::Base.connection.exec_query(exp_sql).to_a
+
+      date_range.map do |d|
+        exp = exp_assignments.select { |a| a["s_date"].to_date <= d && a["e_date"].to_date >= d }.sum { |a| a["expected_count"].to_i }
+        comp = comp_counts[d] || 0
+        [ exp - comp, 0 ].max
+      end
+    rescue => e
+      Rails.logger.error "Error preparing backlog trend data: #{e.message}"
+      date_range.map { 0 }
+    end
+
+    def fetch_submissions_by_assignment(start_date, end_date)
+      range = (start_date == end_date ? start_date : start_date..end_date)
+      counts = AssignmentResponse.joins(:participant)
+        .left_joins(:assignment)
+        .where(participants: { institute_id: current_institute.id }, response_date: range)
+        .group("assignments.id", Arel.sql("COALESCE(assignments.title, 'Deleted Assignment')"))
+        .order(Arel.sql("COUNT(DISTINCT assignment_responses.participant_id) DESC"))
+        .limit(10)
+        .pluck(Arel.sql("COALESCE(assignments.title, 'Deleted Assignment')"), Arel.sql("COUNT(DISTINCT assignment_responses.participant_id)"))
+
+      {
+        labels: counts.map { |t, _| t || "Untitled" },
+        data: counts.map { |_, c| c }
+      }
+    rescue => e
+      Rails.logger.error "Error preparing submissions by assignment: #{e.message}"
+      { labels: [], data: [] }
+    end
+
+    def fetch_submissions_by_section(start_date, end_date)
+      range = (start_date == end_date ? start_date : start_date..end_date)
+      counts = AssignmentResponse.joins(participant: :section)
+        .where(participants: { institute_id: current_institute.id }, response_date: range)
+        .group("sections.id", "sections.name")
+        .order(Arel.sql("COUNT(DISTINCT (assignment_responses.assignment_id, assignment_responses.participant_id)) DESC"))
+        .limit(10)
+        .pluck("sections.name", Arel.sql("COUNT(DISTINCT (assignment_responses.assignment_id, assignment_responses.participant_id))"))
+
+      {
+        labels: counts.map { |t, _| t || "No Section" },
+        data: counts.map { |_, c| c }
+      }
+    rescue => e
+      Rails.logger.error "Error preparing submissions by section: #{e.message}"
+      { labels: [], data: [] }
+    end
+
+    def fetch_not_submitted_by_assignment(start_date, end_date = start_date)
+      start_date, end_date = end_date, start_date if start_date > end_date
+      assignments_sql = ActiveRecord::Base.sanitize_sql([ <<-SQL, { start_date: start_date, end_date: end_date, inst_id: current_institute.id } ])
+        SELECT a.id, a.title,
+          (COUNT(DISTINCT p.id) * (LEAST(DATE(a.end_date), :end_date) - GREATEST(DATE(a.start_date), :start_date) + 1)) AS expected_count,
+          COALESCE(cc.completed_count, 0) AS completed_count,
+          ((COUNT(DISTINCT p.id) * (LEAST(DATE(a.end_date), :end_date) - GREATEST(DATE(a.start_date), :start_date) + 1)) - COALESCE(cc.completed_count, 0)) AS pending_count
+        FROM assignments a
+        LEFT JOIN assignment_participants ap ON ap.assignment_id = a.id
+        LEFT JOIN assignment_sections asg ON asg.assignment_id = a.id
+        LEFT JOIN participants p ON (ap.participant_id = p.id OR p.section_id = asg.section_id OR p.section_id = a.section_id)
+        LEFT JOIN users u ON u.id = p.user_id AND u.active = true
+        LEFT JOIN (
+          SELECT assignment_id, COUNT(DISTINCT (participant_id, DATE(response_date))) AS completed_count
+          FROM assignment_response_logs
+          WHERE DATE(response_date) BETWEEN :start_date AND :end_date AND institute_id = :inst_id
+          GROUP BY assignment_id
+        ) cc ON cc.assignment_id = a.id
+        WHERE a.active = true
+          AND a.institute_id = :inst_id
+          AND DATE(a.start_date) <= :end_date AND DATE(a.end_date) >= :start_date
+          AND p.institute_id = :inst_id
+        GROUP BY a.id, a.title, a.start_date, a.end_date, cc.completed_count
+        HAVING ((COUNT(DISTINCT p.id) * (LEAST(DATE(a.end_date), :end_date) - GREATEST(DATE(a.start_date), :start_date) + 1)) - COALESCE(cc.completed_count, 0)) > 0
+        ORDER BY pending_count DESC
+        LIMIT 10
+      SQL
+      rows = ActiveRecord::Base.connection.exec_query(assignments_sql).to_a
+      {
+        labels: rows.map { |r| r["title"] || "Untitled" },
+        data: rows.map { |r| r["pending_count"].to_i },
+        expected: rows.map { |r| r["expected_count"].to_i },
+        completed: rows.map { |r| r["completed_count"].to_i }
+      }
+    rescue => e
+      Rails.logger.error "Error preparing not-submitted-by-assignment data: #{e.message}"
+      { labels: [], data: [], expected: [], completed: [] }
+    end
+
+    def fetch_pending_by_section(start_date, end_date = start_date)
+      start_date, end_date = end_date, start_date if start_date > end_date
+      sections_sql = ActiveRecord::Base.sanitize_sql([ <<-SQL, { start_date: start_date, end_date: end_date, inst_id: current_institute.id } ])
+        WITH section_assignments AS (
+          SELECT DISTINCT s.id AS section_id, s.name AS section_name, a.id AS assignment_id, p.id AS participant_id,
+            (LEAST(DATE(a.end_date), :end_date) - GREATEST(DATE(a.start_date), :start_date) + 1) AS expected_for_pair
+          FROM sections s
+          JOIN participants p ON p.section_id = s.id AND p.institute_id = :inst_id
+          JOIN users u ON u.id = p.user_id AND u.active = true
+          LEFT JOIN assignment_sections asg ON asg.section_id = s.id
+          JOIN assignments a ON (a.id = asg.assignment_id OR a.section_id = s.id)
+            AND a.active = true
+            AND DATE(a.start_date) <= :end_date AND DATE(a.end_date) >= :start_date
+          WHERE s.institute_id = :inst_id
+        ),
+        section_completed AS (
+          SELECT p.section_id, COUNT(DISTINCT (arl.assignment_id, arl.participant_id, DATE(arl.response_date))) AS completed_count
+          FROM assignment_response_logs arl
+          JOIN participants p ON p.id = arl.participant_id AND p.institute_id = :inst_id
+          JOIN users u ON u.id = p.user_id AND u.active = true
+          JOIN assignments a ON a.id = arl.assignment_id AND a.active = true
+          WHERE arl.institute_id = :inst_id
+            AND DATE(arl.response_date) BETWEEN :start_date AND :end_date
+          GROUP BY p.section_id
+        )
+        SELECT sa.section_id AS id, sa.section_name AS name,
+          SUM(sa.expected_for_pair) AS expected_count,
+          COALESCE(sc.completed_count, 0) AS completed_count,
+          (SUM(sa.expected_for_pair) - COALESCE(sc.completed_count, 0)) AS pending_count
+        FROM section_assignments sa
+        LEFT JOIN section_completed sc ON sc.section_id = sa.section_id
+        GROUP BY sa.section_id, sa.section_name, sc.completed_count
+        HAVING (SUM(sa.expected_for_pair) - COALESCE(sc.completed_count, 0)) > 0
+        ORDER BY pending_count DESC
+        LIMIT 10
+      SQL
+      sec_rows = ActiveRecord::Base.connection.exec_query(sections_sql).to_a
+      {
+        labels: sec_rows.map { |r| r["name"] || "No Section" },
+        data: sec_rows.map { |r| r["pending_count"].to_i }
+      }
+    rescue => e
+      Rails.logger.error "Error preparing pending-by-section data: #{e.message}"
+      { labels: [], data: [] }
+    end
+
+    def fetch_assignment_type_distribution
+      sql = ActiveRecord::Base.sanitize_sql_array([ <<-SQL, current_institute.id ])
+        SELECT p.participant_type, COUNT(DISTINCT a.id) as assignment_count
+        FROM assignments a
+        LEFT JOIN assignment_participants ap ON ap.assignment_id = a.id
+        LEFT JOIN assignment_sections asg ON asg.assignment_id = a.id
+        LEFT JOIN participants p ON (ap.participant_id = p.id OR p.section_id = asg.section_id OR p.section_id = a.section_id)
+        WHERE a.institute_id = ?
+        GROUP BY p.participant_type
+      SQL
+      ActiveRecord::Base.connection.exec_query(sql).to_h { |r| [ r["participant_type"].to_s, r["assignment_count"].to_i ] }
+    rescue => e
+      Rails.logger.error "Error preparing assignment type distribution: #{e.message}"
+      {}
+    end
+
+    def fetch_today_responses_by_type(date = Date.current)
+      sql = ActiveRecord::Base.sanitize_sql_array([ <<-SQL, current_institute.id, date ])
+        SELECT p.participant_type, COUNT(DISTINCT (ar.assignment_id, ar.participant_id)) as response_count
+        FROM assignment_responses ar
+        JOIN participants p ON p.id = ar.participant_id
+        WHERE p.institute_id = ? AND ar.response_date = ?
+        GROUP BY p.participant_type
+      SQL
+      ActiveRecord::Base.connection.exec_query(sql).to_h { |r| [ r["participant_type"].to_s, r["response_count"].to_i ] }
+    rescue => e
+      Rails.logger.error "Error preparing today responses by type: #{e.message}"
+      {}
+    end
+
+    def fetch_training_programs_by_type
+      sql = ActiveRecord::Base.sanitize_sql_array([ <<-SQL, current_institute.id ])
+        SELECT p.participant_type, COUNT(DISTINCT tp.id) as programs_count
+        FROM training_programs tp
+        LEFT JOIN training_program_participants tpp ON tpp.training_program_id = tp.id
+        LEFT JOIN training_program_sections tps ON tps.training_program_id = tp.id
+        LEFT JOIN participants p ON (tpp.participant_id = p.id OR p.section_id = tps.section_id OR tp.participant_id = p.id OR p.section_id = tp.section_id)
+        WHERE tp.institute_id = ?
+        GROUP BY p.participant_type
+      SQL
+      ActiveRecord::Base.connection.exec_query(sql).to_h { |r| [ r["participant_type"].to_s, r["programs_count"].to_i ] }
+    rescue => e
+      Rails.logger.error "Error preparing training programs by type: #{e.message}"
+      {}
+    end
+
+    def fetch_feedback_by_type
+      sql = ActiveRecord::Base.sanitize_sql_array([ <<-SQL, current_institute.id ])
+        SELECT p.participant_type, COUNT(tpf.id) as feedback_count
+        FROM training_program_feedbacks tpf
+        JOIN training_programs tp ON tp.id = tpf.training_program_id
+        JOIN participants p ON p.id = tpf.participant_id
+        WHERE tp.institute_id = ?
+        GROUP BY p.participant_type
+      SQL
+      ActiveRecord::Base.connection.exec_query(sql).to_h { |r| [ r["participant_type"].to_s, r["feedback_count"].to_i ] }
+    rescue => e
+      Rails.logger.error "Error preparing feedback by type: #{e.message}"
+      {}
+    end
 
     def calculate_feedback_statistics
       begin
-        # Get all feedback through training programs
-        @total_feedback_received = TrainingProgramFeedback.joins(:training_program)
-                                    .where(training_programs: { institute_id: current_institute.id })
-                                    .count
-
         total_possible_feedback = TrainingProgramParticipant
           .joins(:training_program)
           .where(training_programs: { institute_id: current_institute.id })
           .count
 
-        @total_feedback_pending = total_possible_feedback - @total_feedback_received
+        @total_feedback_received = (@feedback_by_type || {}).values.sum
+        @total_feedback_pending = [ total_possible_feedback - @total_feedback_received, 0 ].max
         @feedback_received_percentage = calculate_percentage(@total_feedback_received, total_possible_feedback)
         @feedback_pending_percentage = calculate_percentage(@total_feedback_pending, total_possible_feedback)
       rescue => e
@@ -329,29 +473,198 @@ module InstituteAdmin
                     .left_joins(:training_program_participants)
                     .select("training_programs.*, COUNT(training_program_participants.id) AS participants_count")
                     .group("training_programs.id")
-                    .limit(10)
+                    .order("training_programs.created_at DESC")
+                    .limit(25)
 
-        result = programs.map do |program|
+        program_ids = programs.map(&:id)
+        if program_ids.empty?
+          feedback_type_counts = {}
+        else
+          type_sql = ActiveRecord::Base.sanitize_sql_array([ <<-SQL, program_ids ])
+            SELECT tpf.training_program_id, p.participant_type, COUNT(tpf.id) AS count
+            FROM training_program_feedbacks tpf
+            JOIN participants p ON p.id = tpf.participant_id
+            WHERE tpf.training_program_id IN (?)
+            GROUP BY tpf.training_program_id, p.participant_type
+          SQL
+          feedback_type_counts = ActiveRecord::Base.connection.exec_query(type_sql).each_with_object({}) do |row, hash|
+            hash[[ row["training_program_id"].to_i, row["participant_type"].to_s ]] = row["count"].to_i
+          end
+        end
+
+        programs.map do |program|
           total_participants = program[:participants_count].to_i
           received_feedback = program.training_program_feedbacks_count.to_i
           pending_feedback = [ total_participants - received_feedback, 0 ].max
 
+          student_fb = feedback_type_counts[[ program.id, "student" ]] || 0
+          guardian_fb = feedback_type_counts[[ program.id, "guardian" ]] || 0
+          employee_fb = feedback_type_counts[[ program.id, "employee" ]] || 0
+
           {
+            id: program.id,
             name: program.title || "Unnamed Program",
             received: received_feedback,
             pending: pending_feedback,
-            total: total_participants
+            total: total_participants,
+            student: student_fb,
+            guardian: guardian_fb,
+            employee: employee_fb
           }
         end
-
-        # Return empty array if no programs with feedback
-        return [] if result.all? { |r| r[:received] == 0 && r[:pending] == 0 }
-
-        result
       rescue => e
         Rails.logger.error "Error getting program feedback data: #{e.message}"
         []
       end
+    end
+
+    def fetch_streak_leaderboard_data(assignment_or_id = nil, top_limit = 10, bottom_limit = 10)
+      assignment = if assignment_or_id.is_a?(Assignment)
+                     assignment_or_id
+      elsif assignment_or_id.present?
+                     current_institute.assignments.find_by(id: assignment_or_id)
+      end
+      assignment ||= current_institute.assignments.order(created_at: :desc).first
+
+      return { assignment: nil, top: [], bottom: [] } unless assignment
+
+      participant_ids = Participant.joins(:user)
+                                   .where(institute_id: current_institute.id, users: { active: true })
+                                   .joins("LEFT JOIN assignment_participants ap ON ap.participant_id = participants.id")
+                                   .joins("LEFT JOIN assignment_sections asg ON asg.section_id = participants.section_id")
+                                   .where("ap.assignment_id = :id OR asg.assignment_id = :id OR participants.section_id = :sec_id",
+                                          id: assignment.id, sec_id: assignment.section_id)
+                                   .distinct
+                                   .pluck(:id)
+
+      participants = Participant.where(id: participant_ids).includes(:user, :section)
+
+      logs = AssignmentResponseLog.where(assignment_id: assignment.id)
+                                  .pluck(:participant_id, :response_date)
+      submitted_dates_by_part = logs.group_by(&:first).transform_values do |pairs|
+        pairs.map { |p| p[1].to_date }.to_set
+      end
+
+      effective_end_date = [ assignment.end_date.to_date, Date.current ].min
+
+      participant_stats = participants.map do |part|
+        dates = submitted_dates_by_part[part.id] || Set.new
+        streak = compute_continuous_streak(dates, effective_end_date)
+        total_sub = dates.size
+
+        {
+          id: part.id,
+          name: part.full_name,
+          section: part.section&.name || "N/A",
+          participant_type: part.participant_type.to_s.titleize,
+          raw_participant_type: part.participant_type.to_s,
+          assignment_name: assignment.title,
+          streak: streak,
+          total_submissions: total_sub
+        }
+      end
+
+      top_sorted = participant_stats.sort_by { |p| [ -p[:streak], -p[:total_submissions], p[:name] ] }
+      top_records = top_sorted.first(top_limit).each_with_index.map do |p, idx|
+        p.merge(rank: idx + 1)
+      end
+
+      bottom_sorted = participant_stats.sort_by { |p| [ p[:streak], p[:total_submissions], p[:name] ] }
+      bottom_records = bottom_sorted.first(bottom_limit).each_with_index.map do |p, idx|
+        p.merge(rank: idx + 1)
+      end
+
+      {
+        assignment: { id: assignment.id, title: assignment.title },
+        top: top_records,
+        bottom: bottom_records
+      }
+    end
+
+    def compute_continuous_streak(submitted_dates, effective_end_date)
+      return 0 if submitted_dates.empty?
+
+      streak = 0
+      check_date = effective_end_date
+
+      if submitted_dates.include?(check_date)
+        while submitted_dates.include?(check_date)
+          streak += 1
+          check_date -= 1.day
+        end
+      elsif submitted_dates.include?(check_date - 1.day)
+        check_date -= 1.day
+        while submitted_dates.include?(check_date)
+          streak += 1
+          check_date -= 1.day
+        end
+      end
+
+      streak
+    end
+
+    def fetch_recent_feedback_programs
+      program_ids = TrainingProgramFeedback.joins(:training_program)
+                                           .where(training_programs: { institute_id: current_institute.id })
+                                           .order(created_at: :desc)
+                                           .limit(50)
+                                           .pluck(:training_program_id)
+                                           .uniq
+                                           .first(5)
+
+      return [] if program_ids.blank?
+
+      programs = current_institute.training_programs
+                                  .where(id: program_ids)
+                                  .left_joins(:training_program_participants)
+                                  .select("training_programs.*, COUNT(DISTINCT training_program_participants.id) AS participants_count")
+                                  .group("training_programs.id")
+
+      programs = programs.sort_by { |p| program_ids.index(p.id) || 999 }
+
+      # Batch-load feedbacks for all 5 programs in a single query with eager-loaded associations
+      all_feedbacks = TrainingProgramFeedback.where(training_program_id: program_ids)
+                                             .includes(participant: :user)
+                                             .order(created_at: :desc)
+      feedbacks_by_prog = all_feedbacks.group_by(&:training_program_id)
+
+      programs.map do |program|
+        total_participants = program[:participants_count].to_i
+        prog_fbs = feedbacks_by_prog[program.id] || []
+        received_count = prog_fbs.size
+        pending_count = [ total_participants - received_count, 0 ].max
+
+        avg_rating = received_count > 0 ? (prog_fbs.sum(&:rating).to_f / received_count).round(1) : 0.0
+
+        fb_by_type = prog_fbs.group_by { |f| f.participant&.participant_type.to_s }
+        type_dist = {
+          "student" => fb_by_type["student"]&.size || 0,
+          "guardian" => fb_by_type["guardian"]&.size || 0,
+          "employee" => fb_by_type["employee"]&.size || 0
+        }
+
+        rating_dist = (1..5).to_h { |star| [ star, prog_fbs.count { |f| f.rating == star } ] }
+
+        {
+          id: program.id,
+          title: program.title,
+          status: program.status,
+          start_date: program.start_date,
+          end_date: program.end_date,
+          total_participants: total_participants,
+          received_count: received_count,
+          pending_count: pending_count,
+          received_percentage: total_participants > 0 ? ((received_count.to_f / total_participants) * 100).round : 0,
+          pending_percentage: total_participants > 0 ? ((pending_count.to_f / total_participants) * 100).round : 0,
+          avg_rating: avg_rating,
+          type_distribution: type_dist,
+          rating_distribution: rating_dist,
+          recent_feedbacks: prog_fbs.first(5)
+        }
+      end
+    rescue => e
+      Rails.logger.error "Error fetching recent feedback programs: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+      []
     end
 
     def calculate_percentage(part, total)

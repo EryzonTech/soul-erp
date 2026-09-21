@@ -1,0 +1,127 @@
+<div class="container py-4" style="max-width: 850px;">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Assignments", participant_portal_assignments_path, class: "text-decoration-none" %></li>
+      <li class="breadcrumb-item"><%= link_to "My Questions", participant_portal_questions_path, class: "text-decoration-none" %></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= @question.title.truncate(30) %></li>
+    </ol>
+  </nav>
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card-header bg-white border-bottom p-3 p-md-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1">
+          <i class="bi bi-patch-question me-1"></i> Custom Question
+        </span>
+        <% if @question.required? %>
+          <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
+            Mandatory
+          </span>
+        <% end %>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <%= link_to edit_participant_portal_question_path(@question), class: "btn btn-outline-primary btn-sm rounded-3" do %>
+          <i class="bi bi-pencil me-1"></i> Edit
+        <% end %>
+        <%= link_to participant_portal_questions_path, class: "btn btn-outline-secondary btn-sm rounded-3" do %>
+          <i class="bi bi-arrow-left me-1"></i> All Questions
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card-body p-4">
+      <h4 class="fw-bold text-dark mb-2"><%= @question.title %></h4>
+      <% if @question.display_name.present? && @question.display_name != @question.title %>
+        <p class="text-muted small mb-2"><i class="bi bi-tag me-1"></i><strong>Display Name:</strong> <%= @question.display_name %></p>
+      <% end %>
+      <% if @question.description.present? %>
+        <p class="text-secondary bg-light p-3 rounded-3 mb-4"><%= @question.description %></p>
+      <% end %>
+
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-md-4">
+          <div class="p-3 border rounded-3 bg-light">
+            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Question Type</small>
+            <span class="fw-bold text-dark"><%= @question.question_type.titleize %></span>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-4">
+          <div class="p-3 border rounded-3 bg-light">
+            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Schedule Active Days</small>
+            <span class="fw-bold text-dark"><%= @question.day_range_text %></span>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-4">
+          <div class="p-3 border rounded-3 bg-light">
+            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Used In</small>
+            <span class="fw-bold text-dark"><%= @question.assignments.count %> <%= 'assignment'.pluralize(@question.assignments.count) %></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview of the question interface -->
+      <div class="border rounded-4 p-4 bg-white shadow-xs">
+        <h6 class="fw-bold text-dark mb-3 text-uppercase small text-muted">Question Preview (As shown to you when taking assignment):</h6>
+        <div class="p-3 border rounded-3 bg-light">
+          <label class="form-label fw-bold text-dark mb-2">
+            <%= @question.title %>
+            <% if @question.required? %>
+              <span class="text-danger">*</span>
+            <% end %>
+          </label>
+
+          <% case @question.question_type %>
+          <% when "short_answer" %>
+            <input type="text" class="form-control" placeholder="Your answer here..." disabled>
+          <% when "paragraph" %>
+            <textarea class="form-control" rows="3" placeholder="Your detailed response here..." disabled></textarea>
+          <% when "multiple_choice" %>
+            <% @question.options.each do |opt| %>
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" disabled>
+                <label class="form-check-label text-dark"><%= opt.text %></label>
+              </div>
+            <% end %>
+          <% when "checkboxes" %>
+            <% @question.options.each do |opt| %>
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" disabled>
+                <label class="form-check-label text-dark"><%= opt.text %></label>
+              </div>
+            <% end %>
+          <% when "dropdown" %>
+            <select class="form-select" disabled>
+              <option>Choose an option</option>
+              <% @question.options.each do |opt| %>
+                <option><%= opt.text %></option>
+              <% end %>
+            </select>
+          <% when "rating" %>
+            <div class="d-flex align-items-center gap-2">
+              <% (1..(@question.max_rating || 5)).each do |i| %>
+                <i class="bi bi-star text-warning fs-3"></i>
+              <% end %>
+            </div>
+          <% when "yes_or_no" %>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" disabled>
+              <label class="form-check-label text-dark">Yes</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" disabled>
+              <label class="form-check-label text-dark">No</label>
+            </div>
+          <% when "date" %>
+            <input type="date" class="form-control" disabled>
+          <% when "time" %>
+            <input type="time" class="form-control" disabled>
+          <% when "number" %>
+            <input type="number" class="form-control" placeholder="Enter a number..." disabled>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

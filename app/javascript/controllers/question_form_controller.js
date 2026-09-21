@@ -28,15 +28,18 @@ export default class extends Controller {
     // Show appropriate preview based on type
     switch(type) {
       case 'short_answer':
-        this.shortAnswerPreviewTarget.classList.remove('d-none')
+        if (this.hasShortAnswerPreviewTarget) this.shortAnswerPreviewTarget.classList.remove('d-none')
         break
       case 'paragraph':
-        this.paragraphPreviewTarget.classList.remove('d-none')
+        if (this.hasParagraphPreviewTarget) this.paragraphPreviewTarget.classList.remove('d-none')
         break
       case 'multiple_choice':
       case 'checkboxes':
       case 'dropdown':
-        this.optionsSectionTarget.classList.remove('d-none')
+        if (this.hasOptionsSectionTarget) {
+          this.optionsSectionTarget.classList.remove('d-none')
+          this.optionsSectionTarget.style.display = 'block'
+        }
         this.updateOptionIndicators(type)
         this.showOptionsContainer(true)
         
@@ -44,20 +47,23 @@ export default class extends Controller {
         this.hideCorrectCheckboxes()
         break
       case 'yes_or_no':
-        this.optionsSectionTarget.classList.remove('d-none')
+        if (this.hasOptionsSectionTarget) {
+          this.optionsSectionTarget.classList.remove('d-none')
+          this.optionsSectionTarget.style.display = 'block'
+        }
         this.updateOptionIndicators('multiple_choice')
         this.showOptionsContainer(true)
         // For Yes/No, we'll auto-populate the options
         this.createYesNoOptions()
         break
       case 'date':
-        this.datePreviewTarget.classList.remove('d-none')
+        if (this.hasDatePreviewTarget) this.datePreviewTarget.classList.remove('d-none')
         break
       case 'time':
-        this.timePreviewTarget.classList.remove('d-none')
+        if (this.hasTimePreviewTarget) this.timePreviewTarget.classList.remove('d-none')
         break
       case 'number':
-        this.numberPreviewTarget.classList.remove('d-none')
+        if (this.hasNumberPreviewTarget) this.numberPreviewTarget.classList.remove('d-none')
         break
       case 'rating':
         this.showRatingOptions(true)
@@ -81,29 +87,31 @@ export default class extends Controller {
     // Show appropriate preview based on type
     switch(type) {
       case 'short_answer':
-        this.shortAnswerPreviewTarget.classList.remove('d-none')
+        if (this.hasShortAnswerPreviewTarget) this.shortAnswerPreviewTarget.classList.remove('d-none')
         break
       case 'paragraph':
-        this.paragraphPreviewTarget.classList.remove('d-none')
+        if (this.hasParagraphPreviewTarget) this.paragraphPreviewTarget.classList.remove('d-none')
         break
       case 'multiple_choice':
       case 'checkboxes':
       case 'dropdown':
         console.log("Showing options section for:", type)
-        this.optionsSectionTarget.classList.remove('d-none')
-        this.optionsSectionTarget.style.display = 'block'
+        if (this.hasOptionsSectionTarget) {
+          this.optionsSectionTarget.classList.remove('d-none')
+          this.optionsSectionTarget.style.display = 'block'
+          
+          // Ensure option inputs have required attribute enabled
+          this.optionsSectionTarget.querySelectorAll('input[name*="[text]"]').forEach(input => {
+            input.required = true
+          })
+        }
         this.updateOptionIndicators(type)
-        
-        // Ensure option inputs have required attribute enabled
-        this.optionsSectionTarget.querySelectorAll('input[name*="[text]"]').forEach(input => {
-          input.required = true
-        })
 
         // Ensure we have at least two options
         const nestedFormController = this.application.getControllerForElementAndIdentifier(
           this.element, 'nested-form'
         )
-        const optionsCount = this.optionsSectionTarget.querySelectorAll('.option-item').length
+        const optionsCount = this.hasOptionsSectionTarget ? this.optionsSectionTarget.querySelectorAll('.option-item').length : 0
         if (optionsCount < 2) {
           if (nestedFormController) {
             if (optionsCount === 0) {
@@ -122,21 +130,23 @@ export default class extends Controller {
         break
       case 'yes_or_no':
         console.log("Showing Yes/No options")
-        this.optionsSectionTarget.classList.remove('d-none')
-        this.optionsSectionTarget.style.display = 'block'
+        if (this.hasOptionsSectionTarget) {
+          this.optionsSectionTarget.classList.remove('d-none')
+          this.optionsSectionTarget.style.display = 'block'
+        }
         this.updateOptionIndicators('multiple_choice')
         
         // Clear existing options and create Yes/No options
         this.createYesNoOptions()
         break
       case 'date':
-        this.datePreviewTarget.classList.remove('d-none')
+        if (this.hasDatePreviewTarget) this.datePreviewTarget.classList.remove('d-none')
         break
       case 'time':
-        this.timePreviewTarget.classList.remove('d-none')
+        if (this.hasTimePreviewTarget) this.timePreviewTarget.classList.remove('d-none')
         break
       case 'number':
-        this.numberPreviewTarget.classList.remove('d-none')
+        if (this.hasNumberPreviewTarget) this.numberPreviewTarget.classList.remove('d-none')
         break
       case 'rating':
         this.showRatingOptions(true)
@@ -145,7 +155,7 @@ export default class extends Controller {
   }
 
   clearOptionInputs() {
-    const optionItems = this.optionsSectionTarget ? this.optionsSectionTarget.querySelectorAll('.option-item') : this.element.querySelectorAll('.option-item')
+    const optionItems = this.hasOptionsSectionTarget ? this.optionsSectionTarget.querySelectorAll('.option-item') : this.element.querySelectorAll('.option-item')
     optionItems.forEach(item => {
       const textField = item.querySelector('input[name*="[text]"]')
       if (textField) {
@@ -160,18 +170,20 @@ export default class extends Controller {
 
   hideAllPreviews() {
     console.log("Hiding all previews")
-    this.shortAnswerPreviewTarget.classList.add('d-none')
-    this.paragraphPreviewTarget.classList.add('d-none')
-    this.datePreviewTarget.classList.add('d-none')
-    this.timePreviewTarget.classList.add('d-none')
-    this.numberPreviewTarget.classList.add('d-none')
+    if (this.hasShortAnswerPreviewTarget) this.shortAnswerPreviewTarget.classList.add('d-none')
+    if (this.hasParagraphPreviewTarget) this.paragraphPreviewTarget.classList.add('d-none')
+    if (this.hasDatePreviewTarget) this.datePreviewTarget.classList.add('d-none')
+    if (this.hasTimePreviewTarget) this.timePreviewTarget.classList.add('d-none')
+    if (this.hasNumberPreviewTarget) this.numberPreviewTarget.classList.add('d-none')
     
     // Hide options section and disable required attribute so non-option types can submit
-    this.optionsSectionTarget.classList.add('d-none')
-    this.optionsSectionTarget.style.display = 'none'
-    this.optionsSectionTarget.querySelectorAll('input[name*="[text]"]').forEach(input => {
-      input.required = false
-    })
+    if (this.hasOptionsSectionTarget) {
+      this.optionsSectionTarget.classList.add('d-none')
+      this.optionsSectionTarget.style.display = 'none'
+      this.optionsSectionTarget.querySelectorAll('input[name*="[text]"]').forEach(input => {
+        input.required = false
+      })
+    }
     this.showRatingOptions(false)
   }
 
@@ -187,12 +199,14 @@ export default class extends Controller {
   }
 
   validateForm() {
+    if (!this.hasTitleInputTarget || !this.hasSubmitButtonTarget) return
     const title = this.titleInputTarget.value.trim()
     this.submitButtonTarget.disabled = title.length === 0
   }
 
   showOptionsContainer(show) {
     console.log("showOptionsContainer called with:", show)
+    if (!this.hasOptionsSectionTarget) return
     if (show) {
       this.optionsSectionTarget.classList.remove('d-none')
       this.optionsSectionTarget.style.display = 'block'
@@ -203,14 +217,15 @@ export default class extends Controller {
   }
   
   showRatingOptions(show) {
-    const ratingOptions = document.querySelector('.rating-options')
+    const ratingOptions = this.element.querySelector('.rating-options') || document.querySelector('.rating-options')
     if (ratingOptions) {
       ratingOptions.style.display = show ? 'flex' : 'none'
     }
   }
   
   toggleFields() {
-    const questionType = document.getElementById('question_question_type').value
+    const questionTypeSelect = this.element.querySelector('select[name="question[question_type]"]')
+    const questionType = questionTypeSelect ? questionTypeSelect.value : ''
     
     // Hide/show options container based on question type
     this.showOptionsContainer(['multiple_choice', 'checkboxes', 'dropdown'].includes(questionType))

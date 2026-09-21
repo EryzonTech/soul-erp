@@ -32,6 +32,8 @@ class Participant < ApplicationRecord
   # Add these associations with dependent: :destroy
   has_many :assignment_participants, dependent: :destroy
   has_many :assignments, through: :assignment_participants
+  has_many :custom_assignments, class_name: "Assignment", foreign_key: "participant_id", dependent: :destroy
+  has_many :custom_questions, class_name: "Question", foreign_key: "participant_id", dependent: :destroy
 
   # Enum for participant type
   enum :participant_type, {

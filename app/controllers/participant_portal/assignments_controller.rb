@@ -1,7 +1,8 @@
 module ParticipantPortal
   class AssignmentsController < ParticipantPortal::BaseController
-    before_action :set_assignment, except: [ :index ]
-    before_action :prevent_student_view_mutation, only: [ :take_assignment, :submit ]
+    before_action :set_assignment, except: [ :index, :new, :create ]
+    before_action :prevent_student_view_mutation, only: [ :take_assignment, :submit, :new, :create, :edit, :update, :destroy ]
+    before_action :ensure_own_custom_assignment, only: [ :edit, :update, :destroy ]
     before_action :check_date_availability, only: [ :submit ]
 
     def index
@@ -56,13 +57,17 @@ module ParticipantPortal
       respond_to do |format|
         format.html # Will render index.html.erb template
         format.turbo_stream {
-          render turbo_stream: turbo_stream.update("assignment_content",
-            partial: "participant_portal/dashboard/daily_assignments",
-            locals: {
-              assignments: date_assignments,
-              selected_date: @selected_date
-            }
-          )
+          if params[:date].present?
+            render turbo_stream: turbo_stream.update("assignment_content",
+              partial: "participant_portal/dashboard/daily_assignments",
+              locals: {
+                assignments: date_assignments,
+                selected_date: @selected_date
+              }
+            )
+          else
+            render :index, formats: [:html]
+          end
         }
       end
     end
@@ -196,16 +201,152 @@ module ParticipantPortal
       end
     end
 
+    def new
+      @assignment = current_institute.assignments.build(
+        assignment_type: "individual",
+        start_date: Date.current,
+        end_date: Date.current + 30.days,
+        active: true
+      )
+      load_form_questions
+    end
+
+    def create
+      cleaned_params = assignment_params.to_h
+      raw_qids = cleaned_params.delete("question_ids") || cleaned_params.delete(:question_ids) || []
+      question_ids = raw_qids.reject(&:blank?).map(&:to_i).uniq
+      question_ids = current_participant.custom_questions.where(id: question_ids).pluck(:id)
+
+      @assignment = current_institute.assignments.new(cleaned_params)
+      @assignment.participant = current_participant
+      @assignment.assignment_type = "individual"
+
+      if question_ids.empty?
+        @assignment.errors.add(:base, "Please select at least one of your custom questions for this assignment.")
+        load_form_questions
+        render :new, status: :unprocessable_entity
+        return
+      end
+
+      ActiveRecord::Base.transaction do
+        if @assignment.save
+          # Create recipient link for current participant
+          @assignment.assignment_participants.create!(participant: current_participant)
+
+          # Associate selected questions
+          question_ids.each_with_index do |qid, idx|
+            @assignment.assignment_questions.create!(
+              question_id: qid,
+              order_number: idx + 1
+            )
+          end
+
+          redirect_to participant_portal_assignments_path, status: :see_other, notice: "Custom assignment created successfully!"
+          return
+        end
+      end
+
+      load_form_questions
+      render :new, status: :unprocessable_entity
+    rescue => e
+      Rails.logger.error("Error creating custom assignment: #{e.message}\n#{e.backtrace.join("\n")}")
+      flash.now[:alert] = "Failed to create assignment: #{e.message}"
+      load_form_questions
+      render :new, status: :unprocessable_entity
+    end
+
+    def edit
+      load_form_questions
+    end
+
+    def update
+      cleaned_params = assignment_params.to_h
+      raw_qids = cleaned_params.delete("question_ids") || cleaned_params.delete(:question_ids) || []
+      question_ids = raw_qids.reject(&:blank?).map(&:to_i).uniq
+      question_ids = current_participant.custom_questions.where(id: question_ids).pluck(:id)
+
+      if question_ids.empty?
+        @assignment.errors.add(:base, "Please select at least one of your custom questions for this assignment.")
+        load_form_questions
+        render :edit, status: :unprocessable_entity
+        return
+      end
+
+      ActiveRecord::Base.transaction do
+        if @assignment.update(cleaned_params)
+          # Rebuild questions association
+          @assignment.assignment_questions.destroy_all
+          question_ids.each_with_index do |qid, idx|
+            @assignment.assignment_questions.create!(
+              question_id: qid,
+              order_number: idx + 1
+            )
+          end
+
+          redirect_to participant_portal_assignments_path, status: :see_other, notice: "Custom assignment updated successfully!"
+          return
+        end
+      end
+
+      load_form_questions
+      render :edit, status: :unprocessable_entity
+    rescue => e
+      Rails.logger.error("Error updating custom assignment: #{e.message}\n#{e.backtrace.join("\n")}")
+      flash.now[:alert] = "Failed to update assignment: #{e.message}"
+      load_form_questions
+      render :edit, status: :unprocessable_entity
+    end
+
+    def destroy
+      if @assignment.destroy
+        respond_to do |format|
+          format.html { redirect_to participant_portal_assignments_path, status: :see_other, notice: "Custom assignment deleted successfully." }
+          format.turbo_stream { redirect_to participant_portal_assignments_path, status: :see_other, notice: "Custom assignment deleted successfully." }
+        end
+      else
+        respond_to do |format|
+          format.html { redirect_to participant_portal_assignments_path, status: :see_other, alert: @assignment.errors.full_messages.to_sentence.presence || "Cannot delete assignment." }
+          format.turbo_stream { redirect_to participant_portal_assignments_path, status: :see_other, alert: @assignment.errors.full_messages.to_sentence.presence || "Cannot delete assignment." }
+        end
+      end
+    end
+
     private
 
     def set_assignment
       @assignment = Assignment.find(params[:id])
+      unless @assignment.available_for?(current_participant) || @assignment.participant_id == current_participant.id || @assignment.participants.include?(current_participant)
+        redirect_to participant_portal_assignments_path, alert: "Assignment not found or access denied."
+      end
+    end
+
+    def ensure_own_custom_assignment
+      unless @assignment.participant_id == current_participant.id
+        redirect_to participant_portal_assignments_path,
+          alert: "You can only edit or delete assignments you created."
+      end
+    end
+
+    def load_form_questions
+      @my_questions = current_participant.custom_questions.includes(:options).ordered
+      @selected_question_ids = @assignment.assignment_questions.order(:order_number).pluck(:question_id)
+    end
+
+    def assignment_params
+      params.require(:assignment).permit(
+        :title,
+        :description,
+        :start_date,
+        :end_date,
+        :active,
+        question_ids: []
+      )
     end
 
     def prevent_student_view_mutation
       if viewing_as_student?
         redirect_to participant_portal_assignments_path,
-          alert: "You are in view-only mode. Assignments cannot be submitted while viewing a student's profile."
+          alert: "You are in view-only mode. Assignments cannot be created or modified while viewing a student's profile."
       end
     end
 

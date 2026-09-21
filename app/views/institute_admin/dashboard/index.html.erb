@@ -6,7 +6,7 @@
       position: relative;
       overflow: hidden;
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      min-height: 120px; /* Reduced from 160px */
+      min-height: 140px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -76,35 +76,177 @@
       box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25);
     }
 
-    /* Card Variants Row 2 */
-    .stat-card-responses {
-      background: linear-gradient(135deg, #0891b2 0%, #22d3ee 100%);
-      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.25);
+    /* ── Operational KPI Cards (Row 2) — Vivid Gradient Redesign ── */
+    .op-stat-card {
+      border: none;
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      min-height: 148px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
-    .stat-card-trainers {
-      background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
-      box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25);
+    .op-stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 32px rgba(0,0,0,0.18);
     }
 
-    .stat-card-programs {
-      background: linear-gradient(135deg, #16a34a 0%, #4ade80 100%);
-      box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25);
+    .op-stat-card .card-body {
+      padding: 1.35rem 1.4rem;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
     }
 
-    .stat-card-feedback {
-      background: linear-gradient(135deg, #db2777 0%, #f472b6 100%);
-      box-shadow: 0 8px 20px rgba(219, 39, 119, 0.25);
+    .op-stat-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
     }
 
-    /* Modern Table Styles */
+    .op-stat-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 0.25rem;
+    }
+
+    .op-stat-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .op-stat-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.2);
+      color: #ffffff;
+      backdrop-filter: blur(4px);
+      transition: transform 0.25s ease;
+    }
+
+    .op-stat-card:hover .op-stat-icon-box {
+      transform: scale(1.12) rotate(-4deg);
+    }
+
+    /* Decorative watermark icon behind the value */
+    .op-stat-watermark {
+      position: absolute;
+      right: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 7rem;
+      color: rgba(255,255,255,0.08);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Breakdown row on colored background */
+    .op-stat-card .stat-breakdown,
+    .op-stat-breakdown {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .op-stat-card .stat-breakdown-pill,
+    .op-stat-breakdown-pill {
+      font-size: 0.71rem;
+      font-weight: 600;
+      padding: 0.22rem 0.6rem;
+      border-radius: 9999px;
+      background: rgba(255,255,255,0.18);
+      color: #ffffff !important;
+      border: 1px solid rgba(255,255,255,0.25);
+      white-space: nowrap;
+      letter-spacing: 0.1px;
+      backdrop-filter: blur(4px);
+    }
+
+    .op-stat-card .stat-breakdown-pill strong,
+    .op-stat-breakdown-pill strong {
+      color: #ffffff !important;
+      font-weight: 800;
+    }
+
+    /* Card gradient variants */
+    .op-stat-card-responses {
+      background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #0891b2 100%);
+      box-shadow: 0 8px 20px rgba(6,182,212,0.35);
+    }
+
+    .op-stat-card-trainers {
+      background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%);
+      box-shadow: 0 8px 20px rgba(139,92,246,0.35);
+    }
+
+    .op-stat-card-programs {
+      background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+      box-shadow: 0 8px 20px rgba(16,185,129,0.35);
+    }
+
+    .op-stat-card-feedback {
+      background: linear-gradient(135deg, #db2777 0%, #ec4899 50%, #f472b6 100%);
+      box-shadow: 0 8px 20px rgba(236,72,153,0.35);
+    }
+
+    /* Coloured participant type pill variants */
+    .tpf-pill-students {
+      background: rgba(14, 165, 233, 0.10);
+      color: #0369a1 !important;
+      border-color: rgba(14, 165, 233, 0.30) !important;
+    }
+    .tpf-pill-students strong { color: #0c4a6e !important; }
+
+    .tpf-pill-guardians {
+      background: rgba(139, 92, 246, 0.10);
+      color: #6d28d9 !important;
+      border-color: rgba(139, 92, 246, 0.30) !important;
+    }
+    .tpf-pill-guardians strong { color: #4c1d95 !important; }
+
+    .tpf-pill-employees {
+      background: rgba(245, 158, 11, 0.10);
+      color: #b45309 !important;
+      border-color: rgba(245, 158, 11, 0.30) !important;
+    }
+    .tpf-pill-employees strong { color: #78350f !important; }
+
+    /* Modern Table Styles with mobile touch momentum */
     .table-responsive {
       overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
+      -webkit-overflow-scrolling: touch !important;
+      touch-action: pan-x pan-y !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      overscroll-behavior-x: contain;
     }
 
     .modern-table {
       width: 100%;
+      min-width: 700px;
       border-collapse: separate;
       border-spacing: 0 0.75rem;
       margin-top: -0.75rem;
@@ -160,6 +302,203 @@
       border-bottom-right-radius: 8px;
     }
 
+    /* Leaderboard container, scroll area, & margins */
+    .leaderboard-card-body {
+      padding: 1.1rem 1.25rem;
+    }
+
+    .leaderboard-table-scroll {
+      height: 520px;
+      min-height: 520px;
+      max-height: 520px;
+      overflow-y: auto;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
+      overscroll-behavior-x: contain;
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .leaderboard-table {
+      width: 100%;
+      min-width: 680px;
+      border-collapse: separate;
+      border-spacing: 0 0.65rem;
+      margin-top: 0.15rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .leaderboard-table thead th {
+      padding: 0.9rem 1rem;
+      background: #1e293b;
+      white-space: nowrap;
+    }
+
+    .leaderboard-table tbody td {
+      padding: 0.95rem 1rem;
+      vertical-align: middle;
+      border: none;
+      font-size: 0.95rem;
+      color: #475569;
+      background: #fff;
+    }
+
+    /* Remove transform on hover to maintain sticky column stacking context */
+    .leaderboard-table tbody tr {
+      background: #fff;
+      box-shadow: 0 3px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .leaderboard-table tbody tr:hover {
+      transform: none !important;
+      box-shadow: 0 8px 16px -2px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+    }
+
+    .leaderboard-table tbody tr:hover td {
+      background-color: #f8fafc !important;
+    }
+
+    /* ── Frozen Sticky Columns (Rank & Participant Name) ───────── */
+    .leaderboard-table .sticky-col {
+      position: sticky !important;
+    }
+
+    /* Column 1: Rank */
+    .leaderboard-table .sticky-col-rank {
+      left: 0 !important;
+      width: 68px !important;
+      min-width: 68px !important;
+      max-width: 68px !important;
+      text-align: center;
+    }
+
+    /* Column 2: Participant Name */
+    .leaderboard-table .sticky-col-name {
+      left: 68px !important;
+      min-width: 155px !important;
+      max-width: 220px !important;
+      box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    /* Intersection Headers (Sticky Top & Left) */
+    .leaderboard-table thead th.sticky-col-rank {
+      position: sticky !important;
+      top: 0 !important;
+      left: 0 !important;
+      z-index: 25 !important;
+      background: #1e293b !important;
+      color: #fff !important;
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+
+    .leaderboard-table thead th.sticky-col-name {
+      position: sticky !important;
+      top: 0 !important;
+      left: 68px !important;
+      z-index: 25 !important;
+      background: #1e293b !important;
+      color: #fff !important;
+      box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    .leaderboard-table thead th:first-child:not(.sticky-col-rank) {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+
+    .leaderboard-table thead th:last-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+
+    /* Body Frozen Cells */
+    .leaderboard-table tbody td.sticky-col-rank {
+      position: sticky !important;
+      left: 0 !important;
+      z-index: 6 !important;
+      background-color: #ffffff !important;
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+
+    .leaderboard-table tbody td.sticky-col-name {
+      position: sticky !important;
+      left: 68px !important;
+      z-index: 6 !important;
+      background-color: #ffffff !important;
+      box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .leaderboard-table tbody td:first-child:not(.sticky-col-rank) {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+
+    .leaderboard-table tbody td:last-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+
+    /* Hover State for Sticky Cells */
+    .leaderboard-table tbody tr:hover td.sticky-col-rank,
+    .leaderboard-table tbody tr:hover td.sticky-col-name {
+      background-color: #f8fafc !important;
+    }
+
+    /* Mobile unpinning for narrow phone viewports (< 576px) */
+    @media (max-width: 575.98px) {
+      .leaderboard-table .sticky-col-name {
+        position: static !important;
+        left: auto !important;
+        box-shadow: none !important;
+      }
+      .leaderboard-table thead th.sticky-col-name {
+        position: sticky !important;
+        top: 0 !important;
+        left: auto !important;
+        box-shadow: none !important;
+        z-index: 20 !important;
+      }
+    }
+
+    /* Bronze rank badge (rank #3) */
+    .bg-bronze {
+      background-color: #cd7f32 !important;
+    }
+
+    /* Prevent column headers from truncating in leaderboard */
+    .leaderboard-sticky-head th {
+      white-space: nowrap;
+    }
+
+    .leaderboard-table-scroll .leaderboard-sticky-head th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #1e293b; /* must repeat here so thead stays opaque when scrolling */
+    }
+
+    /* Custom thin scrollbar for the leaderboard */
+    .leaderboard-table-scroll::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .leaderboard-table-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 99px;
+    }
+    .leaderboard-table-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 99px;
+    }
+    .leaderboard-table-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+
     .status-badge {
       padding: 0.35em 0.85em;
       border-radius: 9999px;
@@ -193,9 +532,393 @@
       transition: all 0.2s;
     }
 
-    .action-btn:hover {
-      background-color: #e2e8f0;
+    .stat-breakdown {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      margin-top: 0.65rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-card .stat-breakdown-pill {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+      backdrop-filter: blur(4px);
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+
+    /* ── Responsive Controls Toolbar & Modern Segmented Controls ────────── */
+    .chart-controls-toolbar {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+    }
+
+    .chart-controls-toolbar .chart-toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    /* Modern Segmented Control Pills */
+    .chart-segmented-control {
+      display: inline-flex;
+      align-items: center;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 3px;
+      gap: 2px;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .chart-segmented-control .btn-segment {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #64748b;
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 0.32rem 0.72rem;
+      border-radius: 7px;
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+      cursor: pointer;
+      line-height: 1.25;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      text-decoration: none;
+    }
+
+    .chart-segmented-control .btn-segment:hover:not(.active) {
+      color: #1e293b;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .chart-segmented-control .btn-segment.active {
+      background: #4f46e5;
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3), 0 1px 2px rgba(79, 70, 229, 0.18);
+    }
+
+    /* Secondary sub-segmented control (Participant Type Filter) */
+    .chart-segmented-control.sub-segmented-control {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      gap: 2px;
+      padding: 2px;
+    }
+
+    .sub-segmented-control .btn-sub-segment {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #64748b;
+      font-size: 0.74rem;
+      font-weight: 500;
+      padding: 0.28rem 0.62rem;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      cursor: pointer;
+      line-height: 1.25;
+      display: inline-flex;
+      align-items: center;
+      user-select: none;
+    }
+
+    .sub-segmented-control .btn-sub-segment:hover:not(.active) {
       color: #0f172a;
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    .sub-segmented-control .btn-sub-segment.active {
+      background: #ffffff;
+      color: #0f172a;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 1px rgba(0, 0, 0, 0.04);
+    }
+
+    .sub-ptype-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-right: 5px;
+      vertical-align: middle;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .btn-sub-segment:not(.active) .sub-ptype-dot {
+      opacity: 0.35;
+      transform: scale(0.85);
+    }
+
+    .btn-sub-segment.active .sub-ptype-dot {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    #btn-sub-ptype-student.active {
+      color: #0e7490;
+    }
+
+    #btn-sub-ptype-guardian.active {
+      color: #b45309;
+    }
+
+    #btn-sub-ptype-employee.active {
+      color: #047857;
+    }
+
+    #btn-sub-ptype-all.active {
+      color: #4338ca;
+    }
+
+    /* Date Navigation Group */
+    .chart-nav-group {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      flex-shrink: 0;
+      height: 33px;
+    }
+
+    .chart-nav-group .chart-nav-btn {
+      border: none;
+      border-right: 1px solid #e2e8f0;
+      background: #ffffff;
+      color: #475569;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.35rem 0.65rem;
+      height: 100%;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      line-height: 1;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .chart-nav-group .chart-nav-btn:last-child {
+      border-right: none;
+    }
+
+    .chart-nav-group .chart-nav-btn:hover {
+      background: #f8fafc;
+      color: #0f172a;
+    }
+
+    .chart-nav-group .chart-nav-btn:active {
+      background: #f1f5f9;
+    }
+
+    .chart-nav-group .chart-nav-btn.chart-nav-today {
+      font-weight: 600;
+      color: #4f46e5;
+    }
+
+    /* Datepicker Wrapper & Input */
+    .chart-datepicker-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      min-width: 200px;
+      height: 33px;
+      flex-shrink: 0;
+    }
+
+    .chart-datepicker-input {
+      padding-left: 0.85rem !important;
+      padding-right: 2.35rem !important;
+      font-size: 0.76rem !important;
+      font-weight: 500 !important;
+      height: 33px !important;
+      border-radius: 8px !important;
+      border: 1px solid #e2e8f0 !important;
+      background-color: #ffffff !important;
+      color: #1e293b !important;
+      cursor: pointer !important;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+      text-align: center;
+    }
+
+    .chart-datepicker-input:focus,
+    .chart-datepicker-input:hover {
+      border-color: #cbd5e1 !important;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important;
+    }
+
+    .pointer-events-none {
+      pointer-events: none;
+    }
+
+    /* ── Chart & Graph Card Shading Border System ──────────────────────── */
+    .card-custom {
+      background: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 16px !important;
+      overflow: visible !important;
+      box-shadow: 
+        0 1px 3px 0 rgba(15, 23, 42, 0.04),
+        0 6px 18px -3px rgba(15, 23, 42, 0.07),
+        0 0 0 1px rgba(226, 232, 240, 0.6) !important;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                  box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                  border-color 0.25s ease !important;
+    }
+
+    .card-custom:hover {
+      transform: translateY(-3px);
+      border-color: #cbd5e1 !important;
+      box-shadow: 
+        0 4px 8px 0 rgba(15, 23, 42, 0.04),
+        0 14px 28px -4px rgba(15, 23, 42, 0.12),
+        0 0 0 1px rgba(199, 210, 254, 0.6) !important;
+    }
+
+    .card-custom .card-body {
+      background: #ffffff;
+      overflow: visible;
+    }
+
+    /* Prevent tooltip clipping on bar chart hover */
+    .apexcharts-tooltip {
+      white-space: normal !important;
+      max-width: 340px !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
+      z-index: 100 !important;
+    }
+
+    .apexcharts-tooltip-title {
+      white-space: normal !important;
+      word-break: break-word !important;
+      font-weight: 600 !important;
+    }
+
+    /* ── Unified Chart Card Header ────────────────────────────── */
+    .chart-card-header {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+      border-bottom: 1.5px solid #e2e8f0 !important;
+      border-top-left-radius: 15px !important;
+      border-top-right-radius: 15px !important;
+      padding: 1rem 1.25rem 0.85rem;
+    }
+
+    /* Override Bootstrap's border-0 helper — keep the separator even when border-0 is applied */
+    .chart-card-header.border-0 {
+      border-bottom: 1.5px solid #e2e8f0 !important;
+    }
+
+    /* Icon accent box shared across chart headers */
+    .chart-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover .chart-icon-box,
+    .card-custom:hover .chart-icon-box {
+      transform: scale(1.08);
+    }
+
+    .chart-header-title {
+      font-size: 0.975rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.1rem;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+    }
+
+    .chart-header-subtitle {
+      font-size: 0.77rem;
+      color: #94a3b8;
+      font-weight: 400;
+      margin: 0;
+      line-height: 1.3;
+    }
+
+    /* ── Media Queries for Chart Headers & Toolbars ─────────────── */
+    @media (max-width: 1199.98px) {
+      .chart-card-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.85rem !important;
+      }
+
+      .chart-controls-toolbar {
+        align-items: stretch !important;
+        width: 100% !important;
+      }
+
+      .chart-controls-toolbar .chart-toolbar-row {
+        justify-content: flex-start !important;
+        width: 100% !important;
+      }
+    }
+
+    @media (max-width: 767.98px) {
+      .chart-card-header {
+        padding: 0.85rem 1rem !important;
+      }
+
+      .chart-controls-toolbar .chart-toolbar-row.scrollable-row {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 3px;
+        flex-wrap: nowrap !important;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .chart-controls-toolbar .chart-toolbar-row.scrollable-row::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    @media (max-width: 575.98px) {
+      .chart-datepicker-wrapper {
+        min-width: 100%;
+        width: 100%;
+      }
+
+      .chart-nav-group {
+        width: 100%;
+        display: flex;
+      }
+
+      .chart-nav-group .chart-nav-btn {
+        flex: 1;
+        justify-content: center;
+      }
     }
   </style>
 <% end %>
@@ -205,20 +928,23 @@
   <!-- KPI Cards Row 1 -->
   <div class="row g-4 mb-4">
     <!-- Total Participants -->
-    <!-- Total Participants -->
-    <div class="col-xl-3 col-md-6">
+    <div class="col-12 col-sm-6 col-xl-3">
       <div class="stat-card stat-card-participants">
         <div class="card-body">
           <div class="stat-title">Total Participants</div>
           <h2 class="stat-value"><%= @total_participants %></h2>
           <i class="bi bi-people-fill stat-icon"></i>
+          <div class="stat-breakdown">
+            <span class="stat-breakdown-pill">Students: <%= @participant_type_distribution["student"] || 0 %></span>
+            <span class="stat-breakdown-pill">Guardians: <%= @participant_type_distribution["guardian"] || 0 %></span>
+            <span class="stat-breakdown-pill">Employees: <%= @participant_type_distribution["employee"] || 0 %></span>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Total Questions -->
-    <!-- Total Questions -->
-    <div class="col-xl-3 col-md-6">
+    <div class="col-12 col-sm-6 col-xl-3">
       <div class="stat-card stat-card-questions">
         <div class="card-body">
           <div class="stat-title">Total Questions</div>
@@ -229,20 +955,23 @@
     </div>
 
     <!-- Total Assignments -->
-    <!-- Total Assignments -->
-    <div class="col-xl-3 col-md-6">
+    <div class="col-12 col-sm-6 col-xl-3">
       <div class="stat-card stat-card-assignments">
         <div class="card-body">
           <div class="stat-title">Total Assignments</div>
           <h2 class="stat-value"><%= @total_assignments %></h2>
           <i class="bi bi-clipboard-check-fill stat-icon"></i>
+          <div class="stat-breakdown">
+            <span class="stat-breakdown-pill">Students: <%= @assignment_type_distribution["student"] || 0 %></span>
+            <span class="stat-breakdown-pill">Guardians: <%= @assignment_type_distribution["guardian"] || 0 %></span>
+            <span class="stat-breakdown-pill">Employees: <%= @assignment_type_distribution["employee"] || 0 %></span>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Total Sections -->
-    <!-- Total Sections -->
-    <div class="col-xl-3 col-md-6">
+    <div class="col-12 col-sm-6 col-xl-3">
       <div class="stat-card stat-card-sections">
         <div class="card-body">
           <div class="stat-title">Total Sections</div>
@@ -253,128 +982,377 @@
     </div>
   </div>
 
-  <!-- Submissions Over Time (14 days) -->
+  <!-- KPI Cards Row 2: Operational & Activity Metrics -->
   <div class="row g-4 mb-4">
-    <div class="col-12">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3 d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">Submissions Over Time (14 days)</h5>
-          <small class="text-muted">Distinct submissions per assignment & participant</small>
-        </div>
+    <!-- Today Responses -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="op-stat-card op-stat-card-responses">
+        <i class="bi bi-file-earmark-check-fill op-stat-watermark"></i>
         <div class="card-body">
-          <div id="submissions-over-time-chart" style="height: 320px;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Submissions by Assignment (Today) -->
-  <div class="row g-4 mb-4">
-    <div class="col-xl-6">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3 d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">Submissions by Assignment (Today)</h5>
-          <small class="text-muted">Top 10 assignments by participants submitted</small>
-        </div>
-        <div class="card-body">
-          <div id="submissions-by-assignment-chart" style="height: 360px;"></div>
-          <!-- Chart UI cleaned: debug block removed -->
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-6">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3 d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">Submissions by Section (Today)</h5>
-          <small class="text-muted">Top sections by distinct submissions</small>
-        </div>
-        <div class="card-body">
-          <div id="submissions-by-section-chart" style="height:360px;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- KPI Cards Row 2 -->
-  <!-- Charts: Not-submitted (full width), Pending by Section (full width), Backlog Trend (full width) -->
-  <div class="row g-4 mb-4">
-    <div class="col-xl-6">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Not Submitted by Assignment (Top 10)</h5>
-        </div>
-        <div class="card-body">
-          <div id="not-submitted-assignment-chart" style="height:320px;"></div>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-6">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Pending by Section (Top 10)</h5>
-        </div>
-        <div class="card-body">
-          <div id="pending-section-chart" style="height:320px;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4 mb-4">
-    <div class="col-12">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Backlog Trend (14 days)</h5>
-        </div>
-        <div class="card-body">
-          <div id="backlog-trend-chart" style="height:320px;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4 mb-4">
-    <!-- Today Responses (moved to row 2 first column) -->
-    <!-- Today Responses (moved to row 2 first column) -->
-    <div class="col-xl-3 col-md-6">
-      <div class="stat-card stat-card-responses">
-        <div class="card-body">
-          <div class="stat-title">Today Responses</div>
-          <h2 class="stat-value"><%= @today_responses_count || 0 %></h2>
-          <i class="bi bi-file-earmark-check-fill stat-icon"></i>
+          <div class="op-stat-header">
+            <div>
+              <div class="op-stat-title">Today Responses</div>
+              <div class="op-stat-value"><%= @today_responses_count || 0 %></div>
+            </div>
+            <div class="op-stat-icon-box">
+              <i class="bi bi-file-earmark-check-fill"></i>
+            </div>
+          </div>
+          <div class="op-stat-breakdown stat-breakdown">
+            <span class="op-stat-breakdown-pill">Students: <strong><%= @today_responses_by_type["student"] || 0 %></strong></span>
+            <span class="op-stat-breakdown-pill">Guardians: <strong><%= @today_responses_by_type["guardian"] || 0 %></strong></span>
+            <span class="op-stat-breakdown-pill">Employees: <strong><%= @today_responses_by_type["employee"] || 0 %></strong></span>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Total Trainers -->
-    <div class="col-xl-3 col-md-6">
-      <div class="stat-card stat-card-trainers">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="op-stat-card op-stat-card-trainers">
+        <i class="bi bi-person-workspace op-stat-watermark"></i>
         <div class="card-body">
-          <div class="stat-title">Total Trainers</div>
-          <h2 class="stat-value"><%= @total_trainers %></h2>
-          <i class="bi bi-person-workspace stat-icon"></i>
+          <div class="op-stat-header">
+            <div>
+              <div class="op-stat-title">Total Trainers</div>
+              <div class="op-stat-value"><%= @total_trainers %></div>
+            </div>
+            <div class="op-stat-icon-box">
+              <i class="bi bi-person-workspace"></i>
+            </div>
+          </div>
+          <div class="op-stat-breakdown stat-breakdown">
+            <span class="op-stat-breakdown-pill"><i class="bi bi-person-badge me-1"></i>Active Staff</span>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Training Programs -->
-    <div class="col-xl-3 col-md-6">
-      <div class="stat-card stat-card-programs">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="op-stat-card op-stat-card-programs">
+        <i class="bi bi-mortarboard-fill op-stat-watermark"></i>
         <div class="card-body">
-          <div class="stat-title">Training Programs</div>
-          <h2 class="stat-value"><%= @total_training_programs %></h2>
-          <i class="bi bi-mortarboard-fill stat-icon"></i>
+          <div class="op-stat-header">
+            <div>
+              <div class="op-stat-title">Training Programs</div>
+              <div class="op-stat-value"><%= @total_training_programs %></div>
+            </div>
+            <div class="op-stat-icon-box">
+              <i class="bi bi-mortarboard-fill"></i>
+            </div>
+          </div>
+          <div class="op-stat-breakdown stat-breakdown">
+            <span class="op-stat-breakdown-pill">Students: <strong><%= @training_programs_by_type["student"] || 0 %></strong></span>
+            <span class="op-stat-breakdown-pill">Guardians: <strong><%= @training_programs_by_type["guardian"] || 0 %></strong></span>
+            <span class="op-stat-breakdown-pill">Employees: <strong><%= @training_programs_by_type["employee"] || 0 %></strong></span>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Feedback Received -->
-    <div class="col-xl-3 col-md-6">
-      <div class="stat-card stat-card-feedback">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="op-stat-card op-stat-card-feedback">
+        <i class="bi bi-chat-square-text-fill op-stat-watermark"></i>
         <div class="card-body">
-          <div class="stat-title">Feedback Received</div>
-          <h2 class="stat-value"><%= @total_feedback_received || 0 %></h2>
-          <i class="bi bi-chat-square-text-fill stat-icon"></i>
+          <div class="op-stat-header">
+            <div>
+              <div class="op-stat-title">Feedback Received</div>
+              <div class="op-stat-value"><%= @total_feedback_received || 0 %></div>
+            </div>
+            <div class="op-stat-icon-box">
+              <i class="bi bi-chat-square-text-fill"></i>
+            </div>
+          </div>
+          <div class="op-stat-breakdown stat-breakdown">
+            <span class="op-stat-breakdown-pill">Students: <strong><%= @feedback_by_type["student"] || 0 %></strong></span>
+            <span class="op-stat-breakdown-pill">Guardians: <strong><%= @feedback_by_type["guardian"] || 0 %></strong></span>
+            <span class="op-stat-breakdown-pill">Employees: <strong><%= @feedback_by_type["employee"] || 0 %></strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assignment submission (Submissions Over Time & Backlog Trend) -->
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-xl-row justify-content-between align-items-start align-items-xl-center gap-3">
+          <div class="d-flex align-items-start align-items-sm-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(79,70,229,0.1); color: #4f46e5;">
+              <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h5 class="chart-header-title mb-0">Assignment Submissions</h5>
+                <span id="submission-date-range-badge" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+                  <%= @submission_start_date.strftime("%b %d") %> – <%= @submission_end_date.strftime("%b %d, %Y") %>
+                </span>
+                <span id="submission-active-series-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+                  Viewing: Combined (Total &amp; Backlog)
+                </span>
+              </div>
+              <p class="chart-header-subtitle">Multi-series submission trends &amp; backlog analysis</p>
+              <!-- Custom Legend -->
+              <div class="d-flex align-items-center gap-3 mt-2 flex-wrap" id="submission-chart-legend">
+                <div class="d-flex align-items-center gap-2">
+                  <span style="display:inline-block; width:28px; height:4px; border-radius:9999px; background:#4f46e5;"></span>
+                  <span style="font-size:0.8rem; font-weight:600; color:#334155; letter-spacing:0.01em;">Total Submissions</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span style="display:inline-block; width:28px; height:4px; border-radius:9999px; background:#ef4444;"></span>
+                  <span style="font-size:0.8rem; font-weight:600; color:#334155; letter-spacing:0.01em;">Backlog</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-controls-toolbar">
+            <!-- Row 1: Filters (View Mode & Participant Type) -->
+            <div class="chart-toolbar-row scrollable-row">
+              <!-- View Mode Pills -->
+              <div class="chart-segmented-control" role="group" aria-label="View Mode">
+                <button type="button" class="btn-segment active" id="btn-sub-view-combined" onclick="setSubmissionViewMode('combined')">Combined</button>
+                <button type="button" class="btn-segment" id="btn-sub-view-submissions" onclick="setSubmissionViewMode('submissions')">Submissions Only</button>
+                <button type="button" class="btn-segment" id="btn-sub-view-backlog" onclick="setSubmissionViewMode('backlog')">Backlog Only</button>
+              </div>
+
+              <!-- Participant Type Filter (Active in Submissions Only mode) -->
+              <div class="chart-segmented-control sub-segmented-control" id="sub-ptype-group" role="group" aria-label="Participant Type Filter" style="display: none;">
+                <button type="button" class="btn-sub-segment active" id="btn-sub-ptype-all" onclick="filterSubmissionType('all', event)" title="View all participant types">All</button>
+                <button type="button" class="btn-sub-segment active" id="btn-sub-ptype-student" onclick="filterSubmissionType('student', event)" title="Toggle Students">
+                  <span class="sub-ptype-dot" style="background-color: #06b6d4;"></span>Students
+                </button>
+                <button type="button" class="btn-sub-segment active" id="btn-sub-ptype-guardian" onclick="filterSubmissionType('guardian', event)" title="Toggle Guardians">
+                  <span class="sub-ptype-dot" style="background-color: #f59e0b;"></span>Guardians
+                </button>
+                <button type="button" class="btn-sub-segment active" id="btn-sub-ptype-employee" onclick="filterSubmissionType('employee', event)" title="Toggle Employees">
+                  <span class="sub-ptype-dot" style="background-color: #10b981;"></span>Employees
+                </button>
+              </div>
+            </div>
+
+            <!-- Row 2: Date Nav & Range Picker -->
+            <div class="chart-toolbar-row">
+              <!-- Date Nav Controls -->
+              <div class="chart-nav-group" role="group" aria-label="Date Navigation">
+                <button type="button" class="chart-nav-btn" onclick="shiftAssignmentSubmission(false)" title="Previous 14 Days">
+                  <i class="bi bi-chevron-left"></i> Prev 14d
+                </button>
+                <button type="button" class="chart-nav-btn" onclick="shiftAssignmentSubmission(true)" title="Next 14 Days">
+                  Next 14d <i class="bi bi-chevron-right"></i>
+                </button>
+                <button type="button" class="chart-nav-btn chart-nav-today" onclick="resetAssignmentSubmissionLatest()" title="Latest 14 Days">
+                  Latest
+                </button>
+              </div>
+
+              <!-- Flatpickr Custom Range -->
+              <div class="chart-datepicker-wrapper">
+                <input type="text" id="assignment_submission_range_picker" class="form-control form-control-sm chart-datepicker-input"
+                       placeholder="Custom Date Range" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body pt-1">
+          <div id="submission-zero-notice" class="alert alert-light border border-secondary-subtle text-muted py-2 px-3 mb-2 small d-none align-items-center gap-2 rounded-3">
+            <i class="bi bi-info-circle text-primary fs-6"></i>
+            <span>No submissions recorded in this date range. Use <strong>&lt; Prev 14d</strong> or pick a custom date range to view earlier activity.</span>
+          </div>
+          <div id="submissions-over-time-chart" style="height: 330px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submissions by Assignment & Submissions by Section -->
+  <div class="row g-4 mb-4">
+    <!-- Submissions by Assignment -->
+    <div class="col-xl-6">
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(6,182,212,0.1); color: #0891b2;">
+              <i class="bi bi-bar-chart-fill"></i>
+            </div>
+            <div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h5 class="chart-header-title mb-0">Submissions by Assignment</h5>
+                <span id="by-assignment-date-badge" class="badge bg-info-subtle text-info border border-info-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+                  <%= @assignment_date.strftime("%b %d, %Y") %>
+                </span>
+              </div>
+              <p class="chart-header-subtitle">Top assignments by distinct participants submitted</p>
+            </div>
+          </div>
+          <div class="chart-controls-toolbar">
+            <div class="chart-toolbar-row">
+              <div class="chart-nav-group" role="group" aria-label="Day Navigation">
+                <button type="button" class="chart-nav-btn" onclick="shiftAssignmentDay(false)" title="Previous Day">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="chart-nav-btn chart-nav-today" onclick="resetAssignmentDayToday()" title="Jump to Today">
+                  Today
+                </button>
+                <button type="button" class="chart-nav-btn" onclick="shiftAssignmentDay(true)" title="Next Day">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="chart-datepicker-wrapper" style="min-width: 175px;">
+                <input type="text" id="by_assignment_picker" class="form-control form-control-sm chart-datepicker-input"
+                       placeholder="Pick Date / Range" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body pt-1">
+          <div id="submissions-by-assignment-chart" style="height: 360px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submissions by Section -->
+    <div class="col-xl-6">
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(217,119,6,0.1); color: #d97706;">
+              <i class="bi bi-grid-1x2-fill"></i>
+            </div>
+            <div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h5 class="chart-header-title mb-0">Submissions by Section</h5>
+                <span id="by-section-date-badge" class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+                  <%= @section_date.strftime("%b %d, %Y") %>
+                </span>
+              </div>
+              <p class="chart-header-subtitle">Top sections by distinct submissions</p>
+            </div>
+          </div>
+          <div class="chart-controls-toolbar">
+            <div class="chart-toolbar-row">
+              <div class="chart-nav-group" role="group" aria-label="Day Navigation">
+                <button type="button" class="chart-nav-btn" onclick="shiftSectionDay(false)" title="Previous Day">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="chart-nav-btn chart-nav-today" onclick="resetSectionDayToday()" title="Jump to Today">
+                  Today
+                </button>
+                <button type="button" class="chart-nav-btn" onclick="shiftSectionDay(true)" title="Next Day">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="chart-datepicker-wrapper" style="min-width: 175px;">
+                <input type="text" id="by_section_picker" class="form-control form-control-sm chart-datepicker-input"
+                       placeholder="Pick Date / Range" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body pt-1">
+          <div id="submissions-by-section-chart" style="height: 360px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts: Not-submitted & Pending by Section -->
+  <div class="row g-4 mb-4">
+    <!-- Not Submitted by Assignment -->
+    <div class="col-xl-6">
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(225,29,72,0.1); color: #e11d48;">
+              <i class="bi bi-clipboard-x-fill"></i>
+            </div>
+            <div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h5 class="chart-header-title mb-0">Not Submitted by Assignment</h5>
+                <span id="not-submitted-date-badge" class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+                  <% if @not_submitted_start_date == @not_submitted_end_date %>
+                    <%= @not_submitted_start_date.strftime("%b %d, %Y") %>
+                  <% else %>
+                    <%= @not_submitted_start_date.strftime("%b %d") %> – <%= @not_submitted_end_date.strftime("%b %d, %Y") %>
+                  <% end %>
+                </span>
+              </div>
+              <p class="chart-header-subtitle">Top 10 assignments with highest pending participant count</p>
+            </div>
+          </div>
+          <div class="chart-controls-toolbar">
+            <div class="chart-toolbar-row">
+              <div class="chart-nav-group" role="group" aria-label="Day Navigation">
+                <button type="button" class="chart-nav-btn" onclick="shiftNotSubmittedDay(false)" title="Previous Day">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="chart-nav-btn chart-nav-today" onclick="resetNotSubmittedToday()" title="Jump to Today">
+                  Today
+                </button>
+                <button type="button" class="chart-nav-btn" onclick="shiftNotSubmittedDay(true)" title="Next Day">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="chart-datepicker-wrapper" style="min-width: 175px;">
+                <input type="text" id="not_submitted_picker" class="form-control form-control-sm chart-datepicker-input"
+                       placeholder="Pick Date / Range" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body pt-1 pb-1">
+          <div id="not-submitted-assignment-chart" style="height:310px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending by Section -->
+    <div class="col-xl-6">
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(100,116,139,0.1); color: #475569;">
+              <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h5 class="chart-header-title mb-0">Pending by Section</h5>
+                <span id="pending-section-date-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+                  <% if @pending_section_start_date == @pending_section_end_date %>
+                    <%= @pending_section_start_date.strftime("%b %d, %Y") %>
+                  <% else %>
+                    <%= @pending_section_start_date.strftime("%b %d") %> – <%= @pending_section_end_date.strftime("%b %d, %Y") %>
+                  <% end %>
+                </span>
+              </div>
+              <p class="chart-header-subtitle">Top 10 sections with pending submissions</p>
+            </div>
+          </div>
+          <div class="chart-controls-toolbar">
+            <div class="chart-toolbar-row">
+              <div class="chart-nav-group" role="group" aria-label="Day Navigation">
+                <button type="button" class="chart-nav-btn" onclick="shiftPendingSectionDay(false)" title="Previous Day">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button type="button" class="chart-nav-btn chart-nav-today" onclick="resetPendingSectionToday()" title="Jump to Today">
+                  Today
+                </button>
+                <button type="button" class="chart-nav-btn" onclick="shiftPendingSectionDay(true)" title="Next Day">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="chart-datepicker-wrapper" style="min-width: 175px;">
+                <input type="text" id="pending_section_picker" class="form-control form-control-sm chart-datepicker-input"
+                       placeholder="Pick Date / Range" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body pt-1 pb-1">
+          <div id="pending-section-chart" style="height:310px;"></div>
         </div>
       </div>
     </div>
@@ -385,8 +1363,16 @@
     <!-- Participants by Section -->
     <div class="col-xl-6">
       <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Participants by Section</h5>
+        <div class="card-header chart-card-header border-0 d-flex align-items-center justify-content-between gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(79,70,229,0.1); color: #4f46e5;">
+              <i class="bi bi-pie-chart-fill"></i>
+            </div>
+            <div>
+              <p class="chart-header-title mb-0">Participants by Section</p>
+              <p class="chart-header-subtitle">Distribution of participants across all sections</p>
+            </div>
+          </div>
         </div>
         <div class="card-body">
           <!-- Participants by Section Chart Container -->
@@ -398,8 +1384,16 @@
     <!-- Participants by Type -->
     <div class="col-xl-6">
       <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Participants by Type</h5>
+        <div class="card-header chart-card-header border-0 d-flex align-items-center justify-content-between gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(5,150,105,0.1); color: #059669;">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+              <h5 class="chart-header-title mb-0">Participants by Type</h5>
+              <p class="chart-header-subtitle">Students, guardians &amp; employees breakdown</p>
+            </div>
+          </div>
         </div>
         <div class="card-body">
           <!-- Participants by Type Chart Container -->
@@ -409,76 +1403,446 @@
     </div>
   </div>
 
-  <!-- Feedback: Overview (left) and Training Program Chart (right) -->
-  <div class="row g-4 mb-4 align-items-stretch">
-    <div class="col-xl-4 col-md-6">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Feedback Overview</h5>
-        </div>
-  <div class="card-body d-flex flex-column justify-content-center h-100">
-          <div class="mb-3">
-            <h6 class="text-muted mb-2">Feedback Received</h6>
-            <div class="progress" style="height: 25px; background: #f1f5f9;">
-              <div class="progress-bar" role="progressbar"
-                   style="width: <%= @feedback_received_percentage || 0 %>%; background: linear-gradient(90deg, #8b5cf6 0%, #06b6d4 100%); color: #04263a; font-weight:600;"
-                   aria-valuenow="<%= @feedback_received_percentage || 0 %>"
-                   aria-valuemin="0" aria-valuemax="100">
-                <%= @feedback_received_percentage || 0 %>%
-              </div>
-            </div>
-            <div class="d-flex justify-content-between mt-2">
-              <small class="text-muted">Total: <%= @total_feedback_received || 0 %></small>
-              <small class="text-muted">Target: 100%</small>
-            </div>
-          </div>
-          <div class="mb-3">
-            <h6 class="text-muted mb-2">Feedback Pending</h6>
-            <div class="progress" style="height: 25px; background: #f1f5f9;">
-              <div class="progress-bar" role="progressbar"
-                   style="width: <%= @feedback_pending_percentage || 0 %>%; background: linear-gradient(90deg, #fb7185 0%, #fb923c 100%); color: #4a2b00; font-weight:600;"
-                   aria-valuenow="<%= @feedback_pending_percentage || 0 %>"
-                   aria-valuemin="0" aria-valuemax="100">
-                <%= @feedback_pending_percentage || 0 %>%
-              </div>
-            </div>
-            <div class="d-flex justify-content-between mt-2">
-              <small class="text-muted">Total: <%= @total_feedback_pending || 0 %></small>
-              <small class="text-muted">Target: 0%</small>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- Unified Feedback by Training Program Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card card-custom">
+        <div class="card-header chart-card-header border-0">
 
-    <div class="col-xl-8 col-md-6">
-      <div class="card card-custom h-100">
-        <div class="card-header border-0 pt-3">
-          <h5 class="card-title mb-0">Feedback by Training Program</h5>
+          <!-- Row 1: Icon + Title + Controls -->
+          <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-2">
+            <div class="d-flex align-items-center gap-3">
+              <div class="chart-icon-box" style="background: rgba(139,92,246,0.1); color: #7c3aed;">
+                <i class="bi bi-bar-chart-line-fill"></i>
+              </div>
+              <div>
+                <h5 class="chart-header-title mb-0">Feedback by Training Program</h5>
+                <p class="chart-header-subtitle">Combined received &amp; pending responses by program and audience</p>
+              </div>
+            </div>
+
+            <!-- Header Toolbar: Multi-select Filter & View Mode Switcher -->
+            <div class="d-flex flex-wrap align-items-center gap-2 flex-shrink-0">
+              <!-- Multi-Select Training Program Dropdown -->
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1 rounded-3" 
+                        type="button" 
+                        id="tpfProgramDropdown" 
+                        data-bs-toggle="dropdown" 
+                        data-bs-display="static"
+                        data-bs-auto-close="outside" 
+                        aria-expanded="false">
+                  <i class="bi bi-funnel-fill text-primary"></i>
+                  <span id="tpfSelectedProgramLabel">All Programs (<%= @program_feedback_data.size %>)</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow-lg rounded-3 border" style="min-width: 280px; max-height: 340px; overflow-y: auto; padding: 0.625rem 0.75rem;" aria-labelledby="tpfProgramDropdown">
+                  <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2 px-1">
+                    <div class="form-check mb-0">
+                      <input class="form-check-input" type="checkbox" id="tpfSelectAll" checked onchange="toggleAllFeedbackPrograms(this)">
+                      <label class="form-check-label fw-bold small" for="tpfSelectAll">Select All</label>
+                    </div>
+                    <small class="text-muted" id="tpfCounterText"><%= @program_feedback_data.size %> selected</small>
+                  </div>
+                  <div id="tpfProgramCheckboxes">
+                    <% @program_feedback_data.each do |p| %>
+                      <div class="form-check rounded hover-bg-light" style="padding: 0.375rem 0.5rem 0.375rem 1.75rem; margin-bottom: 2px;">
+                        <input class="form-check-input tpf-program-cb" type="checkbox" value="<%= p[:id] %>" id="tpf_prog_<%= p[:id] %>" checked onchange="handleFeedbackProgramChange()" style="margin-left: -1.25rem;">
+                        <label class="form-check-label small text-truncate d-block cursor-pointer" for="tpf_prog_<%= p[:id] %>" title="<%= p[:name] %>">
+                          <%= p[:name] %>
+                        </label>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- View Mode Switcher -->
+              <div class="chart-segmented-control" role="group" aria-label="Feedback View Mode">
+                <button type="button" class="btn-segment active" id="tpfModeReceivedPending" onclick="switchFeedbackViewMode('received_pending')">
+                  Received vs Pending
+                </button>
+                <button type="button" class="btn-segment" id="tpfModeParticipantType" onclick="switchFeedbackViewMode('participant_type')">
+                  By Participant Type
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: KPI Summary Badges (full width, nicely separated) -->
+          <div class="d-flex flex-wrap align-items-center gap-2 mt-2 pt-2" style="border-top: 1px dashed #e2e8f0;">
+            <span class="badge border fw-semibold" id="tpf-received-summary" style="font-size:0.74rem; padding: 0.28rem 0.65rem; background: rgba(139,92,246,0.1); color: #6d28d9; border-color: rgba(139,92,246,0.25) !important;">
+              <i class="bi bi-check2-circle me-1"></i>Received: <%= @feedback_received_percentage || 0 %>% (<%= @total_feedback_received || 0 %>)
+            </span>
+            <span class="badge border fw-semibold" id="tpf-pending-summary" style="font-size:0.74rem; padding: 0.28rem 0.65rem; background: rgba(251,113,133,0.1); color: #be123c; border-color: rgba(251,113,133,0.25) !important;">
+              <i class="bi bi-hourglass-split me-1"></i>Pending: <%= @feedback_pending_percentage || 0 %>% (<%= @total_feedback_pending || 0 %>)
+            </span>
+            <span class="text-muted" style="font-size: 0.7rem;">|</span>
+            <span class="op-stat-breakdown-pill tpf-pill-students" id="tpf-students-summary">
+              <i class="bi bi-person-fill me-1"></i>Students: <strong><%= @feedback_by_type['student'] || 0 %></strong>
+            </span>
+            <span class="op-stat-breakdown-pill tpf-pill-guardians" id="tpf-guardians-summary">
+              <i class="bi bi-shield-fill-check me-1"></i>Guardians: <strong><%= @feedback_by_type['guardian'] || 0 %></strong>
+            </span>
+            <span class="op-stat-breakdown-pill tpf-pill-employees" id="tpf-employees-summary">
+              <i class="bi bi-briefcase-fill me-1"></i>Employees: <strong><%= @feedback_by_type['employee'] || 0 %></strong>
+            </span>
+          </div>
+
         </div>
-        <div class="card-body">
+        <div class="card-body pt-2">
           <!-- Feedback by Training Program Chart Container -->
-          <div id="feedback-training-chart" style="min-height:320px;"></div>
+          <div id="feedback-training-chart" style="min-height:350px;"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Recent Training Programs Table -->
-  <div class="card card-custom border-0 bg-transparent shadow-none">
-    <div class="card-header border-0 pt-0 px-0 pb-4 bg-transparent">
-      <div class="d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0 fw-bold">Recent Training Programs</h5>
-        <%= link_to "View All", institute_admin_training_programs_path, class: "btn btn-primary" %>
+  <!-- Recent Feedback Accordion Section (Item 20) -->
+  <div class="card card-custom mb-4">
+    <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2.5">
+      <div class="d-flex align-items-center gap-3">
+        <div class="chart-icon-box" style="background: rgba(139,92,246,0.1); color: #7c3aed;">
+          <i class="bi bi-chat-square-quote-fill"></i>
+        </div>
+        <div>
+          <p class="chart-header-title mb-0">Recent Feedback</p>
+          <p class="chart-header-subtitle">User reviews and rating distributions by training program</p>
+        </div>
+      </div>
+      <div>
+        <%= link_to feedback_reports_institute_admin_reports_path, class: "btn btn-sm btn-outline-primary rounded-3 px-3" do %>
+          <i class="bi bi-list-ul me-1"></i> View Feedback Reports
+        <% end %>
       </div>
     </div>
+    <div class="card-body pt-2">
+      <% if @recent_feedback_programs.present? %>
+        <div class="accordion accordion-custom" id="recentFeedbackAccordion">
+          <% @recent_feedback_programs.each_with_index do |prog, idx| %>
+            <div class="accordion-item border rounded-3 mb-2.5 overflow-hidden shadow-sm">
+              <h2 class="accordion-header" id="heading_feedback_<%= prog[:id] %>">
+                <button class="accordion-button <%= 'collapsed' unless idx == 0 %> d-flex flex-wrap align-items-center justify-content-between gap-2.5 py-3" 
+                        type="button" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#collapse_feedback_<%= prog[:id] %>" 
+                        aria-expanded="<%= idx == 0 ? 'true' : 'false' %>" 
+                        aria-controls="collapse_feedback_<%= prog[:id] %>"
+                        style="background: <%= idx == 0 ? '#f8fafc' : '#ffffff' %>;">
+                  
+                  <!-- Program Title & Status -->
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0" style="max-width: 360px;">
+                    <i class="bi bi-mortarboard text-primary fs-5"></i>
+                    <span class="fw-bold text-dark text-truncate" title="<%= prog[:title] %>"><%= prog[:title] %></span>
+                    <span class="badge bg-light text-muted border small"><%= prog[:status]&.titleize %></span>
+                  </div>
+
+                  <!-- Rating Badge -->
+                  <div class="d-flex align-items-center gap-1.5 me-2">
+                    <div class="badge bg-warning-subtle text-warning-emphasis d-inline-flex align-items-center gap-1 px-2 py-1">
+                      <i class="bi bi-star-fill text-warning"></i>
+                      <span class="fw-bold"><%= prog[:avg_rating] %></span>
+                    </div>
+                    <span class="text-muted small">(<%= prog[:received_count] %> reviews)</span>
+                  </div>
+
+                  <!-- Stacked Mini Progress Bar (Received vs Pending) -->
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 w-100 w-sm-auto" style="min-width: 160px; max-width: 340px;">
+                    <div class="progress flex-grow-1 rounded-pill" style="height: 10px; background-color: #f1f5f9;">
+                      <div class="progress-bar" role="progressbar" 
+                           style="width: <%= prog[:received_percentage] %>%; background: linear-gradient(90deg, #8b5cf6 0%, #06b6d4 100%);" 
+                           title="Received: <%= prog[:received_count] %> (<%= prog[:received_percentage] %>%)"></div>
+                      <div class="progress-bar" role="progressbar" 
+                           style="width: <%= prog[:pending_percentage] %>%; background: linear-gradient(90deg, #fb7185 0%, #fb923c 100%);" 
+                           title="Pending: <%= prog[:pending_count] %> (<%= prog[:pending_percentage] %>%)"></div>
+                    </div>
+                    <span class="small fw-semibold text-muted text-nowrap"><%= prog[:received_percentage] %>% received</span>
+                  </div>
+                </button>
+              </h2>
+              <div id="collapse_feedback_<%= prog[:id] %>" 
+                   class="accordion-collapse collapse <%= 'show' if idx == 0 %>" 
+                   aria-labelledby="heading_feedback_<%= prog[:id] %>" 
+                   data-bs-parent="#recentFeedbackAccordion">
+                <div class="accordion-body bg-light-subtle p-3 p-md-4">
+                  
+                  <!-- Distribution Summary Bar -->
+                  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 pb-3 border-bottom">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                      <span class="text-muted small fw-semibold">Audience Breakdown:</span>
+                      <span class="op-stat-breakdown-pill">Students: <strong><%= prog[:type_distribution]["student"] %></strong></span>
+                      <span class="op-stat-breakdown-pill">Guardians: <strong><%= prog[:type_distribution]["guardian"] %></strong></span>
+                      <span class="op-stat-breakdown-pill">Employees: <strong><%= prog[:type_distribution]["employee"] %></strong></span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-muted small">
+                      <span>Total Participants: <strong><%= prog[:total_participants] %></strong></span>
+                      <span>•</span>
+                      <span>Received: <strong class="text-success"><%= prog[:received_count] %></strong></span>
+                      <span>•</span>
+                      <span>Pending: <strong class="text-warning"><%= prog[:pending_count] %></strong></span>
+                    </div>
+                  </div>
+
+                  <!-- Reviews List (Referencing Master Admin recent feedback style) -->
+                  <div class="row g-3">
+                    <% if prog[:recent_feedbacks].any? %>
+                      <% prog[:recent_feedbacks].each do |fb| %>
+                        <div class="col-12 col-md-6 col-xl-4">
+                          <div class="card h-100 border-0 shadow-sm rounded-3 p-3 bg-white">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                              <div class="d-flex text-warning" style="font-size: 0.85rem;">
+                                <% fb.rating.to_i.times do %>
+                                  <i class="bi bi-star-fill me-0.5"></i>
+                                <% end %>
+                                <% (5 - fb.rating.to_i).times do %>
+                                  <i class="bi bi-star text-muted opacity-25 me-0.5"></i>
+                                <% end %>
+                              </div>
+                              <small class="text-muted" style="font-size: 0.75rem;">
+                                <i class="bi bi-clock me-1"></i><%= time_ago_in_words(fb.created_at) %> ago
+                              </small>
+                            </div>
+                            <p class="text-dark small mb-3 flex-grow-1" style="line-height: 1.5; font-style: italic;">
+                              "<%= truncate(fb.content, length: 120) %>"
+                            </p>
+                            <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="border-color: #f1f5f9 !important;">
+                              <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                  <%= fb.participant&.user&.first_name&.first || 'U' %>
+                                </div>
+                                <div class="small fw-semibold text-dark text-truncate" style="max-width: 140px;">
+                                  <%= fb.participant&.user&.full_name %>
+                                </div>
+                              </div>
+                              <% p_type = fb.participant&.participant_type %>
+                              <span class="badge badge-<%= p_type || 'student' %> small" style="font-size: 0.65rem;">
+                                <%= p_type&.titleize || 'Student' %>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      <% end %>
+                    <% else %>
+                      <div class="col-12">
+                        <div class="alert alert-light border mb-0 text-muted small">
+                          <i class="bi bi-info-circle me-1"></i> No written feedback reviews submitted for this program yet.
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="alert alert-info mb-0">
+          <i class="bi bi-info-circle me-2"></i> No training programs with feedback recorded yet.
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Top and Bottom Submitting Participants Leaderboard Row (Items 15 & 16) -->
+  <div class="row g-4 mb-4">
+    <!-- Top Submitting Participants (Streak without break) -->
+    <div class="col-xl-6 col-12">
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(217,119,6,0.1); color: #d97706;">
+              <i class="bi bi-trophy-fill"></i>
+            </div>
+            <div>
+              <p class="chart-header-title mb-0">Top Submitting Participants</p>
+              <p class="chart-header-subtitle">Follows streak without break</p>
+            </div>
+          </div>
+          
+          <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+            <!-- Assignment filter -->
+            <select class="form-select form-select-sm rounded-3 flex-grow-1 flex-sm-grow-0" id="topLeaderboardAssignment" style="min-width: 140px; max-width: 220px;" onchange="updateStreakLeaderboard('top')">
+              <% (@available_assignments || []).each do |asg| %>
+                <option value="<%= asg.id %>" <%= 'selected' if asg.id == @default_assignment&.id %>><%= asg.title %></option>
+              <% end %>
+            </select>
+
+            <!-- Limit selector -->
+            <div class="d-flex align-items-center gap-1">
+              <span class="text-muted small">Show:</span>
+              <select class="form-select form-select-sm rounded-3" id="topLeaderboardLimit" style="width: 75px;" onchange="updateStreakLeaderboard('top')">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card-body leaderboard-card-body">
+          <div class="d-lg-none pb-2 text-muted small">
+            <i class="bi bi-arrow-left-right me-1"></i> Swipe table horizontally to view all columns &rarr;
+          </div>
+          <div class="leaderboard-table-scroll table-responsive">
+            <table class="table modern-table leaderboard-table mb-0" id="topLeaderboardTable">
+              <thead class="leaderboard-sticky-head">
+                <tr>
+                  <th class="sticky-col sticky-col-rank" style="width: 68px;">Rank</th>
+                  <th class="sticky-col sticky-col-name">Name</th>
+                  <th>Section</th>
+                  <th>Assignment</th>
+                  <th class="text-center">Streak</th>
+                </tr>
+              </thead>
+              <tbody id="topLeaderboardBody">
+                <% if @top_submitting_participants.present? %>
+                  <% @top_submitting_participants.each do |p| %>
+                    <tr>
+                      <td class="sticky-col sticky-col-rank">
+                        <span class="badge <%= p[:rank] == 1 ? 'bg-warning text-dark' : (p[:rank] == 2 ? 'bg-secondary text-white' : (p[:rank] == 3 ? 'bg-bronze text-white' : 'bg-light text-dark border')) %> rounded-pill fw-bold">
+                          #<%= p[:rank] %>
+                        </span>
+                      </td>
+                      <td class="sticky-col sticky-col-name fw-semibold text-dark"><%= p[:name] %></td>
+                      <td><span class="badge bg-light text-secondary border"><%= p[:section] %></span></td>
+                      <td class="text-muted small text-truncate" style="max-width: 150px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
+                      <td class="text-center">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                          <i class="bi bi-fire text-danger me-1"></i><%= pluralize(p[:streak], 'day') %>
+                        </span>
+                      </td>
+                    </tr>
+                  <% end %>
+                <% else %>
+                  <tr><td colspan="5" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Submitting Participants (Never follows streak) -->
+    <div class="col-xl-6 col-12">
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(225,29,72,0.1); color: #e11d48;">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div>
+              <p class="chart-header-title mb-0">Bottom Submitting Participants</p>
+              <p class="chart-header-subtitle">Never follows streak / broken streak</p>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+            <!-- Assignment filter -->
+            <select class="form-select form-select-sm rounded-3 flex-grow-1 flex-sm-grow-0" id="bottomLeaderboardAssignment" style="min-width: 140px; max-width: 220px;" onchange="updateStreakLeaderboard('bottom')">
+              <% (@available_assignments || []).each do |asg| %>
+                <option value="<%= asg.id %>" <%= 'selected' if asg.id == @default_assignment&.id %>><%= asg.title %></option>
+              <% end %>
+            </select>
+
+            <!-- Limit selector -->
+            <div class="d-flex align-items-center gap-1">
+              <span class="text-muted small">Show:</span>
+              <select class="form-select form-select-sm rounded-3" id="bottomLeaderboardLimit" style="width: 75px;" onchange="updateStreakLeaderboard('bottom')">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card-body leaderboard-card-body">
+          <div class="d-lg-none pb-2 text-muted small">
+            <i class="bi bi-arrow-left-right me-1"></i> Swipe table horizontally to view all columns &rarr;
+          </div>
+          <div class="leaderboard-table-scroll table-responsive">
+            <table class="table modern-table leaderboard-table mb-0" id="bottomLeaderboardTable">
+              <thead class="leaderboard-sticky-head">
+                <tr>
+                  <th class="sticky-col sticky-col-rank" style="width: 68px;">Rank</th>
+                  <th class="sticky-col sticky-col-name">Name</th>
+                  <th>Section</th>
+                  <th>Participant Type</th>
+                  <th>Assignment</th>
+                  <th class="text-center">Streak</th>
+                </tr>
+              </thead>
+              <tbody id="bottomLeaderboardBody">
+                <% if @bottom_submitting_participants.present? %>
+                  <% @bottom_submitting_participants.each do |p| %>
+                    <tr>
+                      <td class="sticky-col sticky-col-rank">
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">
+                          #<%= p[:rank] %>
+                        </span>
+                      </td>
+                      <td class="sticky-col sticky-col-name fw-semibold text-dark"><%= p[:name] %></td>
+                      <td><span class="badge bg-light text-secondary border"><%= p[:section] %></span></td>
+                      <td>
+                        <% p_badge = case p[:raw_participant_type]
+                                     when 'student' then 'badge-student'
+                                     when 'guardian' then 'badge-guardian'
+                                     when 'employee' then 'badge-employee'
+                                     else 'bg-secondary'
+                                     end %>
+                        <span class="badge <%= p_badge %>"><%= p[:participant_type] %></span>
+                      </td>
+                      <td class="text-muted small text-truncate" style="max-width: 140px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
+                      <td class="text-center">
+                        <span class="badge bg-light text-muted border">
+                          <i class="bi bi-x-circle text-danger me-1"></i><%= p[:streak] %> days
+                        </span>
+                      </td>
+                    </tr>
+                  <% end %>
+                <% else %>
+                  <tr><td colspan="6" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Training Programs Table (Item 13 with Duration Column) -->
+  <div class="card card-custom">
+    <div class="card-header chart-card-header border-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div class="d-flex align-items-center gap-3">
+        <div class="chart-icon-box" style="background: rgba(16,185,129,0.1); color: #059669;">
+          <i class="bi bi-mortarboard-fill"></i>
+        </div>
+        <div>
+          <p class="chart-header-title mb-0">Recent Training Programs</p>
+          <p class="chart-header-subtitle">Latest programs with feedback rate and status</p>
+        </div>
+      </div>
+      <%= link_to institute_admin_training_programs_path, class: "btn btn-sm btn-outline-success rounded-3 px-3" do %>
+        <i class="bi bi-arrow-right-circle me-1"></i> View All
+      <% end %>
+    </div>
     <div class="card-body p-0">
+      <div class="d-lg-none px-3 pt-2 text-muted small">
+        <i class="bi bi-arrow-left-right me-1"></i> Swipe table horizontally to view all columns &rarr;
+      </div>
       <div class="table-responsive">
         <% if @recent_programs.present? %>
           <table class="table modern-table">
             <thead>
               <tr>
                 <th>Program</th>
+                <th>Duration</th>
                 <th>Participants</th>
                 <th>Feedback Rate</th>
                 <th>Status</th>
@@ -498,6 +1862,15 @@
                         <small class="text-muted"><%= program.start_date&.strftime("%b %d, %Y") %></small>
                       </div>
                     </div>
+                  </td>
+                  <td>
+                    <% if program.start_date.present? && program.end_date.present? %>
+                      <% days = (program.end_date.to_date - program.start_date.to_date).to_i + 1 %>
+                      <div class="fw-semibold text-dark"><%= pluralize(days, "day") %></div>
+                      <small class="text-muted"><%= program.start_date.strftime("%b %d") %> - <%= program.end_date.strftime("%b %d, %Y") %></small>
+                    <% else %>
+                      <span class="text-muted">-</span>
+                    <% end %>
                   </td>
                   <td class="fw-bold text-center"><%= program.participants_count %></td>
                   <td>
@@ -536,31 +1909,56 @@
 <script>
   // Track if we're on the dashboard page
   let isDashboardPage = true;
+
+  // Global state variables for dates and multi-series datasets
+  let currentSubStartDate = new Date("<%= @submission_start_date.iso8601 %>T00:00:00");
+  let currentSubEndDate = new Date("<%= @submission_end_date.iso8601 %>T00:00:00");
+  let currentAssignDate = new Date("<%= @assignment_date.iso8601 %>T00:00:00");
+  let currentSectionDate = new Date("<%= @section_date.iso8601 %>T00:00:00");
+  let currentNotSubStartDate = new Date("<%= @not_submitted_start_date.iso8601 %>T00:00:00");
+  let currentNotSubEndDate = new Date("<%= @not_submitted_end_date.iso8601 %>T00:00:00");
+  let currentPendSecStartDate = new Date("<%= @pending_section_start_date.iso8601 %>T00:00:00");
+  let currentPendSecEndDate = new Date("<%= @pending_section_end_date.iso8601 %>T00:00:00");
+
+  let submissionRawData = {
+    labels: <%= raw @submissions_time_labels.to_json %>,
+    student: <%= @student_submissions_data.to_json %>,
+    guardian: <%= @guardian_submissions_data.to_json %>,
+    employee: <%= @employee_submissions_data.to_json %>,
+    total: <%= @submissions_time_data.to_json %>,
+    backlog: <%= @backlog_data.to_json %>
+  };
+  let submissionViewMode = 'combined'; // 'combined', 'submissions', 'backlog'
+  let submissionSelectedTypes = ['student', 'guardian', 'employee'];
   
   // Function to initialize dashboard charts
   function initializeDashboardCharts() {
+    isDashboardPage = document.querySelector("#participants-section-chart") !== null;
     if (!isDashboardPage) return;
     
-  // initializing dashboard charts
-    
-    // Check if chart containers exist before initializing
+    // Ensure ApexCharts library is loaded before attempting initialization
+    if (typeof ApexCharts === 'undefined') {
+      console.warn('ApexCharts not yet available, deferring chart initialization.');
+      window.addEventListener('load', initializeDashboardCharts, { once: true });
+      return;
+    }
+
+    // Safely destroy all existing charts before creating new instances
+    var allChartKeys = [
+      'sectionChart', 'submissionsChart', 'byAssignmentChart', 
+      'bySectionChart', 'typeChart', 'feedbackChart', 
+      'notSubmittedChart', 'pendingSectionChart'
+    ];
+    allChartKeys.forEach(function(key) {
+      if (window[key] && typeof window[key].destroy === 'function') {
+        try { window[key].destroy(); } catch (e) {}
+        window[key] = null;
+      }
+    });
+
     var sectionChartContainer = document.querySelector("#participants-section-chart");
     var typeChartContainer = document.querySelector("#participants-type-chart");
     var feedbackChartContainer = document.querySelector("#feedback-training-chart");
-
-    // Only destroy and recreate charts if we're on the dashboard page
-    if (window.sectionChart) {
-  // destroying existing section chart
-      window.sectionChart.destroy();
-    }
-    if (window.typeChart) {
-  // destroying existing type chart
-      window.typeChart.destroy();
-    }
-    if (window.feedbackChart) {
-  // destroying existing feedback chart
-      window.feedbackChart.destroy();
-    }
 
     if (sectionChartContainer) {
   // initializing Participants by Section Chart
@@ -765,28 +2163,74 @@
       window.sectionChart = new ApexCharts(sectionChartContainer, sectionChartOptions);
       window.sectionChart.render();
     }
-      // Submissions over time chart (Apex)
+      // State variables for dates and multi-series datasets
+      currentSubStartDate = new Date("<%= @submission_start_date.iso8601 %>T00:00:00");
+      currentSubEndDate = new Date("<%= @submission_end_date.iso8601 %>T00:00:00");
+      currentBacklogStartDate = new Date("<%= @submission_start_date.iso8601 %>T00:00:00");
+      currentBacklogEndDate = new Date("<%= @submission_end_date.iso8601 %>T00:00:00");
+      currentAssignDate = new Date("<%= @assignment_date.iso8601 %>T00:00:00");
+      currentSectionDate = new Date("<%= @section_date.iso8601 %>T00:00:00");
+      currentNotSubStartDate = new Date("<%= @not_submitted_start_date.iso8601 %>T00:00:00");
+      currentNotSubEndDate = new Date("<%= @not_submitted_end_date.iso8601 %>T00:00:00");
+      currentPendSecStartDate = new Date("<%= @pending_section_start_date.iso8601 %>T00:00:00");
+      currentPendSecEndDate = new Date("<%= @pending_section_end_date.iso8601 %>T00:00:00");
+
+      submissionRawData = {
+        labels: <%= raw @submissions_time_labels.to_json %>,
+        student: <%= @student_submissions_data.to_json %>,
+        guardian: <%= @guardian_submissions_data.to_json %>,
+        employee: <%= @employee_submissions_data.to_json %>,
+        total: <%= @submissions_time_data.to_json %>,
+        backlog: <%= @backlog_data.to_json %>
+      };
+      submissionViewMode = 'combined'; // 'combined', 'submissions', 'backlog'
+      submissionSelectedTypes = ['student', 'guardian', 'employee'];
+      syncSubmissionTypeButtonUI();
+
+      // Assignment Submission Chart (Apex)
       var submissionsContainer = document.querySelector('#submissions-over-time-chart');
       if (window.submissionsChart) {
         try { window.submissionsChart.destroy(); } catch(e) { /* ignore */ }
       }
       if (submissionsContainer) {
-  // initializing Submissions Over Time Chart
         var submissionsOptions = {
-          chart: { type: 'area', height: 320, toolbar: { show: true }, animations: { enabled: true, easing: 'easeinout', speed: 700 } },
-          series: [{ name: 'Submissions', data: <%= @submissions_time_data.to_json.html_safe %> }],
-          stroke: { curve: 'smooth', width: 3 },
+          chart: {
+            type: 'area',
+            height: 330,
+            toolbar: { show: true },
+            animations: { enabled: true, easing: 'easeinout', speed: 600 }
+          },
+          series: [
+            { name: 'Total Submissions', data: submissionRawData.total },
+            { name: 'Backlog', data: submissionRawData.backlog }
+          ],
+          stroke: { curve: 'smooth', width: [2.5, 2.5] },
           markers: { size: 4, strokeColors: '#ffffff', hover: { sizeOffset: 2 } },
-          colors: ['#0d6efd'],
-          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.04 } },
-          xaxis: { categories: <%= raw @submissions_time_labels.to_json %>, labels: { rotate: -35, style: { fontSize: '12px' } } },
-          yaxis: { title: { text: 'Submissions' }, min: 0 },
-          tooltip: { x: { format: 'dd MMM' }, y: { formatter: function(val){ return val + ' submissions'; } } },
+          colors: ['#4f46e5', '#ef4444'],
+          fill: {
+            type: 'gradient',
+            gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.8, opacityFrom: 0.5, opacityTo: 0.05 }
+          },
+          xaxis: {
+            categories: submissionRawData.labels,
+            labels: { rotate: -35, style: { fontSize: '12px' } }
+          },
+          yaxis: {
+            title: { text: 'Count' },
+            min: 0,
+            forceNiceScale: true,
+            labels: { formatter: function(val) { return Math.round(val); } }
+          },
+          tooltip: {
+            shared: true,
+            intersect: false,
+            y: { formatter: function(val) { return val + (val === 1 ? ' item' : ' items'); } }
+          },
           legend: { show: false },
           grid: { borderColor: '#eef2f6' },
           responsive: [{
             breakpoint: 768,
-            options: { chart: { height: 260 }, xaxis: { labels: { rotate: -20 } } }
+            options: { chart: { height: 260 }, xaxis: { labels: { rotate: -25 } } }
           }]
         };
 
@@ -794,11 +2238,10 @@
         window.submissionsChart.render();
       }
 
-      // Submissions by Assignment (bar)
+      // Submissions by Assignment (bar) - Full Name in x-axis
       var byAssignmentContainer = document.querySelector('#submissions-by-assignment-chart');
       if (window.byAssignmentChart) { try { window.byAssignmentChart.destroy(); } catch(e) {} }
-  if (byAssignmentContainer) {
-        // nicer visuals: gradient fill, rounded bars, adaptive label truncation
+      if (byAssignmentContainer) {
         var assignOptions = {
           chart: { type: 'bar', height: 360, toolbar: { show: true } },
           series: [{ name: 'Participants', data: <%= raw @assignment_data.to_json %> }],
@@ -806,30 +2249,47 @@
             bar: { 
               horizontal: false, 
               columnWidth: '55%', 
-              borderRadius: 0, 
+              borderRadius: 4, 
               distributed: false 
             } 
           },
           dataLabels: { enabled: true, formatter: function(val){ return val; }, style: { fontSize: '12px', colors: ['#243b53'] } },
+          grid: {
+            padding: { bottom: 35, left: 30, right: 15 }
+          },
           xaxis: { 
             categories: <%= raw @assignment_labels.to_json %>, 
             labels: { 
-              rotate: -35, 
-              style: { fontSize: '12px' },
-              formatter: function(val) { return val.length > 24 ? val.substring(0,21) + '...' : val; }
+              rotate: -35,
+              rotateAlways: true,
+              trim: false,
+              maxHeight: 180,
+              style: { fontSize: '11px', fontWeight: 500 }
             } 
           },
           yaxis: { title: { text: 'Participants' }, min: 0 },
-          colors: [function({ value, seriesIndex, w }){ return '#06b6d4' }],
-          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#06b6d4'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.6, stops: [0, 100] } },
-          tooltip: { y: { formatter: function(val){ return val + ' participants'; } }, x: { formatter: function(val){ return val; } } },
+          colors: ['#06b6d4'],
+          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#3b82f6'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.7, stops: [0, 100] } },
+          tooltip: { 
+            theme: 'light',
+            y: { formatter: function(val){ return val + ' participants'; } }, 
+            x: { 
+              show: true,
+              formatter: function(val, opts){ 
+                if (opts && opts.w && opts.w.globals && opts.w.globals.labels && opts.w.globals.labels[opts.dataPointIndex]) {
+                  return opts.w.globals.labels[opts.dataPointIndex];
+                }
+                return val; 
+              } 
+            } 
+          },
           legend: { show: false },
           responsive: [{
             breakpoint: 768,
             options: {
               chart: { height: 300 },
               plotOptions: { bar: { columnWidth: '70%' } },
-              xaxis: { labels: { rotate: -20 } }
+              xaxis: { labels: { rotate: -25 } }
             }
           }]
         };
@@ -838,251 +2298,1034 @@
         window.byAssignmentChart.render();
       }
 
-      // Submissions by Section (today) - placed beside assignments
+      // Submissions by Section (today) - Full Name in x-axis
       var bySectionContainer = document.querySelector('#submissions-by-section-chart');
       if (window.bySectionChart) { try { window.bySectionChart.destroy(); } catch(e) {} }
       if (bySectionContainer) {
         var sectionOptions = {
           chart: { type: 'bar', height: 360, toolbar: { show: true } },
           series: [{ name: 'Submissions', data: <%= raw @submissions_section_data.to_json %> }],
-          plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 0 } },
+          plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 4 } },
           dataLabels: { enabled: true, style: { fontSize: '12px' }, formatter: function(val){ return val; } },
-          xaxis: { categories: <%= raw @submissions_section_labels.to_json %>, labels: { rotate: -35, style: { fontSize: '12px' }, formatter: function(val){ return val.length > 24 ? val.substring(0,21) + '...' : val; } } },
+          grid: {
+            padding: { bottom: 35, left: 30, right: 15 }
+          },
+          xaxis: { 
+            categories: <%= raw @submissions_section_labels.to_json %>, 
+            labels: { 
+              rotate: -35,
+              rotateAlways: true,
+              trim: false,
+              maxHeight: 180,
+              style: { fontSize: '11px', fontWeight: 500 }
+            } 
+          },
           yaxis: { title: { text: 'Submissions' }, min: 0 },
           colors: ['#f97316'],
-          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#fb923c'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.6, stops: [0, 100] } },
-          tooltip: { y: { formatter: function(val){ return val + ' submissions'; } } },
+          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#fb923c'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.7, stops: [0, 100] } },
+          tooltip: { 
+            theme: 'light',
+            y: { formatter: function(val){ return val + ' submissions'; } },
+            x: {
+              show: true,
+              formatter: function(val, opts){
+                if (opts && opts.w && opts.w.globals && opts.w.globals.labels && opts.w.globals.labels[opts.dataPointIndex]) {
+                  return opts.w.globals.labels[opts.dataPointIndex];
+                }
+                return val;
+              }
+            }
+          },
           legend: { show: false },
-          responsive: [{ breakpoint: 768, options: { chart: { height: 300 }, xaxis: { labels: { rotate: -20 } } } }]
+          responsive: [{ breakpoint: 768, options: { chart: { height: 300 }, xaxis: { labels: { rotate: -25 } } } }]
         };
 
         window.bySectionChart = new ApexCharts(bySectionContainer, sectionOptions);
         window.bySectionChart.render();
       }
 
-    if (typeChartContainer) {
-  // initializing Participants by Type Pie Chart
-      var optionsType = {
-        chart: { 
-          type: 'pie', 
-          height: 350,
-          animations: {
-            enabled: true,
-            easing: 'easeinout',
-            speed: 800,
-            animateGradually: {
-              enabled: true,
-              delay: 150
-            },
-            dynamicAnimation: {
-              enabled: true,
-              speed: 350
-            }
-          }
-        },
-        series: <%= @type_data %>,
-        labels: <%= raw @type_labels.to_json %>,
-        colors: ['#10b981', '#ec4899', '#8b5cf6'],
-        fill: {
-          type: 'gradient',
-          gradient: {
-            shade: 'dark',
-            type: 'vertical',
-            shadeIntensity: 0.5,
-            gradientToColors: ['#059669', '#db2777', '#7c3aed'],
-            inverseColors: false,
-            opacityFrom: 1,
-            opacityTo: 0.9,
-            stops: [0, 100]
-          }
-        },
-        stroke: {
-          show: true,
-          width: 2,
-          colors: ['#ffffff']
-        },
-        dataLabels: {
-          enabled: true,
-          formatter: function(val) {
-            return val.toFixed(1) + '%';
+      if (typeChartContainer) {
+        var optionsType = {
+          chart: { 
+            type: 'pie', 
+            height: 350,
+            animations: { enabled: true, easing: 'easeinout', speed: 800 }
           },
-          style: {
-            fontSize: '14px',
+          series: <%= @type_data %>,
+          labels: <%= raw @type_labels.to_json %>,
+          colors: ['#10b981', '#ec4899', '#8b5cf6'],
+          fill: {
+            type: 'gradient',
+            gradient: { shade: 'dark', type: 'vertical', shadeIntensity: 0.5, gradientToColors: ['#059669', '#db2777', '#7c3aed'], inverseColors: false, opacityFrom: 1, opacityTo: 0.9, stops: [0, 100] }
+          },
+          stroke: { show: true, width: 2, colors: ['#ffffff'] },
+          dataLabels: {
+            enabled: true,
+            formatter: function(val) { return val.toFixed(1) + '%'; },
+            style: { fontSize: '14px', fontWeight: 600, colors: ['#ffffff'] }
+          },
+          legend: { position: 'right', fontSize: '13px', fontWeight: 500 },
+          tooltip: { theme: 'light', y: { formatter: function(val) { return val; } } }
+        };
+        window.typeChart = new ApexCharts(typeChartContainer, optionsType);
+        window.typeChart.render();
+      }
+
+      // Feedback by Training Program (Interactive & Combined)
+      window.programFeedbackRawData = <%= raw @program_feedback_data.to_json %> || [];
+      window.feedbackViewMode = 'received_pending'; // 'received_pending' or 'participant_type'
+      window.selectedFeedbackProgramIds = window.programFeedbackRawData.map(function(p) { return p.id; });
+
+      function getFilteredFeedbackPrograms() {
+        return window.programFeedbackRawData.filter(function(p) {
+          return window.selectedFeedbackProgramIds.indexOf(p.id) !== -1;
+        });
+      }
+
+      function buildFeedbackSeries() {
+        var filtered = getFilteredFeedbackPrograms();
+        if (window.feedbackViewMode === 'participant_type') {
+          return [
+            { name: 'Students', data: filtered.map(function(p) { return p.student || 0; }) },
+            { name: 'Guardians', data: filtered.map(function(p) { return p.guardian || 0; }) },
+            { name: 'Employees', data: filtered.map(function(p) { return p.employee || 0; }) },
+            { name: 'Pending', data: filtered.map(function(p) { return p.pending || 0; }) }
+          ];
+        } else {
+          return [
+            { name: 'Received', data: filtered.map(function(p) { return p.received || 0; }) },
+            { name: 'Pending', data: filtered.map(function(p) { return p.pending || 0; }) }
+          ];
+        }
+      }
+
+      if (feedbackChartContainer) {
+        var feedbackChartOptions = {
+          chart: {
+            type: 'bar',
+            height: Math.max(280, window.programFeedbackRawData.length * 72 + 60),
+            stacked: true,
+            toolbar: { show: false },
+            dropShadow: {
+              enabled: true,
+              top: 4,
+              left: 0,
+              blur: 8,
+              color: '#8b5cf6',
+              opacity: 0.08
+            },
+            animations: {
+              enabled: true,
+              easing: 'easeinout',
+              speed: 700,
+              animateGradually: { enabled: true, delay: 80 }
+            }
+          },
+          plotOptions: {
+            bar: {
+              horizontal: true,
+              barHeight: '52%',
+              borderRadius: 6,
+              borderRadiusApplication: 'end',
+              borderRadiusWhenStacked: 'last',
+              dataLabels: {
+                total: {
+                  enabled: true,
+                  offsetX: 8,
+                  style: { fontSize: '12px', fontWeight: 700, color: '#334155' },
+                  formatter: function(val) { return val > 0 ? val : ''; }
+                }
+              }
+            }
+          },
+          dataLabels: {
+            enabled: true,
+            formatter: function(val, opts) {
+              if (!val || val === 0) return '';
+              var pIdx = opts.dataPointIndex;
+              var filtered = getFilteredFeedbackPrograms();
+              var prog = filtered[pIdx];
+              var total = prog ? prog.total : 0;
+              var pct = total > 0 ? Math.round((val / total) * 100) : 0;
+              return pct + '%';
+            },
+            style: {
+              fontSize: '11px',
+              fontWeight: 700,
+              colors: ['#ffffff']
+            },
+            dropShadow: { enabled: false }
+          },
+          series: buildFeedbackSeries(),
+          xaxis: {
+            categories: window.programFeedbackRawData.map(function(p) { return p.name; }),
+            labels: {
+              style: { fontSize: '12px', fontWeight: 500, colors: '#64748b' },
+              formatter: function(val) { return Math.round(val); }
+            },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+          },
+          yaxis: {
+            labels: {
+              style: { fontSize: '13px', fontWeight: 600, colors: '#1e293b' },
+              maxWidth: 220,
+              offsetX: 5
+            }
+          },
+          grid: {
+            borderColor: '#f1f5f9',
+            xaxis: { lines: { show: true } },
+            yaxis: { lines: { show: false } },
+            padding: { left: 0, right: 20 }
+          },
+          fill: {
+            type: 'gradient',
+            gradient: {
+              shade: 'light',
+              type: 'horizontal',
+              shadeIntensity: 0.25,
+              gradientToColors: ['#a78bfa', '#fda4af'],
+              inverseColors: false,
+              opacityFrom: 1,
+              opacityTo: 0.85,
+              stops: [0, 100]
+            }
+          },
+          colors: ['#8b5cf6', '#fb7185'],
+          tooltip: {
+            theme: 'light',
+            shared: true,
+            intersect: false,
+            y: {
+              formatter: function(val, opts) {
+                if (val === undefined || val === null) return '';
+                var pIdx = opts.dataPointIndex;
+                var filtered = getFilteredFeedbackPrograms();
+                var prog = filtered[pIdx];
+                var total = prog ? prog.total : 0;
+                var pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                return pct + '% (' + val + ')';
+              }
+            }
+          },
+          legend: {
+            position: 'top',
+            horizontalAlign: 'right',
+            fontSize: '12px',
             fontWeight: 600,
-            colors: ['#ffffff']
+            itemMargin: { horizontal: 10, vertical: 4 },
+            markers: { radius: 4, width: 12, height: 12 }
           },
-          dropShadow: {
-            enabled: true,
-            top: 1,
-            left: 1,
-            blur: 1,
-            opacity: 0.5
-          }
-        },
-        legend: {
-          position: 'right',
-          fontSize: '13px',
-          fontWeight: 500,
-          labels: {
-            colors: '#475569'
+          states: {
+            hover: { filter: { type: 'lighten', value: 0.08 } },
+            active: { filter: { type: 'darken', value: 0.1 } }
           },
-          markers: {
-            width: 12,
-            height: 12,
-            radius: 3
-          },
-          itemMargin: {
-            horizontal: 5,
-            vertical: 5
-          }
-        },
-        plotOptions: {
-          pie: {
-            expandOnClick: true,
-            donut: {
-              size: '0%'
+          responsive: [{
+            breakpoint: 768,
+            options: {
+              chart: { height: Math.max(220, window.programFeedbackRawData.length * 60 + 40) },
+              legend: { position: 'bottom', horizontalAlign: 'center', fontSize: '11px' },
+              yaxis: { labels: { maxWidth: 130, style: { fontSize: '11px' } } }
             }
-          }
-        },
-        tooltip: {
-          theme: 'light',
-          y: {
-            formatter: function(val) {
-              return val;
-            }
-          },
-          style: {
-            fontSize: '13px',
-            fontFamily: 'inherit'
-          }
-        },
-        responsive: [{
-          breakpoint: 768,
-          options: {
-            chart: {
-              height: 300
-            },
-            legend: {
-              position: 'bottom'
-            }
-          }
-        }]
-      };
-      window.typeChart = new ApexCharts(typeChartContainer, optionsType);
-      window.typeChart.render();
-    }
-
-    if (feedbackChartContainer) {
-  // initializing Feedback by Training Program Chart
-      var feedbackChartOptions = {
-        chart: { type: 'bar', height: 300 },
-        series: [{
-          name: 'Received',
-          data: <%= @program_feedback_data.map { |d| d[:received].to_i } %>
-        }, {
-          name: 'Pending',
-          data: <%= @program_feedback_data.map { |d| d[:pending].to_i } %>
-        }],
-        xaxis: { categories: <%= raw @program_feedback_data.map { |d| d[:name] }.to_json %> },
-        colors: ['#8b5cf6', '#fb7185'],
-        fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#06b6d4', '#fb923c'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.6, stops: [0, 100] } },
-        tooltip: { y: { formatter: function(val){ return val + ' responses'; } } }
-      };
-      window.feedbackChart = new ApexCharts(feedbackChartContainer, feedbackChartOptions);
-      window.feedbackChart.render();
-    }
-
-  // Completion chart removed
-
-    // Not-submitted by Assignment (Top 10) - bar
-    var notSubmittedContainer = document.querySelector('#not-submitted-assignment-chart');
-    if (window.notSubmittedChart) { try { window.notSubmittedChart.destroy(); } catch(e) {} }
-    if (notSubmittedContainer) {
-      var notSubmittedOptions = {
-        chart: { type: 'bar', height: 320 },
-        series: [{ name: 'Pending', data: <%= raw @not_submitted_assignment_data.to_json %> }],
-        xaxis: { categories: <%= raw @not_submitted_assignment_labels.to_json %>, labels: { rotate: -30, style: { fontSize: '12px' } } },
-        plotOptions: { bar: { horizontal: false, columnWidth: '60%', borderRadius: 4 } },
-        dataLabels: { enabled: true, style: { fontSize: '12px' } },
-  colors: ['#FF5E62'],
-  fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#FF2D95'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.6, stops: [0,100] } },
-        tooltip: { y: { formatter: function(val){ return val + ' pending'; } } },
-        legend: { show: false }
-      };
-      window.notSubmittedChart = new ApexCharts(notSubmittedContainer, notSubmittedOptions);
-      window.notSubmittedChart.render();
-    }
-
-    // Pending by Section (Top 10) - bar
-    var pendingSectionContainer = document.querySelector('#pending-section-chart');
-    if (window.pendingSectionChart) { try { window.pendingSectionChart.destroy(); } catch(e) {} }
-    if (pendingSectionContainer) {
-      var pendingSectionOptions = {
-        chart: { type: 'bar', height: 320 },
-        series: [{ name: 'Pending', data: <%= raw @pending_section_data.to_json %> }],
-        xaxis: { categories: <%= raw @pending_section_labels.to_json %>, labels: { rotate: -30, style: { fontSize: '12px' } } },
-        plotOptions: { bar: { horizontal: false, columnWidth: '60%', borderRadius: 4 } },
-        dataLabels: { enabled: true, style: { fontSize: '12px' } },
-        colors: ['#8b5cf6'],
-        fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#ec4899'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.6, stops: [0,100] } },
-        tooltip: { y: { formatter: function(val){ return val + ' pending'; } } },
-        legend: { show: false }
-      };
-      window.pendingSectionChart = new ApexCharts(pendingSectionContainer, pendingSectionOptions);
-      window.pendingSectionChart.render();
-    }
-
-    // Backlog Trend (14 days)
-    var backlogContainer = document.querySelector('#backlog-trend-chart');
-    if (window.backlogChart) { try { window.backlogChart.destroy(); } catch(e) {} }
-    if (backlogContainer) {
-      var backlogOptions = {
-        chart: { type: 'area', height: 220 },
-        series: [{ name: 'Backlog', data: <%= raw @backlog_data.to_json %> }],
-        xaxis: { categories: <%= raw @backlog_labels.to_json %>, labels: { rotate: -35, style: { fontSize: '11px' } } },
-        stroke: { curve: 'smooth', width: 2 },
-        colors: ['#ef4444'],
-        fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', opacityFrom: 0.45, opacityTo: 0.04 } },
-        tooltip: { y: { formatter: function(val){ return val + ' pending'; } } },
-        grid: { borderColor: '#eef2f6' }
-      };
-      window.backlogChart = new ApexCharts(backlogContainer, backlogOptions);
-      window.backlogChart.render();
-    }
-  }
-
-  // Initialize on first load
-  document.addEventListener('DOMContentLoaded', initializeDashboardCharts);
-  
-  // Handle navigation to/from dashboard page
-  document.addEventListener('turbo:load', function() {
-    // Check if we're on the dashboard page by looking for chart containers
-    isDashboardPage = document.querySelector("#participants-section-chart") !== null;
-    
-    if (isDashboardPage) {
-  // dashboard page detected, initializing charts
-      initializeDashboardCharts();
-    } else {
-  // not on dashboard page, skipping chart initialization
-    }
-  });
-
-  // Clean up only when leaving dashboard page
-  document.addEventListener('turbo:before-visit', function() {
-    if (isDashboardPage) {
-  // leaving dashboard page, cleaning up charts
-      if (window.sectionChart) {
-        window.sectionChart.destroy();
-        window.sectionChart = null;
+          }]
+        };
+        window.feedbackChart = new ApexCharts(feedbackChartContainer, feedbackChartOptions);
+        window.feedbackChart.render();
       }
-      if (window.typeChart) {
-        window.typeChart.destroy();
-        window.typeChart = null;
+
+      // Not-submitted by Assignment (Top 10) - bar with full name
+      var notSubmittedContainer = document.querySelector('#not-submitted-assignment-chart');
+      if (window.notSubmittedChart) { try { window.notSubmittedChart.destroy(); } catch(e) {} }
+      if (notSubmittedContainer) {
+        var notSubmittedOptions = {
+          chart: { type: 'bar', height: 310 },
+          series: [{ name: 'Pending', data: <%= raw @not_submitted_assignment_data.to_json %> }],
+          grid: {
+            padding: { bottom: 0, left: 35, right: 15 }
+          },
+          xaxis: { 
+            categories: <%= raw @not_submitted_assignment_labels.to_json %>, 
+            labels: { 
+              rotate: -35,
+              rotateAlways: true,
+              trim: false,
+              maxHeight: 115,
+              style: { fontSize: '11px', fontWeight: 500 }
+            } 
+          },
+          plotOptions: { bar: { horizontal: false, columnWidth: '60%', borderRadius: 4 } },
+          dataLabels: { enabled: true, style: { fontSize: '12px' } },
+          colors: ['#ef4444'],
+          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#f43f5e'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.7, stops: [0,100] } },
+          tooltip: { 
+            theme: 'light',
+            y: { formatter: function(val){ return val + ' pending'; } },
+            x: {
+              show: true,
+              formatter: function(val, opts){
+                if (opts && opts.w && opts.w.globals && opts.w.globals.labels && opts.w.globals.labels[opts.dataPointIndex]) {
+                  return opts.w.globals.labels[opts.dataPointIndex];
+                }
+                return val;
+              }
+            }
+          },
+          legend: { show: false }
+        };
+        window.notSubmittedChart = new ApexCharts(notSubmittedContainer, notSubmittedOptions);
+        window.notSubmittedChart.render();
       }
+
+      // Pending by Section (Top 10) - bar with full name
+      var pendingSectionContainer = document.querySelector('#pending-section-chart');
+      if (window.pendingSectionChart) { try { window.pendingSectionChart.destroy(); } catch(e) {} }
+      if (pendingSectionContainer) {
+        var pendingSectionOptions = {
+          chart: { type: 'bar', height: 310 },
+          series: [{ name: 'Pending', data: <%= raw @pending_section_data.to_json %> }],
+          grid: {
+            padding: { bottom: 0, left: 35, right: 15 }
+          },
+          xaxis: { 
+            categories: <%= raw @pending_section_labels.to_json %>, 
+            labels: { 
+              rotate: -35,
+              rotateAlways: true,
+              trim: false,
+              maxHeight: 115,
+              style: { fontSize: '11px', fontWeight: 500 }
+            } 
+          },
+          plotOptions: { bar: { horizontal: false, columnWidth: '60%', borderRadius: 4 } },
+          dataLabels: { enabled: true, style: { fontSize: '12px' } },
+          colors: ['#8b5cf6'],
+          fill: { type: 'gradient', gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.6, gradientToColors: ['#ec4899'], inverseColors: false, opacityFrom: 0.95, opacityTo: 0.7, stops: [0,100] } },
+          tooltip: { 
+            theme: 'light',
+            y: { formatter: function(val){ return val + ' pending'; } },
+            x: {
+              show: true,
+              formatter: function(val, opts){
+                if (opts && opts.w && opts.w.globals && opts.w.globals.labels && opts.w.globals.labels[opts.dataPointIndex]) {
+                  return opts.w.globals.labels[opts.dataPointIndex];
+                }
+                return val;
+              }
+            }
+          },
+          legend: { show: false }
+        };
+        window.pendingSectionChart = new ApexCharts(pendingSectionContainer, pendingSectionOptions);
+        window.pendingSectionChart.render();
+      }
+
+      // Initialize Flatpickr instances
+      initDashboardDatepickers();
+    }
+
+    // Date formatting helper functions
+    function formatDateIso(d) {
+      if (!d) return '';
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatDayDisplay(d) {
+      if (!d) return '';
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function formatRangeDisplay(d1, d2) {
+      if (!d1 || !d2) return '';
+      const opt1 = { month: 'short', day: 'numeric' };
+      const opt2 = { month: 'short', day: 'numeric', year: 'numeric' };
+      return `${d1.toLocaleDateString('en-US', opt1)} – ${d2.toLocaleDateString('en-US', opt2)}`;
+    }
+
+    // Dynamic series update for Assignment submission chart
+    function updateAssignmentSubmissionSeries() {
+      if (!window.submissionsChart) return;
+      
+      let series = [];
+      let colors = [];
+      
+      if (submissionViewMode === 'combined') {
+        series = [
+          { name: 'Total Submissions', data: submissionRawData.total },
+          { name: 'Backlog', data: submissionRawData.backlog }
+        ];
+        colors = ['#4f46e5', '#ef4444'];
+      } else if (submissionViewMode === 'submissions') {
+        const typeConfig = [
+          { id: 'student', name: 'Students', color: '#06b6d4', data: submissionRawData.student },
+          { id: 'guardian', name: 'Guardians', color: '#f59e0b', data: submissionRawData.guardian },
+          { id: 'employee', name: 'Employees', color: '#10b981', data: submissionRawData.employee }
+        ];
+
+        typeConfig.forEach(cfg => {
+          if (submissionSelectedTypes.includes(cfg.id)) {
+            series.push({ name: cfg.name, data: cfg.data });
+            colors.push(cfg.color);
+          }
+        });
+
+        if (series.length === 0) {
+          typeConfig.forEach(cfg => {
+            series.push({ name: cfg.name, data: cfg.data });
+            colors.push(cfg.color);
+          });
+        }
+      } else if (submissionViewMode === 'backlog') {
+        series = [{ name: 'Backlog', data: submissionRawData.backlog }];
+        colors = ['#ef4444'];
+      }
+      
+      // Update badge label
+      const activeBadge = document.getElementById('submission-active-series-badge');
+      if (activeBadge) {
+        if (submissionViewMode === 'combined') {
+          activeBadge.textContent = 'Viewing: Combined (Total & Backlog)';
+        } else if (submissionViewMode === 'submissions') {
+          if (submissionSelectedTypes.length === 3) {
+            activeBadge.textContent = 'Viewing: Submissions (All Types)';
+          } else {
+            const names = [];
+            if (submissionSelectedTypes.includes('student')) names.push('Students');
+            if (submissionSelectedTypes.includes('guardian')) names.push('Guardians');
+            if (submissionSelectedTypes.includes('employee')) names.push('Employees');
+            activeBadge.textContent = `Viewing: Submissions (${names.join(', ')})`;
+          }
+        } else if (submissionViewMode === 'backlog') {
+          activeBadge.textContent = 'Viewing: Backlog Only';
+        }
+      }
+
+      // Update custom HTML legend pills
+      const legendEl = document.getElementById('submission-chart-legend');
+      if (legendEl) {
+        if (submissionViewMode === 'combined') {
+          legendEl.innerHTML =
+            '<div class="d-flex align-items-center gap-2">' +
+              '<span style="display:inline-block;width:28px;height:4px;border-radius:9999px;background:#4f46e5;"></span>' +
+              '<span style="font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.01em;">Total Submissions</span>' +
+            '</div>' +
+            '<div class="d-flex align-items-center gap-2">' +
+              '<span style="display:inline-block;width:28px;height:4px;border-radius:9999px;background:#ef4444;"></span>' +
+              '<span style="font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.01em;">Backlog</span>' +
+            '</div>';
+        } else {
+          legendEl.innerHTML = series.map((s, idx) => {
+            const c = colors[idx] || '#4f46e5';
+            return (
+              '<div class="d-flex align-items-center gap-2">' +
+                '<span style="display:inline-block;width:28px;height:4px;border-radius:9999px;background:' + c + ';"></span>' +
+                '<span style="font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.01em;">' + s.name + '</span>' +
+              '</div>'
+            );
+          }).join('');
+        }
+      }
+
+      // Check if all series data points are 0
+      const isAllZero = series.every(s => !s.data || s.data.every(v => Number(v) === 0));
+      const zeroNotice = document.getElementById('submission-zero-notice');
+      if (zeroNotice) {
+        if (isAllZero) {
+          zeroNotice.classList.remove('d-none');
+          zeroNotice.classList.add('d-flex');
+        } else {
+          zeroNotice.classList.add('d-none');
+          zeroNotice.classList.remove('d-flex');
+        }
+      }
+
+      window.submissionsChart.updateOptions({
+        series: series,
+        xaxis: { categories: submissionRawData.labels },
+        colors: colors,
+        stroke: {
+          curve: 'smooth',
+          width: series.map(() => 2.5)
+        }
+      }, true, true);
+    }
+
+    function setSubmissionViewMode(mode) {
+      submissionViewMode = mode;
+      document.querySelectorAll('#btn-sub-view-combined, #btn-sub-view-submissions, #btn-sub-view-backlog').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`btn-sub-view-${mode}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const ptypeGroup = document.getElementById('sub-ptype-group');
+      if (ptypeGroup) {
+        ptypeGroup.style.display = (mode === 'submissions' ? 'inline-flex' : 'none');
+        if (mode === 'submissions') {
+          syncSubmissionTypeButtonUI();
+        }
+      }
+      updateAssignmentSubmissionSeries();
+    }
+
+    function filterSubmissionType(type, evt) {
+      const allTypes = ['student', 'guardian', 'employee'];
+      
+      if (type === 'all') {
+        submissionSelectedTypes = [...allTypes];
+      } else {
+        const isModifier = evt && (evt.shiftKey || evt.ctrlKey || evt.metaKey);
+        
+        if (submissionSelectedTypes.length === 3 && !isModifier) {
+          // If all 3 were selected and user clicks one without modifier:
+          // isolate to this type (1 click to focus on Students/Guardians/Employees)
+          submissionSelectedTypes = [type];
+        } else {
+          const index = submissionSelectedTypes.indexOf(type);
+          if (index > -1) {
+            // Already selected: toggle off if more than 1 selected, or reset to all if last one
+            if (submissionSelectedTypes.length > 1) {
+              submissionSelectedTypes.splice(index, 1);
+            } else {
+              submissionSelectedTypes = [...allTypes];
+            }
+          } else {
+            // Not selected: add it
+            submissionSelectedTypes.push(type);
+          }
+        }
+      }
+
+      syncSubmissionTypeButtonUI();
+      updateAssignmentSubmissionSeries();
+    }
+
+    function syncSubmissionTypeButtonUI() {
+      const allBtn = document.getElementById('btn-sub-ptype-all');
+      const isAll = submissionSelectedTypes.length === 3;
+      if (allBtn) {
+        allBtn.classList.toggle('active', isAll);
+      }
+      
+      ['student', 'guardian', 'employee'].forEach(t => {
+        const btn = document.getElementById(`btn-sub-ptype-${t}`);
+        if (btn) {
+          btn.classList.toggle('active', submissionSelectedTypes.includes(t));
+        }
+      });
+    }
+
+    // 14-day shift navigation for Assignment submission
+    function shiftAssignmentSubmission(forward) {
+      const delta = forward ? 14 : -14;
+      currentSubStartDate.setDate(currentSubStartDate.getDate() + delta);
+      currentSubEndDate.setDate(currentSubEndDate.getDate() + delta);
+      fetchAssignmentSubmissionData();
+    }
+
+    function resetAssignmentSubmissionLatest() {
+      currentSubEndDate = new Date();
+      currentSubStartDate = new Date();
+      currentSubStartDate.setDate(currentSubEndDate.getDate() - 13);
+      fetchAssignmentSubmissionData();
+    }
+
+    function fetchAssignmentSubmissionData(startStr = null, endStr = null) {
+      const sStr = startStr || formatDateIso(currentSubStartDate);
+      const eStr = endStr || formatDateIso(currentSubEndDate);
+      if (!startStr) {
+        const badge = document.getElementById('submission-date-range-badge');
+        if (badge) badge.textContent = formatRangeDisplay(currentSubStartDate, currentSubEndDate);
+      }
+
+      fetch(`/institute_admin/dashboard/chart_data?chart=assignment_submission&start_date=${sStr}&end_date=${eStr}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success) {
+            submissionRawData = {
+              labels: res.labels,
+              student: res.student_data,
+              guardian: res.guardian_data,
+              employee: res.employee_data,
+              total: res.total_data,
+              backlog: res.backlog_data
+            };
+            updateAssignmentSubmissionSeries();
+          }
+        })
+        .catch(err => console.error('Failed to update assignment submission chart:', err));
+    }
+
+    // Submissions by Assignment navigation
+    function shiftAssignmentDay(forward) {
+      currentAssignDate.setDate(currentAssignDate.getDate() + (forward ? 1 : -1));
+      fetchSubmissionsByAssignment();
+    }
+
+    function resetAssignmentDayToday() {
+      currentAssignDate = new Date();
+      fetchSubmissionsByAssignment();
+    }
+
+    function fetchSubmissionsByAssignment(startDate = null, endDate = null) {
+      const sStr = startDate || formatDateIso(currentAssignDate);
+      const eStr = endDate || sStr;
+      const isRange = sStr !== eStr;
+      const badge = document.getElementById('by-assignment-date-badge');
+      if (badge) {
+        badge.textContent = isRange ? `${sStr} – ${eStr}` : formatDayDisplay(currentAssignDate);
+      }
+
+      fetch(`/institute_admin/dashboard/chart_data?chart=submissions_by_assignment&start_date=${sStr}&end_date=${eStr}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && window.byAssignmentChart) {
+            window.byAssignmentChart.updateOptions({
+              xaxis: { 
+                categories: res.labels,
+                labels: { rotate: -35, rotateAlways: true, trim: false, maxHeight: 180, style: { fontSize: '11px', fontWeight: 500 } }
+              }
+            });
+            window.byAssignmentChart.updateSeries([{ name: 'Participants', data: res.data }]);
+          }
+        })
+        .catch(err => console.error('Failed to update by assignment chart:', err));
+    }
+
+    // Submissions by Section navigation
+    function shiftSectionDay(forward) {
+      currentSectionDate.setDate(currentSectionDate.getDate() + (forward ? 1 : -1));
+      fetchSubmissionsBySection();
+    }
+
+    function resetSectionDayToday() {
+      currentSectionDate = new Date();
+      fetchSubmissionsBySection();
+    }
+
+    function fetchSubmissionsBySection(startDate = null, endDate = null) {
+      const sStr = startDate || formatDateIso(currentSectionDate);
+      const eStr = endDate || sStr;
+      const isRange = sStr !== eStr;
+      const badge = document.getElementById('by-section-date-badge');
+      if (badge) {
+        badge.textContent = isRange ? `${sStr} – ${eStr}` : formatDayDisplay(currentSectionDate);
+      }
+
+      fetch(`/institute_admin/dashboard/chart_data?chart=submissions_by_section&start_date=${sStr}&end_date=${eStr}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && window.bySectionChart) {
+            window.bySectionChart.updateOptions({
+              xaxis: { 
+                categories: res.labels,
+                labels: { rotate: -35, rotateAlways: true, trim: false, maxHeight: 180, style: { fontSize: '11px', fontWeight: 500 } }
+              }
+            });
+            window.bySectionChart.updateSeries([{ name: 'Submissions', data: res.data }]);
+          }
+        })
+        .catch(err => console.error('Failed to update by section chart:', err));
+    }
+
+    // Not Submitted by Assignment navigation
+    function shiftNotSubmittedDay(forward) {
+      const step = forward ? 1 : -1;
+      const diffDays = Math.round((currentNotSubEndDate - currentNotSubStartDate) / (1000 * 60 * 60 * 24));
+      currentNotSubStartDate.setDate(currentNotSubStartDate.getDate() + step);
+      currentNotSubEndDate.setDate(currentNotSubEndDate.getDate() + step);
+      const sStr = formatDateIso(currentNotSubStartDate);
+      const eStr = formatDateIso(currentNotSubEndDate);
+      const picker = document.querySelector('#not_submitted_picker')?._flatpickr;
+      if (picker) {
+        picker.setDate(sStr === eStr ? [currentNotSubStartDate] : [currentNotSubStartDate, currentNotSubEndDate]);
+      }
+      fetchNotSubmittedByAssignment(sStr, eStr);
+    }
+
+    function resetNotSubmittedToday() {
+      const diffDays = Math.round((currentNotSubEndDate - currentNotSubStartDate) / (1000 * 60 * 60 * 24));
+      currentNotSubEndDate = new Date();
+      currentNotSubStartDate = new Date();
+      if (diffDays > 0) {
+        currentNotSubStartDate.setDate(currentNotSubEndDate.getDate() - diffDays);
+      }
+      const sStr = formatDateIso(currentNotSubStartDate);
+      const eStr = formatDateIso(currentNotSubEndDate);
+      const picker = document.querySelector('#not_submitted_picker')?._flatpickr;
+      if (picker) {
+        picker.setDate(sStr === eStr ? [currentNotSubStartDate] : [currentNotSubStartDate, currentNotSubEndDate]);
+      }
+      fetchNotSubmittedByAssignment(sStr, eStr);
+    }
+
+    function fetchNotSubmittedByAssignment(startDate = null, endDate = null) {
+      const sStr = startDate || formatDateIso(currentNotSubStartDate);
+      const eStr = endDate || sStr;
+      const isRange = sStr !== eStr;
+      const badge = document.getElementById('not-submitted-date-badge');
+      if (badge) {
+        badge.textContent = isRange ? formatRangeDisplay(currentNotSubStartDate, currentNotSubEndDate) : formatDayDisplay(currentNotSubStartDate);
+      }
+
+      fetch(`/institute_admin/dashboard/chart_data?chart=not_submitted_assignment&start_date=${sStr}&end_date=${eStr}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && window.notSubmittedChart) {
+            window.notSubmittedChart.updateOptions({
+              xaxis: { 
+                categories: res.labels,
+                labels: { rotate: -35, rotateAlways: true, trim: false, maxHeight: 115, style: { fontSize: '11px', fontWeight: 500 } }
+              }
+            });
+            window.notSubmittedChart.updateSeries([{ name: 'Pending', data: res.data }]);
+          }
+        })
+        .catch(err => console.error('Failed to update not submitted chart:', err));
+    }
+
+    // Pending by Section navigation
+    function shiftPendingSectionDay(forward) {
+      const step = forward ? 1 : -1;
+      const diffDays = Math.round((currentPendSecEndDate - currentPendSecStartDate) / (1000 * 60 * 60 * 24));
+      currentPendSecStartDate.setDate(currentPendSecStartDate.getDate() + step);
+      currentPendSecEndDate.setDate(currentPendSecEndDate.getDate() + step);
+      const sStr = formatDateIso(currentPendSecStartDate);
+      const eStr = formatDateIso(currentPendSecEndDate);
+      const picker = document.querySelector('#pending_section_picker')?._flatpickr;
+      if (picker) {
+        picker.setDate(sStr === eStr ? [currentPendSecStartDate] : [currentPendSecStartDate, currentPendSecEndDate]);
+      }
+      fetchPendingBySection(sStr, eStr);
+    }
+
+    function resetPendingSectionToday() {
+      const diffDays = Math.round((currentPendSecEndDate - currentPendSecStartDate) / (1000 * 60 * 60 * 24));
+      currentPendSecEndDate = new Date();
+      currentPendSecStartDate = new Date();
+      if (diffDays > 0) {
+        currentPendSecStartDate.setDate(currentPendSecEndDate.getDate() - diffDays);
+      }
+      const sStr = formatDateIso(currentPendSecStartDate);
+      const eStr = formatDateIso(currentPendSecEndDate);
+      const picker = document.querySelector('#pending_section_picker')?._flatpickr;
+      if (picker) {
+        picker.setDate(sStr === eStr ? [currentPendSecStartDate] : [currentPendSecStartDate, currentPendSecEndDate]);
+      }
+      fetchPendingBySection(sStr, eStr);
+    }
+
+    function fetchPendingBySection(startDate = null, endDate = null) {
+      const sStr = startDate || formatDateIso(currentPendSecStartDate);
+      const eStr = endDate || sStr;
+      const isRange = sStr !== eStr;
+      const badge = document.getElementById('pending-section-date-badge');
+      if (badge) {
+        badge.textContent = isRange ? formatRangeDisplay(currentPendSecStartDate, currentPendSecEndDate) : formatDayDisplay(currentPendSecStartDate);
+      }
+
+      fetch(`/institute_admin/dashboard/chart_data?chart=pending_section&start_date=${sStr}&end_date=${eStr}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && window.pendingSectionChart) {
+            window.pendingSectionChart.updateOptions({
+              xaxis: { 
+                categories: res.labels,
+                labels: { rotate: -35, rotateAlways: true, trim: false, maxHeight: 115, style: { fontSize: '11px', fontWeight: 500 } }
+              }
+            });
+            window.pendingSectionChart.updateSeries([{ name: 'Pending', data: res.data }]);
+          }
+        })
+        .catch(err => console.error('Failed to update pending section chart:', err));
+    }
+
+    // Flatpickr initialization
+    function initDashboardDatepickers() {
+      if (typeof flatpickr === "undefined") return;
+
+      flatpickr("#assignment_submission_range_picker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        defaultDate: ["<%= @submission_start_date.iso8601 %>", "<%= @submission_end_date.iso8601 %>"],
+        onClose: function(selectedDates) {
+          if (selectedDates.length === 2) {
+            currentSubStartDate = selectedDates[0];
+            currentSubEndDate = selectedDates[1];
+            const sStr = formatDateIso(selectedDates[0]);
+            const eStr = formatDateIso(selectedDates[1]);
+            const badge = document.getElementById('submission-date-range-badge');
+            if (badge) badge.textContent = formatRangeDisplay(selectedDates[0], selectedDates[1]);
+            fetchAssignmentSubmissionData(sStr, eStr);
+          }
+        }
+      });
+
+      flatpickr("#by_assignment_picker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        defaultDate: ["<%= @assignment_date.iso8601 %>"],
+        onClose: function(selectedDates) {
+          if (selectedDates.length >= 1) {
+            currentAssignDate = selectedDates[0];
+            const sStr = formatDateIso(selectedDates[0]);
+            const eStr = selectedDates.length === 2 ? formatDateIso(selectedDates[1]) : sStr;
+            fetchSubmissionsByAssignment(sStr, eStr);
+          }
+        }
+      });
+
+      flatpickr("#by_section_picker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        defaultDate: ["<%= @section_date.iso8601 %>"],
+        onClose: function(selectedDates) {
+          if (selectedDates.length >= 1) {
+            currentSectionDate = selectedDates[0];
+            const sStr = formatDateIso(selectedDates[0]);
+            const eStr = selectedDates.length === 2 ? formatDateIso(selectedDates[1]) : sStr;
+            fetchSubmissionsBySection(sStr, eStr);
+          }
+        }
+      });
+
+      flatpickr("#not_submitted_picker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        defaultDate: <%= (@not_submitted_start_date == @not_submitted_end_date ? [@not_submitted_start_date.iso8601] : [@not_submitted_start_date.iso8601, @not_submitted_end_date.iso8601]).to_json.html_safe %>,
+        onClose: function(selectedDates) {
+          if (selectedDates.length >= 1) {
+            currentNotSubStartDate = selectedDates[0];
+            currentNotSubEndDate = selectedDates.length === 2 ? selectedDates[1] : selectedDates[0];
+            const sStr = formatDateIso(selectedDates[0]);
+            const eStr = selectedDates.length === 2 ? formatDateIso(selectedDates[1]) : sStr;
+            fetchNotSubmittedByAssignment(sStr, eStr);
+          }
+        }
+      });
+
+      flatpickr("#pending_section_picker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        defaultDate: <%= (@pending_section_start_date == @pending_section_end_date ? [@pending_section_start_date.iso8601] : [@pending_section_start_date.iso8601, @pending_section_end_date.iso8601]).to_json.html_safe %>,
+        onClose: function(selectedDates) {
+          if (selectedDates.length >= 1) {
+            currentPendSecStartDate = selectedDates[0];
+            currentPendSecEndDate = selectedDates.length === 2 ? selectedDates[1] : selectedDates[0];
+            const sStr = formatDateIso(selectedDates[0]);
+            const eStr = selectedDates.length === 2 ? formatDateIso(selectedDates[1]) : sStr;
+            fetchPendingBySection(sStr, eStr);
+          }
+        }
+      });
+    }
+
+    // Interactive helper functions for Feedback by Training Program
+    window.switchFeedbackViewMode = function(mode) {
+      window.feedbackViewMode = mode;
+      var btnRec = document.getElementById('tpfModeReceivedPending');
+      var btnPart = document.getElementById('tpfModeParticipantType');
+      if (btnRec && btnPart) {
+        if (mode === 'received_pending') {
+          btnRec.classList.add('active');
+          btnPart.classList.remove('active');
+        } else {
+          btnPart.classList.add('active');
+          btnRec.classList.remove('active');
+        }
+      }
+      renderFeedbackChartAndSummary();
+    };
+
+    window.toggleAllFeedbackPrograms = function(cb) {
+      var check = cb.checked;
+      var cbs = document.querySelectorAll('.tpf-program-cb');
+      window.selectedFeedbackProgramIds = [];
+      cbs.forEach(function(c) {
+        c.checked = check;
+        if (check) window.selectedFeedbackProgramIds.push(parseInt(c.value));
+      });
+      renderFeedbackChartAndSummary();
+    };
+
+    window.handleFeedbackProgramChange = function() {
+      var cbs = document.querySelectorAll('.tpf-program-cb');
+      window.selectedFeedbackProgramIds = [];
+      var allChecked = true;
+      cbs.forEach(function(c) {
+        if (c.checked) {
+          window.selectedFeedbackProgramIds.push(parseInt(c.value));
+        } else {
+          allChecked = false;
+        }
+      });
+      var selectAllCb = document.getElementById('tpfSelectAll');
+      if (selectAllCb) selectAllCb.checked = allChecked;
+      renderFeedbackChartAndSummary();
+    };
+
+    window.renderFeedbackChartAndSummary = function() {
+      var filtered = window.programFeedbackRawData.filter(function(p) {
+        return window.selectedFeedbackProgramIds.indexOf(p.id) !== -1;
+      });
+
+      var totalReceived = filtered.reduce(function(sum, p) { return sum + (p.received || 0); }, 0);
+      var totalPending = filtered.reduce(function(sum, p) { return sum + (p.pending || 0); }, 0);
+      var totalPossible = totalReceived + totalPending;
+      var recPct = totalPossible > 0 ? Math.round((totalReceived / totalPossible) * 100) : 0;
+      var pendPct = totalPossible > 0 ? Math.round((totalPending / totalPossible) * 100) : 0;
+      var totalStudents = filtered.reduce(function(sum, p) { return sum + (p.student || 0); }, 0);
+      var totalGuardians = filtered.reduce(function(sum, p) { return sum + (p.guardian || 0); }, 0);
+      var totalEmployees = filtered.reduce(function(sum, p) { return sum + (p.employee || 0); }, 0);
+
+      var recEl = document.getElementById('tpf-received-summary');
+      if (recEl) recEl.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Received: ' + recPct + '% (' + totalReceived + ')';
+      var pendEl = document.getElementById('tpf-pending-summary');
+      if (pendEl) pendEl.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Pending: ' + pendPct + '% (' + totalPending + ')';
+      var stuEl = document.getElementById('tpf-students-summary');
+      if (stuEl) stuEl.innerHTML = '<i class="bi bi-person-fill me-1"></i>Students: <strong>' + totalStudents + '</strong>';
+      var guarEl = document.getElementById('tpf-guardians-summary');
+      if (guarEl) guarEl.innerHTML = '<i class="bi bi-shield-fill-check me-1"></i>Guardians: <strong>' + totalGuardians + '</strong>';
+      var empEl = document.getElementById('tpf-employees-summary');
+      if (empEl) empEl.innerHTML = '<i class="bi bi-briefcase-fill me-1"></i>Employees: <strong>' + totalEmployees + '</strong>';
+
+      var labelEl = document.getElementById('tpfSelectedProgramLabel');
+      if (labelEl) {
+        if (window.selectedFeedbackProgramIds.length === window.programFeedbackRawData.length) {
+          labelEl.textContent = 'All Programs (' + window.programFeedbackRawData.length + ')';
+        } else {
+          labelEl.textContent = window.selectedFeedbackProgramIds.length + ' Programs Selected';
+        }
+      }
+      var counterTextEl = document.getElementById('tpfCounterText');
+      if (counterTextEl) counterTextEl.textContent = window.selectedFeedbackProgramIds.length + ' selected';
+
       if (window.feedbackChart) {
-        window.feedbackChart.destroy();
-        window.feedbackChart = null;
+        var colors = window.feedbackViewMode === 'participant_type'
+          ? ['#0ea5e9', '#a855f7', '#f59e0b', '#fb7185']
+          : ['#8b5cf6', '#fb7185'];
+        var gradientTo = window.feedbackViewMode === 'participant_type'
+          ? ['#38bdf8', '#c084fc', '#fcd34d', '#fda4af']
+          : ['#a78bfa', '#fda4af'];
+        var newHeight = Math.max(280, filtered.length * 72 + 60);
+        window.feedbackChart.updateOptions({
+          chart: { height: newHeight },
+          colors: colors,
+          fill: {
+            type: 'gradient',
+            gradient: {
+              shade: 'light',
+              type: 'horizontal',
+              shadeIntensity: 0.25,
+              gradientToColors: gradientTo,
+              inverseColors: false,
+              opacityFrom: 1,
+              opacityTo: 0.85,
+              stops: [0, 100]
+            }
+          },
+          xaxis: { categories: filtered.map(function(p) { return p.name; }) }
+        }, false, true);
+
+        var newSeries = window.feedbackViewMode === 'participant_type' ? [
+          { name: 'Students',  data: filtered.map(function(p) { return p.student  || 0; }) },
+          { name: 'Guardians', data: filtered.map(function(p) { return p.guardian || 0; }) },
+          { name: 'Employees', data: filtered.map(function(p) { return p.employee || 0; }) },
+          { name: 'Pending',   data: filtered.map(function(p) { return p.pending  || 0; }) }
+        ] : [
+          { name: 'Received', data: filtered.map(function(p) { return p.received || 0; }) },
+          { name: 'Pending',  data: filtered.map(function(p) { return p.pending  || 0; }) }
+        ];
+        window.feedbackChart.updateSeries(newSeries, true);
+      }
+    };
+
+    // Streak Leaderboards AJAX Handler
+    window.updateStreakLeaderboard = function(type) {
+      var asgSelect = document.getElementById(type + 'LeaderboardAssignment');
+      var limitSelect = document.getElementById(type + 'LeaderboardLimit');
+      if (!asgSelect || !limitSelect) return;
+
+      var asgId = asgSelect.value;
+      var limit = limitSelect.value;
+      var tbody = document.getElementById(type + 'LeaderboardBody');
+      if (tbody) tbody.style.opacity = '0.4';
+
+      var url = '/institute_admin/dashboard/streak_leaderboards?assignment_id=' + encodeURIComponent(asgId) + '&' + type + '_limit=' + encodeURIComponent(limit);
+      fetch(url, { headers: { 'Accept': 'application/json' } })
+        .then(function(res) { return res.json(); })
+        .then(function(json) {
+          if (tbody) tbody.style.opacity = '1';
+          if (!json.success) return;
+          var list = type === 'top' ? json.top : json.bottom;
+          var html = '';
+          if (list && list.length > 0) {
+            list.forEach(function(p) {
+              if (type === 'top') {
+                var badgeClass = p.rank === 1 ? 'bg-warning text-dark' : (p.rank === 2 ? 'bg-secondary text-white' : (p.rank === 3 ? 'bg-bronze text-white' : 'bg-light text-dark border'));
+                html += '<tr>' +
+                  '<td class="sticky-col sticky-col-rank"><span class="badge ' + badgeClass + ' rounded-pill fw-bold">#' + p.rank + '</span></td>' +
+                  '<td class="sticky-col sticky-col-name fw-semibold text-dark">' + p.name + '</td>' +
+                  '<td><span class="badge bg-light text-secondary border">' + p.section + '</span></td>' +
+                  '<td class="text-muted small text-truncate" style="max-width: 150px;" title="' + p.assignment_name + '">' + p.assignment_name + '</td>' +
+                  '<td class="text-center"><span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-fire text-danger me-1"></i>' + p.streak + ' ' + (p.streak === 1 ? 'day' : 'days') + '</span></td>' +
+                  '</tr>';
+              } else {
+                var pBadge = p.raw_participant_type === 'student' ? 'badge-student' : (p.raw_participant_type === 'guardian' ? 'badge-guardian' : (p.raw_participant_type === 'employee' ? 'badge-employee' : 'bg-secondary'));
+                html += '<tr>' +
+                  '<td class="sticky-col sticky-col-rank"><span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">#' + p.rank + '</span></td>' +
+                  '<td class="sticky-col sticky-col-name fw-semibold text-dark">' + p.name + '</td>' +
+                  '<td><span class="badge bg-light text-secondary border">' + p.section + '</span></td>' +
+                  '<td><span class="badge ' + pBadge + '">' + p.participant_type + '</span></td>' +
+                  '<td class="text-muted small text-truncate" style="max-width: 140px;" title="' + p.assignment_name + '">' + p.assignment_name + '</td>' +
+                  '<td class="text-center"><span class="badge bg-light text-muted border"><i class="bi bi-x-circle text-danger me-1"></i>' + p.streak + ' days</span></td>' +
+                  '</tr>';
+              }
+            });
+          } else {
+            var cols = type === 'top' ? 5 : 6;
+            html = '<tr><td colspan="' + cols + '" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>';
+          }
+          if (tbody) tbody.innerHTML = html;
+        })
+        .catch(function(err) {
+          if (tbody) tbody.style.opacity = '1';
+          console.error('Failed to update streak leaderboard:', err);
+        });
+    };
+
+    // Initialize on first load and Turbo navigation
+    document.addEventListener('DOMContentLoaded', initializeDashboardCharts);
+    document.addEventListener('turbo:load', function() {
+      isDashboardPage = document.querySelector("#participants-section-chart") !== null;
+      if (isDashboardPage) {
+        initializeDashboardCharts();
+      }
+    });
+    document.addEventListener('turbo:render', function() {
+      isDashboardPage = document.querySelector("#participants-section-chart") !== null;
+      if (isDashboardPage) {
+        initializeDashboardCharts();
+      }
+    });
+
+    // Clean up when leaving dashboard page or before Turbo caches the page
+    function cleanupDashboardCharts() {
+      if (isDashboardPage) {
+        var allChartKeys = [
+          'sectionChart', 'submissionsChart', 'byAssignmentChart', 
+          'bySectionChart', 'typeChart', 'feedbackChart', 
+          'notSubmittedChart', 'pendingSectionChart'
+        ];
+        allChartKeys.forEach(function(key) {
+          if (window[key] && typeof window[key].destroy === 'function') {
+            try { window[key].destroy(); } catch (e) {}
+            window[key] = null;
+          }
+        });
       }
     }
-  });
-</script>
+    document.addEventListener('turbo:before-visit', cleanupDashboardCharts);
+    document.addEventListener('turbo:before-cache', cleanupDashboardCharts);
+  </script>

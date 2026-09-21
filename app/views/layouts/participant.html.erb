@@ -948,6 +948,11 @@
               <span>Assignments</span>
             <% end %>
 
+            <%= link_to participant_portal_questions_path, class: "nav-link #{'active' if active_link?('questions')}" do %>
+              <i class="bi bi-patch-question"></i>
+              <span>My Questions</span>
+            <% end %>
+
             <%= link_to participant_portal_analytics_path, class: "nav-link #{'active' if active_link?('analytics')}" do %>
               <i class="bi bi-graph-up-arrow"></i>
               <span>Analytics</span>
