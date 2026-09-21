@@ -53,7 +53,7 @@ jobs:
             fc-cache -f ~/.local/share/fonts || true
 
             echo "🔄 Restarting app..."
-            sudo pkill -f "(chrome|chromium)" || true
+            sudo killall -9 -q chrome chromium chromium-browser google-chrome 2>/dev/null || true
             sudo systemctl restart soul-erp
 
             echo "✅ Deployed successfully! https://beya.in"
