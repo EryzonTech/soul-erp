@@ -1136,16 +1136,7 @@ module InstituteAdmin
     end
 
     def self.ferrum_browser
-      @ferrum_browser ||= Ferrum::Browser.new(
-        timeout: 45,
-        process_timeout: 30,
-        window_size: [ 1200, 1600 ],
-        browser_options: {
-          "no-sandbox": nil,
-          "disable-gpu": nil,
-          "disable-dev-shm-usage": nil
-        }
-      )
+      @ferrum_browser ||= Ferrum::Browser.new(FerrumPdfGenerator.build_browser_options)
     end
 
     def self.reset_ferrum_browser!
@@ -1169,31 +1160,12 @@ module InstituteAdmin
         }
       )
 
-      browser = self.class.ferrum_browser
-
-      begin
-        base64_html = Base64.strict_encode64(html_content)
-        data_uri = "data:text/html;base64,#{base64_html}"
-        browser.go_to(data_uri)
-        pdf_data = browser.pdf(
-          format: :A4,
-          landscape: false,
-          print_background: true
-        )
-
-        pdf_data = Base64.decode64(pdf_data) if pdf_data.present? && !pdf_data.start_with?("%PDF")
-        pdf_data
-      rescue StandardError => e
-        Rails.logger.error("Ferrum PDF error: #{e.message}. Re-initializing Chrome instance...")
-        self.class.reset_ferrum_browser!
-        browser = self.class.ferrum_browser
-        base64_html = Base64.strict_encode64(html_content)
-        data_uri = "data:text/html;base64,#{base64_html}"
-        browser.go_to(data_uri)
-        pdf_data = browser.pdf(format: :A4, landscape: false, print_background: true)
-        pdf_data = Base64.decode64(pdf_data) if pdf_data.present? && !pdf_data.start_with?("%PDF")
-        pdf_data
-      end
+      FerrumPdfGenerator.render(
+        html_content,
+        format: :A4,
+        landscape: false,
+        print_background: true
+      )
     end
 
     def fetch_section_feedback_reports
@@ -2744,31 +2716,12 @@ module InstituteAdmin
         }
       )
 
-      browser = self.class.ferrum_browser
-
-      begin
-        base64_html = Base64.strict_encode64(html_content)
-        data_uri = "data:text/html;base64,#{base64_html}"
-        browser.go_to(data_uri)
-        pdf_data = browser.pdf(
-          format: :A4,
-          landscape: false,
-          print_background: true
-        )
-
-        pdf_data = Base64.decode64(pdf_data) if pdf_data.present? && !pdf_data.start_with?("%PDF")
-        pdf_data
-      rescue StandardError => e
-        Rails.logger.error("Ferrum PDF error: #{e.message}. Re-initializing Chrome instance...")
-        self.class.reset_ferrum_browser!
-        browser = self.class.ferrum_browser
-        base64_html = Base64.strict_encode64(html_content)
-        data_uri = "data:text/html;base64,#{base64_html}"
-        browser.go_to(data_uri)
-        pdf_data = browser.pdf(format: :A4, landscape: false, print_background: true)
-        pdf_data = Base64.decode64(pdf_data) if pdf_data.present? && !pdf_data.start_with?("%PDF")
-        pdf_data
-      end
+      FerrumPdfGenerator.render(
+        html_content,
+        format: :A4,
+        landscape: false,
+        print_background: true
+      )
     end
 
     def generate_individual_assignment_pdf(options = {})
@@ -2908,45 +2861,15 @@ module InstituteAdmin
       )
 
       # Generate PDF using Ferrum
-      require "ferrum"
-      require "base64"
-
-      pdf_data = nil
-      browser = self.class.ferrum_browser
-      begin
-        base64_html = Base64.strict_encode64(html)
-        data_uri = "data:text/html;base64,#{base64_html}"
-        browser.go_to(data_uri)
-        pdf_data = browser.pdf(
-          format: :A4,
-          print_background: true,
-          margin_top: 0.4,
-          margin_bottom: 0.4,
-          margin_left: 0.4,
-          margin_right: 0.4
-        )
-      rescue StandardError => e
-        Rails.logger.error("Ferrum PDF error: #{e.message}. Re-initializing Chrome instance...")
-        self.class.reset_ferrum_browser!
-        browser = self.class.ferrum_browser
-        base64_html = Base64.strict_encode64(html)
-        data_uri = "data:text/html;base64,#{base64_html}"
-        browser.go_to(data_uri)
-        pdf_data = browser.pdf(
-          format: :A4,
-          print_background: true,
-          margin_top: 0.4,
-          margin_bottom: 0.4,
-          margin_left: 0.4,
-          margin_right: 0.4
-        )
-      end
-
-      # Decode Base64 if needed (Ferrum returns Base64 encoded string)
-      if pdf_data.present? && !pdf_data.start_with?("%PDF")
-        require "base64"
-        pdf_data = Base64.decode64(pdf_data)
-      end
+      pdf_data = FerrumPdfGenerator.render(
+        html,
+        format: :A4,
+        print_background: true,
+        margin_top: 0.4,
+        margin_bottom: 0.4,
+        margin_left: 0.4,
+        margin_right: 0.4
+      )
 
       # Check if the user wants to download or preview
       disposition = params[:download] == "true" ? "attachment" : "inline"
@@ -2998,44 +2921,15 @@ module InstituteAdmin
       )
 
       # Generate PDF using Ferrum
-      require "ferrum"
-      require "base64"
-
-      pdf_data = nil
-      browser = self.class.ferrum_browser
-      begin
-        base64_html = Base64.strict_encode64(html)
-        data_uri = "data:text/html;base64,#{base64_html}"
-        browser.go_to(data_uri)
-        pdf_data = browser.pdf(
-          format: :A4,
-          print_background: true,
-          margin_top: 0.4,
-          margin_bottom: 0.4,
-          margin_left: 0.4,
-          margin_right: 0.4
-        )
-      rescue StandardError => e
-        Rails.logger.error("Ferrum PDF error: #{e.message}. Re-initializing Chrome instance...")
-        self.class.reset_ferrum_browser!
-        browser = self.class.ferrum_browser
-        base64_html = Base64.strict_encode64(html)
-        data_uri = "data:text/html;base64,#{base64_html}"
-        browser.go_to(data_uri)
-        pdf_data = browser.pdf(
-          format: :A4,
-          print_background: true,
-          margin_top: 0.4,
-          margin_bottom: 0.4,
-          margin_left: 0.4,
-          margin_right: 0.4
-        )
-      end
-
-      # Decode Base64 if needed (Ferrum returns Base64 encoded string)
-      if pdf_data.present? && !pdf_data.start_with?("%PDF")
-        pdf_data = Base64.decode64(pdf_data)
-      end
+      pdf_data = FerrumPdfGenerator.render(
+        html,
+        format: :A4,
+        print_background: true,
+        margin_top: 0.4,
+        margin_bottom: 0.4,
+        margin_left: 0.4,
+        margin_right: 0.4
+      )
 
       # Check if the user wants to download or preview
       disposition = params[:download] == "true" ? "attachment" : "inline"

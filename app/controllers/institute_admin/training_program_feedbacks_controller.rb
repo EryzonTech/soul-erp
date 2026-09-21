@@ -159,9 +159,6 @@ module InstituteAdmin
     end
 
     def generate_feedbacks_pdf_with_ferrum
-      require "ferrum"
-      require "base64"
-
       html_content = render_to_string(
         template: "institute_admin/training_program_feedbacks/pdf",
         formats: [ :html ],
@@ -176,35 +173,12 @@ module InstituteAdmin
         }
       )
 
-      browser = Ferrum::Browser.new(
-        timeout: 30,
-        process_timeout: 30,
-        window_size: [ 1200, 1600 ],
-        browser_options: {
-          "no-sandbox": nil,
-          "disable-gpu": nil,
-          "disable-dev-shm-usage": nil
-        }
+      FerrumPdfGenerator.render(
+        html_content,
+        format: :A4,
+        landscape: false,
+        print_background: true
       )
-
-      begin
-        base64_html = Base64.strict_encode64(html_content)
-        data_uri = "data:text/html;base64,#{base64_html}"
-        browser.go_to(data_uri)
-        pdf_data = browser.pdf(
-          format: :A4,
-          landscape: false,
-          print_background: true
-        )
-
-        if pdf_data.present? && !pdf_data.start_with?("%PDF")
-          pdf_data = Base64.decode64(pdf_data)
-        end
-
-        pdf_data
-      ensure
-        browser.quit
-      end
     end
 
     def set_training_program
