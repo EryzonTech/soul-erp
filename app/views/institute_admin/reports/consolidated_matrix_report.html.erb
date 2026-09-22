@@ -933,27 +933,31 @@
     background-color: #ffffff !important;
     border-right: 2px solid #e2e8f0 !important;
     box-shadow: 4px 0 10px -2px rgba(0, 0, 0, 0.08) !important;
-  }
-
   /* Easy Reading Experience: Text Responses & Alignment */
-  .matrix-data-row td {
+  .matrix-data-row td,
+  .response-data-row td {
     vertical-align: top !important;
   }
   .response-reading-box {
     position: relative;
-    width: 100%;
+    width: 100% !important;
+    max-width: 380px !important;
   }
   .response-reading-text {
-    word-break: break-word;
-    font-size: 0.83rem;
+    white-space: pre-line !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    word-wrap: break-word !important;
+    font-size: 0.82rem;
     line-height: 1.55;
     color: #1e293b;
   }
   .response-reading-text.clamped-text {
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
   .btn-read-toggle {
     color: #4f46e5 !important;
@@ -999,11 +1003,43 @@
       max-height: calc(100vh - 145px) !important;
       max-height: calc(100dvh - 145px) !important;
     }
+
+    /* Tablet: Unpin non-essential sticky column (Participant) per AGENTS.md Rule 12 */
+    #matrixDataTable thead th.sticky-col-part,
+    .matrix-table-container thead th.sticky-col-part {
+      position: sticky !important;
+      top: 0 !important;
+      left: auto !important;
+      box-shadow: none !important;
+      z-index: 20 !important;
+    }
+    #matrixDataTable tbody td.sticky-col-part,
+    .matrix-table-container tbody td.sticky-col-part {
+      position: static !important;
+      left: auto !important;
+      box-shadow: none !important;
+      z-index: auto !important;
+    }
   }
 
-  /* Small Phones (< 576px): Compact Frozen Column Sizing */
+  /* Small Phones (< 576px): Fluid Unobstructed Swipe */
   @media (max-width: 576px) {
-    .sticky-col-num {
+    #matrixDataTable thead th.sticky-col-num,
+    .matrix-table-container thead th.sticky-col-num {
+      position: sticky !important;
+      top: 0 !important;
+      left: auto !important;
+      box-shadow: none !important;
+      z-index: 20 !important;
+      width: 36px !important;
+      min-width: 36px !important;
+    }
+    #matrixDataTable tbody td.sticky-col-num,
+    .matrix-table-container tbody td.sticky-col-num {
+      position: static !important;
+      left: auto !important;
+      box-shadow: none !important;
+      z-index: auto !important;
       width: 36px !important;
       min-width: 36px !important;
       padding-left: 4px !important;
@@ -1011,21 +1047,22 @@
       font-size: 0.78rem !important;
     }
 
-    .sticky-col-part {
-      left: 36px !important;
-      min-width: 145px !important;
-      max-width: 165px !important;
-      padding-left: 8px !important;
-      padding-right: 8px !important;
-    }
-
     #matrixDataTable thead th.sticky-col-part,
     .matrix-table-container thead th.sticky-col-part {
-      left: 36px !important;
+      position: sticky !important;
+      top: 0 !important;
+      left: auto !important;
+      box-shadow: none !important;
+      z-index: 20 !important;
     }
-
-    .sticky-col-part .text-truncate {
-      max-width: 105px !important;
+    #matrixDataTable tbody td.sticky-col-part,
+    .matrix-table-container tbody td.sticky-col-part {
+      position: static !important;
+      left: auto !important;
+      box-shadow: none !important;
+      z-index: auto !important;
+      min-width: 140px !important;
+      max-width: 160px !important;
     }
 
     .page-header-card h3 {
