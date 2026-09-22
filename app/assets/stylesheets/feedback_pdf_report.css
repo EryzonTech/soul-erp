@@ -8,7 +8,7 @@ body {
   font-family: 'Inter', 'Noto Sans Malayalam', -apple-system, sans-serif;
   color: #1e293b;
   background-color: #ffffff;
-  padding: 24px;
+  padding: 24px 6px;
   font-size: 11px;
   line-height: 1.5;
   -webkit-print-color-adjust: exact !important;
@@ -241,5 +241,5 @@ body {
 
 @page {
   size: A4;
-  margin: 10mm;
+  margin: 10mm 4mm;
 }

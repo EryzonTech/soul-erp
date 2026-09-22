@@ -20,16 +20,16 @@
     %>
     <tr class="matrix-data-row <%= 'row-today-active' if is_today %>" id="matrix_row_<%= row[:id] || "pend_#{index}" %>">
       <!-- STICKY ROW CELLS -->
-      <td class="text-center fw-semibold text-secondary sticky-col sticky-col-num bg-white" style="font-size: 0.85rem; background-color: #ffffff !important;">
+      <td class="text-center fw-semibold text-secondary sticky-col sticky-col-num bg-white align-top pt-2.5" style="font-size: 0.85rem; background-color: #ffffff !important;">
         <%= row_num %>
       </td>
 
       <!-- FROZEN PARTICIPANT COLUMN -->
-      <td class="sticky-col sticky-col-part bg-white" style="background-color: #ffffff !important;">
-        <div class="d-flex align-items-center justify-content-between gap-1">
-          <div class="fw-semibold text-dark text-truncate" style="max-width: 160px;" title="<%= row[:participant_name] %>">
-            <%= row[:participant_name] %>
-          </div>
+      <td class="sticky-col sticky-col-part bg-white align-top pt-2.5" style="background-color: #ffffff !important;">
+        <div class="fw-semibold text-dark text-truncate mb-1" style="max-width: 190px;" title="<%= row[:participant_name] %>">
+          <%= row[:participant_name] %>
+        </div>
+        <div class="d-flex align-items-center gap-1.5 flex-wrap">
           <% p_type = row[:participant_type].to_s.downcase %>
           <% if p_type.present? %>
             <% 
@@ -48,14 +48,14 @@
               <%= p_type %>
             </span>
           <% end %>
-        </div>
-        <div class="text-muted text-truncate" style="font-size: 0.74rem; max-width: 170px;" title="<%= row[:participant_email] %>">
-          <%= row[:participant_email] %>
+          <span class="text-muted text-truncate" style="font-size: 0.72rem; max-width: 110px;" title="<%= row[:participant_email] %>">
+            <%= row[:participant_email] %>
+          </span>
         </div>
       </td>
 
       <!-- DATE COLUMN (SCROLLABLE) -->
-      <td>
+      <td class="align-top pt-2.5">
         <% if is_today %>
           <div class="d-flex flex-column gap-0.5">
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.72rem; width: fit-content;">
@@ -68,19 +68,19 @@
         <% end %>
       </td>
 
-      <td>
+      <td class="align-top pt-2.5">
         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-medium text-truncate" style="max-width: 110px;">
           <%= row[:section_name] %>
         </span>
       </td>
 
-      <td>
+      <td class="align-top pt-2.5">
         <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle px-2.5 py-1 rounded-pill fw-medium text-wrap text-start" style="max-width: 160px;">
           <%= row[:assignment_title] %>
         </span>
       </td>
 
-      <td class="text-center">
+      <td class="text-center align-top pt-2.5">
         <% if row[:status] == 'submitted' %>
           <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-medium">
             <i class="bi bi-check-circle-fill me-1"></i>Submitted
@@ -92,7 +92,7 @@
         <% end %>
       </td>
 
-      <td class="text-center text-muted small">
+      <td class="text-center text-muted small align-top pt-2.5">
         <%= row[:submitted_at].present? ? row[:submitted_at].strftime("%I:%M %p") : "-" %>
       </td>
 
@@ -100,7 +100,7 @@
       <% row_answers = row[:answers] || {} %>
       <% questions.each do |q| %>
         <% ans_info = row_answers[q[:id]] %>
-        <td class="matrix-cell align-middle" style="min-width: 200px; max-width: 280px;">
+        <td class="matrix-cell align-top pt-2.5" style="min-width: 240px; max-width: 340px; vertical-align: top;">
           <% if row[:status] == 'pending' %>
             <span class="text-muted fst-italic small" style="font-size: 0.75rem;">Pending submission</span>
           <% elsif ans_info.blank? %>
@@ -135,8 +135,26 @@
                 <i class="bi <%= is_yes ? 'bi-check-circle-fill' : 'bi-x-circle-fill' %> me-1"></i><%= raw_ans %>
               </span>
             <% else %>
-              <div class="text-dark small text-wrap text-break" style="line-height: 1.4; max-height: 80px; overflow-y: auto;" title="<%= raw_ans %>">
-                <%= raw_ans %>
+              <%
+                ans_id = "ans_m_#{row[:id] || index}_#{q[:id]}"
+                is_long = raw_ans.length > 140
+              %>
+              <div class="response-reading-box">
+                <div class="response-reading-text small text-wrap text-break <%= 'clamped-text' if is_long %>" 
+                     id="<%= ans_id %>"
+                     style="line-height: 1.55; font-size: 0.82rem; color: #1e293b;" 
+                     title="<%= raw_ans %>">
+                  <%= raw_ans %>
+                </div>
+                <% if is_long %>
+                  <button type="button" 
+                          class="btn btn-link btn-read-toggle p-0 text-decoration-none fw-semibold text-indigo d-inline-flex align-items-center gap-1 mt-1" 
+                          style="font-size: 0.72rem;"
+                          onclick="toggleResponseReadMore('<%= ans_id %>', this)">
+                    <span class="toggle-label">Read more</span>
+                    <i class="bi bi-chevron-down toggle-icon" style="font-size: 0.65rem;"></i>
+                  </button>
+                <% end %>
               </div>
             <% end %>
           <% end %>

@@ -1415,15 +1415,11 @@ module InstituteAdmin
       @selected_question_ids = parse_multiselect_param(params[:question_ids])
 
       @selected_statuses = parse_multiselect_param(params[:submission_statuses])
-      @selected_statuses = [ "submitted", "pending" ] if @selected_statuses.blank?
+      @selected_statuses = [ "submitted" ] if @selected_statuses.blank?
 
       @date_range = params[:date_range].presence || "today"
       set_consolidated_date_range_window(@date_range)
-      @today_active_question_ids = AssignmentResponse.joins(:participant)
-                                                     .where(participants: { institute_id: current_institute.id })
-                                                     .where(response_date: Date.current.all_day)
-                                                     .distinct
-                                                     .pluck(:question_id)
+      load_question_dates_map(@available_questions)
     end
 
     def safe_parse_date(val, fallback = Date.current)
@@ -1470,6 +1466,57 @@ module InstituteAdmin
     rescue StandardError
       @start_date = nil
       @end_date = nil
+    end
+
+    def load_question_dates_map(questions)
+      @question_dates_map = {}
+      @today_active_question_ids = []
+      @yesterday_active_question_ids = []
+      return if questions.blank?
+
+      q_ids = questions.map(&:id)
+      dates_map = Hash.new { |h, k| h[k] = Set.new }
+
+      # 1. Responses dates from AssignmentResponse
+      AssignmentResponse.joins(:participant)
+                        .where(participants: { institute_id: current_institute.id })
+                        .where(question_id: q_ids)
+                        .distinct
+                        .pluck(:question_id, :response_date)
+                        .each do |qid, rdate|
+        dates_map[qid] << rdate.to_date.to_s if rdate.present?
+      end
+
+      # 2. Assignment schedules (start_date + from_day..to_day)
+      target_assignments = if @selected_assignment_ids.present?
+                             current_institute.assignments.where(id: @selected_assignment_ids)
+                           else
+                             current_institute.assignments.active
+                           end
+
+      target_assignments.where.not(start_date: nil).find_each do |asg|
+        start_d = asg.start_date.to_date
+        total_d = asg.total_days || 30
+        asg.assignment_questions.includes(:question).each do |aq|
+          q = aq.question
+          next unless q && q_ids.include?(q.id)
+          f_day = q.from_day || 1
+          t_day = q.to_day || total_d
+          max_day = [t_day, 120].min
+          (f_day..max_day).each do |day_idx|
+            sched_date = start_d + (day_idx - 1).days
+            dates_map[q.id] << sched_date.to_s
+          end
+        end
+      end
+
+      today_str = Date.current.to_s
+      yesterday_str = Date.yesterday.to_s
+
+      @today_active_question_ids = dates_map.select { |_qid, dates| dates.include?(today_str) }.keys
+      @yesterday_active_question_ids = dates_map.select { |_qid, dates| dates.include?(yesterday_str) }.keys
+
+      @question_dates_map = dates_map.transform_values(&:to_a)
     end
 
     def build_consolidated_report_base_query
@@ -1910,16 +1957,12 @@ module InstituteAdmin
       @selected_question_ids = parse_multiselect_param(params[:question_ids])
 
       @selected_statuses = parse_multiselect_param(params[:submission_statuses])
-      @selected_statuses = [ "submitted", "pending" ] if @selected_statuses.empty?
+      @selected_statuses = [ "submitted" ] if @selected_statuses.empty?
 
       @date_range = params[:date_range].presence || "today"
       set_consolidated_date_range_window(@date_range)
       @search = params[:search].to_s.strip
-      @today_active_question_ids = AssignmentResponse.joins(:participant)
-                                                     .where(participants: { institute_id: current_institute.id })
-                                                     .where(response_date: Date.current.all_day)
-                                                     .distinct
-                                                     .pluck(:question_id)
+      load_question_dates_map(@available_questions)
 
       resolve_matrix_questions
     end

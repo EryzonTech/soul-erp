@@ -1168,6 +1168,179 @@
     </div>
   </div>
 
+  <!-- Top and Bottom Submitting Participants Leaderboard Row (Items 15 & 16) -->
+  <div class="row g-4 mb-4">
+    <!-- Top Submitting Participants (Streak without break) -->
+    <div class="col-xl-6 col-12">
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(217,119,6,0.1); color: #d97706;">
+              <i class="bi bi-trophy-fill"></i>
+            </div>
+            <div>
+              <p class="chart-header-title mb-0">Top Submitting Participants</p>
+              <p class="chart-header-subtitle">Follows streak without break</p>
+            </div>
+          </div>
+          
+          <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+            <!-- Assignment filter -->
+            <select class="form-select form-select-sm rounded-3 flex-grow-1 flex-sm-grow-0" id="topLeaderboardAssignment" style="min-width: 140px; max-width: 220px;" onchange="updateStreakLeaderboard('top')">
+              <% (@available_assignments || []).each do |asg| %>
+                <option value="<%= asg.id %>" <%= 'selected' if asg.id == @default_assignment&.id %>><%= asg.title %></option>
+              <% end %>
+            </select>
+
+            <!-- Limit selector -->
+            <div class="d-flex align-items-center gap-1">
+              <span class="text-muted small">Show:</span>
+              <select class="form-select form-select-sm rounded-3" id="topLeaderboardLimit" style="width: 75px;" onchange="updateStreakLeaderboard('top')">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card-body leaderboard-card-body">
+          <div class="d-lg-none pb-2 text-muted small">
+            <i class="bi bi-arrow-left-right me-1"></i> Swipe table horizontally to view all columns &rarr;
+          </div>
+          <div class="leaderboard-table-scroll table-responsive">
+            <table class="table modern-table leaderboard-table mb-0" id="topLeaderboardTable">
+              <thead class="leaderboard-sticky-head">
+                <tr>
+                  <th class="sticky-col sticky-col-rank" style="width: 68px;">Rank</th>
+                  <th class="sticky-col sticky-col-name">Name</th>
+                  <th>Section</th>
+                  <th>Assignment</th>
+                  <th class="text-center">Streak</th>
+                </tr>
+              </thead>
+              <tbody id="topLeaderboardBody">
+                <% if @top_submitting_participants.present? %>
+                  <% @top_submitting_participants.each do |p| %>
+                    <tr>
+                      <td class="sticky-col sticky-col-rank">
+                        <span class="badge <%= p[:rank] == 1 ? 'bg-warning text-dark' : (p[:rank] == 2 ? 'bg-secondary text-white' : (p[:rank] == 3 ? 'bg-bronze text-white' : 'bg-light text-dark border')) %> rounded-pill fw-bold">
+                          #<%= p[:rank] %>
+                        </span>
+                      </td>
+                      <td class="sticky-col sticky-col-name fw-semibold text-dark"><%= p[:name] %></td>
+                      <td><span class="badge bg-light text-secondary border"><%= p[:section] %></span></td>
+                      <td class="text-muted small text-truncate" style="max-width: 150px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
+                      <td class="text-center">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                          <i class="bi bi-fire text-danger me-1"></i><%= pluralize(p[:streak], 'day') %>
+                        </span>
+                      </td>
+                    </tr>
+                  <% end %>
+                <% else %>
+                  <tr><td colspan="5" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Submitting Participants (Never follows streak) -->
+    <div class="col-xl-6 col-12">
+      <div class="card card-custom h-100">
+        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="chart-icon-box" style="background: rgba(225,29,72,0.1); color: #e11d48;">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div>
+              <p class="chart-header-title mb-0">Bottom Submitting Participants</p>
+              <p class="chart-header-subtitle">Never follows streak / broken streak</p>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+            <!-- Assignment filter -->
+            <select class="form-select form-select-sm rounded-3 flex-grow-1 flex-sm-grow-0" id="bottomLeaderboardAssignment" style="min-width: 140px; max-width: 220px;" onchange="updateStreakLeaderboard('bottom')">
+              <% (@available_assignments || []).each do |asg| %>
+                <option value="<%= asg.id %>" <%= 'selected' if asg.id == @default_assignment&.id %>><%= asg.title %></option>
+              <% end %>
+            </select>
+
+            <!-- Limit selector -->
+            <div class="d-flex align-items-center gap-1">
+              <span class="text-muted small">Show:</span>
+              <select class="form-select form-select-sm rounded-3" id="bottomLeaderboardLimit" style="width: 75px;" onchange="updateStreakLeaderboard('bottom')">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card-body leaderboard-card-body">
+          <div class="d-lg-none pb-2 text-muted small">
+            <i class="bi bi-arrow-left-right me-1"></i> Swipe table horizontally to view all columns &rarr;
+          </div>
+          <div class="leaderboard-table-scroll table-responsive">
+            <table class="table modern-table leaderboard-table mb-0" id="bottomLeaderboardTable">
+              <thead class="leaderboard-sticky-head">
+                <tr>
+                  <th class="sticky-col sticky-col-rank" style="width: 68px;">Rank</th>
+                  <th class="sticky-col sticky-col-name">Name</th>
+                  <th>Section</th>
+                  <th>Participant Type</th>
+                  <th>Assignment</th>
+                  <th class="text-center">Streak</th>
+                </tr>
+              </thead>
+              <tbody id="bottomLeaderboardBody">
+                <% if @bottom_submitting_participants.present? %>
+                  <% @bottom_submitting_participants.each do |p| %>
+                    <tr>
+                      <td class="sticky-col sticky-col-rank">
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">
+                          #<%= p[:rank] %>
+                        </span>
+                      </td>
+                      <td class="sticky-col sticky-col-name fw-semibold text-dark"><%= p[:name] %></td>
+                      <td><span class="badge bg-light text-secondary border"><%= p[:section] %></span></td>
+                      <td>
+                        <% p_badge = case p[:raw_participant_type]
+                                     when 'student' then 'badge-student'
+                                     when 'guardian' then 'badge-guardian'
+                                     when 'employee' then 'badge-employee'
+                                     else 'bg-secondary'
+                                     end %>
+                        <span class="badge <%= p_badge %>"><%= p[:participant_type] %></span>
+                      </td>
+                      <td class="text-muted small text-truncate" style="max-width: 140px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
+                      <td class="text-center">
+                        <span class="badge bg-light text-muted border">
+                          <i class="bi bi-x-circle text-danger me-1"></i><%= p[:streak] %> days
+                        </span>
+                      </td>
+                    </tr>
+                  <% end %>
+                <% else %>
+                  <tr><td colspan="6" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Submissions by Assignment & Submissions by Section -->
   <div class="row g-4 mb-4">
     <!-- Submissions by Assignment -->
@@ -1643,178 +1816,7 @@
     </div>
   </div>
 
-  <!-- Top and Bottom Submitting Participants Leaderboard Row (Items 15 & 16) -->
-  <div class="row g-4 mb-4">
-    <!-- Top Submitting Participants (Streak without break) -->
-    <div class="col-xl-6 col-12">
-      <div class="card card-custom h-100">
-        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-          <div class="d-flex align-items-center gap-3">
-            <div class="chart-icon-box" style="background: rgba(217,119,6,0.1); color: #d97706;">
-              <i class="bi bi-trophy-fill"></i>
-            </div>
-            <div>
-              <p class="chart-header-title mb-0">Top Submitting Participants</p>
-              <p class="chart-header-subtitle">Follows streak without break</p>
-            </div>
-          </div>
-          
-          <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
-            <!-- Assignment filter -->
-            <select class="form-select form-select-sm rounded-3 flex-grow-1 flex-sm-grow-0" id="topLeaderboardAssignment" style="min-width: 140px; max-width: 220px;" onchange="updateStreakLeaderboard('top')">
-              <% (@available_assignments || []).each do |asg| %>
-                <option value="<%= asg.id %>" <%= 'selected' if asg.id == @default_assignment&.id %>><%= asg.title %></option>
-              <% end %>
-            </select>
 
-            <!-- Limit selector -->
-            <div class="d-flex align-items-center gap-1">
-              <span class="text-muted small">Show:</span>
-              <select class="form-select form-select-sm rounded-3" id="topLeaderboardLimit" style="width: 75px;" onchange="updateStreakLeaderboard('top')">
-                <option value="5">5</option>
-                <option value="10" selected>10</option>
-                <option value="15">15</option>
-                <option value="20">20</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="card-body leaderboard-card-body">
-          <div class="d-lg-none pb-2 text-muted small">
-            <i class="bi bi-arrow-left-right me-1"></i> Swipe table horizontally to view all columns &rarr;
-          </div>
-          <div class="leaderboard-table-scroll table-responsive">
-            <table class="table modern-table leaderboard-table mb-0" id="topLeaderboardTable">
-              <thead class="leaderboard-sticky-head">
-                <tr>
-                  <th class="sticky-col sticky-col-rank" style="width: 68px;">Rank</th>
-                  <th class="sticky-col sticky-col-name">Name</th>
-                  <th>Section</th>
-                  <th>Assignment</th>
-                  <th class="text-center">Streak</th>
-                </tr>
-              </thead>
-              <tbody id="topLeaderboardBody">
-                <% if @top_submitting_participants.present? %>
-                  <% @top_submitting_participants.each do |p| %>
-                    <tr>
-                      <td class="sticky-col sticky-col-rank">
-                        <span class="badge <%= p[:rank] == 1 ? 'bg-warning text-dark' : (p[:rank] == 2 ? 'bg-secondary text-white' : (p[:rank] == 3 ? 'bg-bronze text-white' : 'bg-light text-dark border')) %> rounded-pill fw-bold">
-                          #<%= p[:rank] %>
-                        </span>
-                      </td>
-                      <td class="sticky-col sticky-col-name fw-semibold text-dark"><%= p[:name] %></td>
-                      <td><span class="badge bg-light text-secondary border"><%= p[:section] %></span></td>
-                      <td class="text-muted small text-truncate" style="max-width: 150px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
-                      <td class="text-center">
-                        <span class="badge bg-success-subtle text-success border border-success-subtle">
-                          <i class="bi bi-fire text-danger me-1"></i><%= pluralize(p[:streak], 'day') %>
-                        </span>
-                      </td>
-                    </tr>
-                  <% end %>
-                <% else %>
-                  <tr><td colspan="5" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Bottom Submitting Participants (Never follows streak) -->
-    <div class="col-xl-6 col-12">
-      <div class="card card-custom h-100">
-        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-          <div class="d-flex align-items-center gap-3">
-            <div class="chart-icon-box" style="background: rgba(225,29,72,0.1); color: #e11d48;">
-              <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-            <div>
-              <p class="chart-header-title mb-0">Bottom Submitting Participants</p>
-              <p class="chart-header-subtitle">Never follows streak / broken streak</p>
-            </div>
-          </div>
-
-          <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
-            <!-- Assignment filter -->
-            <select class="form-select form-select-sm rounded-3 flex-grow-1 flex-sm-grow-0" id="bottomLeaderboardAssignment" style="min-width: 140px; max-width: 220px;" onchange="updateStreakLeaderboard('bottom')">
-              <% (@available_assignments || []).each do |asg| %>
-                <option value="<%= asg.id %>" <%= 'selected' if asg.id == @default_assignment&.id %>><%= asg.title %></option>
-              <% end %>
-            </select>
-
-            <!-- Limit selector -->
-            <div class="d-flex align-items-center gap-1">
-              <span class="text-muted small">Show:</span>
-              <select class="form-select form-select-sm rounded-3" id="bottomLeaderboardLimit" style="width: 75px;" onchange="updateStreakLeaderboard('bottom')">
-                <option value="5">5</option>
-                <option value="10" selected>10</option>
-                <option value="15">15</option>
-                <option value="20">20</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="card-body leaderboard-card-body">
-          <div class="d-lg-none pb-2 text-muted small">
-            <i class="bi bi-arrow-left-right me-1"></i> Swipe table horizontally to view all columns &rarr;
-          </div>
-          <div class="leaderboard-table-scroll table-responsive">
-            <table class="table modern-table leaderboard-table mb-0" id="bottomLeaderboardTable">
-              <thead class="leaderboard-sticky-head">
-                <tr>
-                  <th class="sticky-col sticky-col-rank" style="width: 68px;">Rank</th>
-                  <th class="sticky-col sticky-col-name">Name</th>
-                  <th>Section</th>
-                  <th>Participant Type</th>
-                  <th>Assignment</th>
-                  <th class="text-center">Streak</th>
-                </tr>
-              </thead>
-              <tbody id="bottomLeaderboardBody">
-                <% if @bottom_submitting_participants.present? %>
-                  <% @bottom_submitting_participants.each do |p| %>
-                    <tr>
-                      <td class="sticky-col sticky-col-rank">
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">
-                          #<%= p[:rank] %>
-                        </span>
-                      </td>
-                      <td class="sticky-col sticky-col-name fw-semibold text-dark"><%= p[:name] %></td>
-                      <td><span class="badge bg-light text-secondary border"><%= p[:section] %></span></td>
-                      <td>
-                        <% p_badge = case p[:raw_participant_type]
-                                     when 'student' then 'badge-student'
-                                     when 'guardian' then 'badge-guardian'
-                                     when 'employee' then 'badge-employee'
-                                     else 'bg-secondary'
-                                     end %>
-                        <span class="badge <%= p_badge %>"><%= p[:participant_type] %></span>
-                      </td>
-                      <td class="text-muted small text-truncate" style="max-width: 140px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
-                      <td class="text-center">
-                        <span class="badge bg-light text-muted border">
-                          <i class="bi bi-x-circle text-danger me-1"></i><%= p[:streak] %> days
-                        </span>
-                      </td>
-                    </tr>
-                  <% end %>
-                <% else %>
-                  <tr><td colspan="6" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Recent Training Programs Table (Item 13 with Duration Column) -->
   <div class="card card-custom">
