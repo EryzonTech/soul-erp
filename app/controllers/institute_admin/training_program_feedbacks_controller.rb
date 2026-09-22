@@ -109,14 +109,16 @@ module InstituteAdmin
       respond_to do |format|
         format.html
         format.csv {
+          institute_slug = current_institute.name.to_s.downcase.gsub(/[^a-z0-9]+/, "_").gsub(/^_|_$/, "")
           send_data generate_feedbacks_csv(@feedbacks),
-                    filename: "feedbacks_program_#{@training_program.id}_#{Date.current}.csv",
+                    filename: "#{institute_slug}_feedbacks_program_#{@training_program.id}_#{Date.current}.csv",
                     type: "text/csv"
         }
         format.pdf {
+          institute_slug = current_institute.name.to_s.downcase.gsub(/[^a-z0-9]+/, "_").gsub(/^_|_$/, "")
           pdf_data = generate_feedbacks_pdf_with_ferrum
           send_data pdf_data,
-                    filename: "feedbacks_program_#{@training_program.id}_#{Date.current}.pdf",
+                    filename: "#{institute_slug}_feedbacks_program_#{@training_program.id}_#{Date.current}.pdf",
                     type: "application/pdf",
                     disposition: "inline"
         }

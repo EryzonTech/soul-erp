@@ -516,4 +516,55 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
     assert json_resp.key?("has_more")
     assert_includes json_resp["html"], "Scroll Page Answer"
   end
+
+  test "consolidated_matrix_report and consolidated_response_report default view should be submitted only" do
+    get consolidated_matrix_report_institute_admin_reports_url
+    assert_response :success
+    assert_equal [ "submitted" ], @controller.instance_variable_get(:@selected_statuses)
+    assert_includes response.body, "Status (Submitted)"
+
+    get consolidated_response_report_institute_admin_reports_url, params: { view: "detailed" }
+    assert_response :success
+    assert_equal [ "submitted" ], @controller.instance_variable_get(:@selected_statuses)
+    assert_includes response.body, "Status (Submitted)"
+  end
+
+  test "question filter in consolidated reports includes date filter tabs and question date mapping" do
+    assignment = Assignment.create!(
+      title: "Date Filter Test Assignment",
+      start_date: 3.days.ago.to_date,
+      end_date: 3.days.from_now.to_date,
+      assignment_type: "section",
+      section: @section,
+      institute: @institute,
+      skip_association_validation: true
+    )
+    question = Question.create!(title: "Scheduled Question", question_type: "short_answer", institute: @institute, from_day: 1, to_day: 5)
+    AssignmentQuestion.create!(assignment: assignment, question: question, order_number: 1)
+    r = AssignmentResponse.create!(assignment: assignment, participant: @participant, question: question, answer: "Date Filter Answer", response_date: Date.current)
+    AssignmentResponseLog.create!(institute: @institute, participant: @participant, assignment: assignment, response_date: Date.current, assignment_response_ids: [ r.id ])
+
+    # Matrix report
+    get consolidated_matrix_report_institute_admin_reports_url
+    assert_response :success
+    assert_includes response.body, "Filter by Date"
+    assert_includes response.body, 'data-date-range="today"'
+    assert_includes response.body, 'data-date-range="yesterday"'
+    assert_includes response.body, 'data-date-range="last_7_days"'
+    assert_includes response.body, 'data-date-range="this_month"'
+    assert_includes response.body, 'data-date-range="custom"'
+    assert_includes response.body, "q-custom-date-row"
+    dates_map = @controller.instance_variable_get(:@question_dates_map)
+    assert dates_map.is_a?(Hash)
+    assert dates_map[question.id].present?
+    assert_includes dates_map[question.id], Date.current.to_s
+
+    # Detailed report
+    get consolidated_response_report_institute_admin_reports_url, params: { view: "detailed" }
+    assert_response :success
+    assert_includes response.body, "Filter by Date"
+    assert_includes response.body, 'data-date-range="today"'
+    assert_includes response.body, 'data-date-range="custom"'
+  end
 end
+

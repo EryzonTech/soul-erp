@@ -205,7 +205,7 @@
     active_filters_count += 1 if @selected_section_ids.present?
     active_filters_count += 1 if @selected_participant_ids.present?
     active_filters_count += 1 if @selected_participant_types.present?
-    active_filters_count += 1 if @selected_statuses.present? && @selected_statuses.size == 1
+    active_filters_count += 1 if @selected_statuses.present? && @selected_statuses != ['submitted']
     active_filters_count += 1 if @date_range.present? && @date_range != 'today'
   %>
   <div class="filter-toolbar-card bg-white rounded-4 shadow-sm border mb-4 p-3 p-md-4">
@@ -303,7 +303,7 @@
         <!-- 2. Questions Multi-Select Dropdown [NEW] -->
         <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="dropdown multiselect-dropdown">
-            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_question_ids.present? %>" 
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_question_ids.present? && @selected_question_ids.size != (@available_questions&.size || 0) %>" 
                     type="button" 
                     data-bs-toggle="dropdown" 
                     data-bs-display="static"
@@ -312,21 +312,79 @@
               <span class="d-inline-flex align-items-center text-truncate">
                 <i class="bi bi-question-circle me-2 text-indigo flex-shrink-0"></i>
                 <span class="dropdown-label text-truncate" id="qLabel">
-                  Questions (<%= @selected_question_ids.empty? ? 'All' : @selected_question_ids.size %>)
+                  Questions (<%= (@selected_question_ids.empty? || @selected_question_ids.size == (@available_questions&.size || 0)) ? 'All' : @selected_question_ids.size %>)
                 </span>
               </span>
             </button>
-            <div class="dropdown-menu dropdown-menu-start p-2 shadow-lg rounded-3 border" style="width: 360px; max-width: min(420px, calc(100vw - 2rem)); max-height: 380px; overflow-y: auto;">
-              <div class="px-1 mb-2">
-                <input type="text" class="form-control form-control-sm multiselect-search" placeholder="Search questions..." oninput="filterDropdownList(this)">
+            <div class="dropdown-menu dropdown-menu-start p-0 shadow-lg rounded-3 border q-filter-dropdown-menu" 
+                 data-today="<%= Date.current.to_s %>" 
+                 data-yesterday="<%= Date.yesterday.to_s %>" 
+                 style="width: 440px; max-width: min(460px, calc(100vw - 1.5rem));">
+              <!-- Search bar -->
+              <div class="p-3 pb-2">
+                <div class="position-relative mb-3 multiselect-search-wrapper">
+                  <i class="bi bi-search"></i>
+                  <input type="text" class="form-control form-control-sm multiselect-search" style="padding-left: 34px !important;" placeholder="Search questions..." oninput="filterQuestionsWithDateAndSearch(this)">
+                </div>
+
+                <!-- Date filter card section inside question dropdown -->
+                <div class="q-date-filter-section p-3 rounded-3 border bg-light-subtle mb-3">
+                  <div class="d-flex align-items-center justify-content-between mb-2.5">
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-calendar3 text-primary" style="font-size: 0.8rem;"></i>
+                      <span class="text-uppercase fw-bold text-secondary" style="font-size: 0.68rem; letter-spacing: 0.6px;">Filter by Date</span>
+                    </div>
+                    <button type="button" class="btn btn-link btn-xs p-0 text-muted text-decoration-none d-inline-flex align-items-center gap-1.5 q-reset-btn" style="font-size: 0.72rem;" onclick="resetQuestionDateFilter(this)">
+                      <i class="bi bi-arrow-counterclockwise" style="font-size: 0.75rem;"></i>
+                      <span>Reset Date</span>
+                    </button>
+                  </div>
+
+                  <!-- 3x2 Grid for balanced pills -->
+                  <div class="q-date-pills-grid">
+                    <button type="button" class="btn q-date-pill active" data-date-range="all" onclick="selectQuestionDatePill(this, 'all')">All</button>
+                    <button type="button" class="btn q-date-pill" data-date-range="today" onclick="selectQuestionDatePill(this, 'today')">Today</button>
+                    <button type="button" class="btn q-date-pill" data-date-range="yesterday" onclick="selectQuestionDatePill(this, 'yesterday')">Yesterday</button>
+                    <button type="button" class="btn q-date-pill" data-date-range="last_7_days" onclick="selectQuestionDatePill(this, 'last_7_days')">Last 7 Days</button>
+                    <button type="button" class="btn q-date-pill" data-date-range="this_month" onclick="selectQuestionDatePill(this, 'this_month')">This Month</button>
+                    <button type="button" class="btn q-date-pill" data-date-range="custom" onclick="selectQuestionDatePill(this, 'custom')">
+                      <i class="bi bi-calendar-event me-1.5"></i>Custom
+                    </button>
+                  </div>
+
+                  <!-- Collapsible Custom Date Range Picker -->
+                  <div class="row g-2 mt-2.5 pt-2.5 border-top d-none align-items-center q-custom-date-row">
+                    <div class="col-6">
+                      <label class="form-label mb-1 text-muted fw-semibold" style="font-size: 0.68rem;">From Date</label>
+                      <input type="date" class="form-control form-control-sm text-secondary q-custom-from" style="font-size: 0.78rem; height: 32px;" onchange="onQuestionCustomDateChange(this)">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label mb-1 text-muted fw-semibold" style="font-size: 0.68rem;">To Date</label>
+                      <input type="date" class="form-control form-control-sm text-secondary q-custom-to" style="font-size: 0.78rem; height: 32px;" onchange="onQuestionCustomDateChange(this)">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Bar: Select All / Clear & Visible Count (Fully Wrapped Border) -->
+                <div class="d-flex justify-content-between align-items-center px-3 py-2.5 mb-2 bg-light-subtle border rounded-2 q-action-bar">
+                  <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold text-primary q-select-all-btn" style="font-size: 0.76rem;" onclick="selectAllDropdownCheckboxes(this, true, 'qLabel', 'Questions', 'question_ids[]')">Select All</button>
+                    <span class="text-muted opacity-50">•</span>
+                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-secondary q-clear-btn" style="font-size: 0.76rem;" onclick="selectAllDropdownCheckboxes(this, false, 'qLabel', 'Questions', 'question_ids[]')">Clear</button>
+                  </div>
+                  <span class="text-secondary fw-medium q-showing-count" style="font-size: 0.74rem;">
+                    Showing <%= (@available_questions || []).size %> of <%= (@available_questions || []).size %>
+                  </span>
+                </div>
               </div>
-              <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
-                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'qLabel', 'Questions', 'question_ids[]')">Select All</button>
-                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'qLabel', 'Questions', 'question_ids[]')">Clear</button>
-              </div>
-              <div class="multiselect-options-list">
+
+              <!-- Question items list -->
+              <div class="multiselect-options-list px-2.5 py-1" style="max-height: 260px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
                 <% (@available_questions || []).each do |q| %>
-                  <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-start gap-2">
+                  <% q_dates = (@question_dates_map && @question_dates_map[q.id]) || [] %>
+                  <div class="form-check dropdown-item rounded px-2.5 py-2 mb-1 multiselect-item d-flex align-items-start gap-2.5"
+                       data-question-id="<%= q.id %>"
+                       data-dates="<%= q_dates.join(',') %>">
                     <input class="form-check-input mt-1 flex-shrink-0" 
                            type="checkbox" 
                            name="question_ids[]" 
@@ -334,11 +392,15 @@
                            id="q_cb_<%= q.id %>" 
                            <%= 'checked' if @selected_question_ids.include?(q.id.to_s) %>
                            onchange="updateDropdownCounter('qLabel', 'Questions', 'question_ids[]')">
-                    <label class="form-check-label flex-grow-1 cursor-pointer small" for="q_cb_<%= q.id %>" title="<%= q.title %>">
-                      <%= q.title %>
-                      <% if @today_active_question_ids&.include?(q.id) %>
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-1.5 py-0.5 ms-1" style="font-size: 0.65rem;">Today</span>
-                      <% end %>
+                    <label class="form-check-label flex-grow-1 cursor-pointer" for="q_cb_<%= q.id %>" title="<%= q.title %>">
+                      <div class="d-flex align-items-start justify-content-between gap-2">
+                        <span class="text-wrap flex-grow-1" style="font-size: 0.82rem; line-height: 1.45;"><%= q.title %></span>
+                        <% if @today_active_question_ids&.include?(q.id) %>
+                          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 ms-1 flex-shrink-0" style="font-size: 0.62rem;">Today</span>
+                        <% elsif @yesterday_active_question_ids&.include?(q.id) %>
+                          <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5 ms-1 flex-shrink-0" style="font-size: 0.62rem;">Yesterday</span>
+                        <% end %>
+                      </div>
                     </label>
                   </div>
                 <% end %>
@@ -488,7 +550,7 @@
         <!-- 6. Status Multi-Select Checkbox Dropdown -->
         <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="dropdown multiselect-dropdown">
-            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_statuses.present? && @selected_statuses.size == 1 %>" 
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_statuses.present? && @selected_statuses != ['submitted'] %>" 
                     type="button" 
                     data-bs-toggle="dropdown" 
                     data-bs-display="static"
@@ -497,7 +559,7 @@
               <span class="d-inline-flex align-items-center text-truncate">
                 <i class="bi bi-check2-circle me-2 text-warning flex-shrink-0"></i>
                 <span class="dropdown-label text-truncate" id="statusLabel">
-                  Status (<%= @selected_statuses.size == 2 ? 'All' : @selected_statuses.map(&:titleize).join(', ') %>)
+                  Status (<%= @selected_statuses == ['submitted'] ? 'Submitted' : (@selected_statuses.size == 2 ? 'All' : @selected_statuses.map(&:titleize).join(', ')) %>)
                 </span>
               </span>
             </button>
@@ -824,9 +886,11 @@
   /* Column 2: Participant Name */
   .sticky-col-part {
     left: 44px !important;
-    min-width: 175px !important;
-    max-width: 210px !important;
-    box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+    min-width: 195px !important;
+    max-width: 230px !important;
+    background-color: #ffffff !important;
+    border-right: 2px solid #e2e8f0 !important;
+    box-shadow: 4px 0 10px -2px rgba(0, 0, 0, 0.08) !important;
   }
 
   /* 3. CORNER INTERSECTION HEADERS (Frozen BOTH Vertically & Horizontally) */
@@ -848,7 +912,8 @@
     z-index: 30 !important;
     background-color: #f8fafc !important;
     border-bottom: 2px solid #cbd5e1 !important;
-    box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+    border-right: 2px solid #e2e8f0 !important;
+    box-shadow: 4px 0 10px -2px rgba(0, 0, 0, 0.08) !important;
   }
 
   /* 4. BODY FROZEN CELLS */
@@ -866,7 +931,37 @@
     left: 44px !important;
     z-index: 5 !important;
     background-color: #ffffff !important;
-    box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+    border-right: 2px solid #e2e8f0 !important;
+    box-shadow: 4px 0 10px -2px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* Easy Reading Experience: Text Responses & Alignment */
+  .matrix-data-row td {
+    vertical-align: top !important;
+  }
+  .response-reading-box {
+    position: relative;
+    width: 100%;
+  }
+  .response-reading-text {
+    word-break: break-word;
+    font-size: 0.83rem;
+    line-height: 1.55;
+    color: #1e293b;
+  }
+  .response-reading-text.clamped-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .btn-read-toggle {
+    color: #4f46e5 !important;
+    cursor: pointer;
+  }
+  .btn-read-toggle:hover {
+    color: #3730a3 !important;
+    text-decoration: underline !important;
   }
 
   /* Hover & Active Row states for Sticky Cells (ensures opacity) */
@@ -1224,6 +1319,89 @@
     font-weight: 600 !important;
   }
 
+  /* Search input with icon spacing */
+  .multiselect-search-wrapper {
+    position: relative;
+  }
+  .multiselect-search-wrapper i {
+    position: absolute;
+    top: 50%;
+    left: 11px;
+    transform: translateY(-50%);
+    color: #94a3b8 !important;
+    font-size: 0.8rem;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .multiselect-dropdown .multiselect-search-wrapper .multiselect-search {
+    padding-left: 34px !important;
+  }
+
+  .q-action-bar {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+  }
+
+  /* Question Filter Dropdown: Date Filter Section & Pills Grid */
+  .q-date-filter-section {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  .q-reset-btn {
+    transition: color 0.15s ease-in-out;
+  }
+  .q-reset-btn:hover {
+    color: #0284c7 !important;
+    text-decoration: underline !important;
+  }
+
+  .q-date-pills-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 7px !important;
+  }
+
+  .q-date-pill {
+    font-size: 0.74rem !important;
+    padding: 6px 4px !important;
+    border-radius: 7px !important;
+    border: 1px solid #cbd5e1 !important;
+    background-color: #ffffff !important;
+    color: #475569 !important;
+    font-weight: 500 !important;
+    transition: all 0.15s ease-in-out !important;
+    line-height: 1.25 !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+  }
+  .q-date-pill:hover {
+    background-color: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+  }
+  .q-date-pill.active {
+    background-color: #0284c7 !important;
+    border-color: #0284c7 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.28) !important;
+  }
+  .btn-xs {
+    padding: 0.15rem 0.45rem;
+    font-size: 0.72rem;
+  }
+  .form-control-xs {
+    padding: 0.15rem 0.35rem;
+    font-size: 0.72rem;
+    border-radius: 4px;
+  }
+
   .btn-filter-reset {
     height: 42px;
     background-color: #f8fafc;
@@ -1342,6 +1520,25 @@
     display: flex !important;
     align-items: flex-start !important;
     gap: 0.5rem !important;
+  }
+
+  /* Multi-Select Item Visibility Overrides (Ensures d-none and is-hidden always hide) */
+  .multiselect-dropdown .multiselect-item.d-none,
+  .multiselect-dropdown .multiselect-item.is-hidden,
+  .multiselect-dropdown .multiselect-item[hidden],
+  .multiselect-dropdown .multiselect-item[style*="display: none"] {
+    display: none !important;
+  }
+
+  .multiselect-options-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  .multiselect-options-list::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+  }
+  .multiselect-options-list::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
   }
 
   .multiselect-dropdown .multiselect-item .form-check-input {
@@ -1622,19 +1819,209 @@
     const items = dropdownMenu.querySelectorAll('.multiselect-item');
     items.forEach(item => {
       const text = item.textContent.toLowerCase();
-      item.style.display = text.includes(term) ? 'block' : 'none';
+      const isMatch = !term || text.includes(term);
+      if (isMatch) {
+        item.classList.remove('d-none', 'is-hidden');
+        item.style.setProperty('display', 'flex', 'important');
+        item.hidden = false;
+      } else {
+        item.classList.add('d-none', 'is-hidden');
+        item.style.setProperty('display', 'none', 'important');
+        item.hidden = true;
+      }
     });
+  }
+
+  // Question Filter Date Filter state & logic
+  function selectQuestionDatePill(btn, range) {
+    const dropdownMenu = btn.closest('.dropdown-menu');
+    if (!dropdownMenu) return;
+
+    dropdownMenu.querySelectorAll('.q-date-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+
+    const customRow = dropdownMenu.querySelector('.q-custom-date-row');
+    if (customRow) {
+      if (range === 'custom') {
+        customRow.classList.remove('d-none');
+        customRow.classList.add('d-flex');
+        const fromInput = customRow.querySelector('.q-custom-from');
+        const toInput = customRow.querySelector('.q-custom-to');
+        const todayStr = dropdownMenu.dataset.today || new Date().toISOString().slice(0, 10);
+        if (toInput && !toInput.value) toInput.value = todayStr;
+        if (fromInput && !fromInput.value) {
+          const parts = todayStr.split('-').map(Number);
+          const d = (parts.length === 3) ? new Date(parts[0], parts[1] - 1, parts[2]) : new Date();
+          d.setDate(d.getDate() - 7);
+          const ym = String(d.getMonth() + 1).padStart(2, '0');
+          const yd = String(d.getDate()).padStart(2, '0');
+          fromInput.value = `${d.getFullYear()}-${ym}-${yd}`;
+        }
+      } else {
+        customRow.classList.add('d-none');
+        customRow.classList.remove('d-flex');
+      }
+    }
+
+    applyQuestionFilters(dropdownMenu, true);
+  }
+
+  function onQuestionCustomDateChange(input) {
+    const dropdownMenu = input.closest('.dropdown-menu');
+    if (!dropdownMenu) return;
+    applyQuestionFilters(dropdownMenu, true);
+  }
+
+  function resetQuestionDateFilter(btn) {
+    const dropdownMenu = btn.closest('.dropdown-menu');
+    if (!dropdownMenu) return;
+
+    const allPill = dropdownMenu.querySelector('.q-date-pill[data-date-range="all"]');
+    if (allPill) {
+      dropdownMenu.querySelectorAll('.q-date-pill').forEach(p => p.classList.remove('active'));
+      allPill.classList.add('active');
+    }
+
+    const customRow = dropdownMenu.querySelector('.q-custom-date-row');
+    if (customRow) {
+      customRow.classList.add('d-none');
+      customRow.classList.remove('d-flex');
+      const fromInput = customRow.querySelector('.q-custom-from');
+      const toInput = customRow.querySelector('.q-custom-to');
+      if (fromInput) fromInput.value = '';
+      if (toInput) toInput.value = '';
+    }
+
+    applyQuestionFilters(dropdownMenu, true);
+  }
+
+  function filterQuestionsWithDateAndSearch(input) {
+    const dropdownMenu = input.closest('.dropdown-menu');
+    if (!dropdownMenu) return;
+    applyQuestionFilters(dropdownMenu, false);
+  }
+
+  function applyQuestionFilters(dropdownMenu, syncCheckboxes = false) {
+    const searchInput = dropdownMenu.querySelector('.multiselect-search');
+    const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+    const activePill = dropdownMenu.querySelector('.q-date-pill.active');
+    const range = activePill ? activePill.dataset.dateRange : 'all';
+
+    const todayStr = dropdownMenu.dataset.today || (function() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    })();
+
+    const yesterdayStr = dropdownMenu.dataset.yesterday || (function() {
+      const parts = todayStr.split('-').map(Number);
+      const d = (parts.length === 3) ? new Date(parts[0], parts[1] - 1, parts[2]) : new Date();
+      d.setDate(d.getDate() - 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    })();
+
+    let startDate = '';
+    let endDate = '';
+
+    const parts = todayStr.split('-').map(Number);
+    const baseDate = (parts.length === 3) ? new Date(parts[0], parts[1] - 1, parts[2]) : new Date();
+
+    if (range === 'today') {
+      startDate = todayStr;
+      endDate = todayStr;
+    } else if (range === 'yesterday') {
+      startDate = yesterdayStr;
+      endDate = yesterdayStr;
+    } else if (range === 'last_7_days') {
+      const d7 = new Date(baseDate);
+      d7.setDate(baseDate.getDate() - 6);
+      startDate = `${d7.getFullYear()}-${String(d7.getMonth() + 1).padStart(2, '0')}-${String(d7.getDate()).padStart(2, '0')}`;
+      endDate = todayStr;
+    } else if (range === 'this_month') {
+      const dMonth = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+      startDate = `${dMonth.getFullYear()}-${String(dMonth.getMonth() + 1).padStart(2, '0')}-${String(dMonth.getDate()).padStart(2, '0')}`;
+      endDate = todayStr;
+    } else if (range === 'custom') {
+      const fromInput = dropdownMenu.querySelector('.q-custom-from');
+      const toInput = dropdownMenu.querySelector('.q-custom-to');
+      startDate = fromInput ? fromInput.value : '';
+      endDate = toInput ? toInput.value : '';
+    }
+
+    const items = dropdownMenu.querySelectorAll('.multiselect-item');
+    let visibleCount = 0;
+    const totalCount = items.length;
+
+    items.forEach(item => {
+      const text = item.textContent.toLowerCase();
+      const matchesSearch = !term || text.includes(term);
+
+      let matchesDate = true;
+      if (range !== 'all') {
+        const datesStr = item.dataset.dates || '';
+        const dates = datesStr.split(',').map(s => s.trim()).filter(Boolean);
+        if (dates.length === 0) {
+          matchesDate = false;
+        } else {
+          matchesDate = dates.some(d => {
+            if (startDate && d < startDate) return false;
+            if (endDate && d > endDate) return false;
+            return true;
+          });
+        }
+      }
+
+      const isVisible = matchesSearch && matchesDate;
+      const cb = item.querySelector('input[type="checkbox"]');
+
+      if (isVisible) {
+        item.classList.remove('d-none', 'is-hidden');
+        item.style.setProperty('display', 'flex', 'important');
+        item.hidden = false;
+        visibleCount++;
+        if (syncCheckboxes && cb) {
+          cb.checked = true;
+        }
+      } else {
+        item.classList.add('d-none', 'is-hidden');
+        item.style.setProperty('display', 'none', 'important');
+        item.hidden = true;
+        if (syncCheckboxes && cb) {
+          cb.checked = false;
+        }
+      }
+    });
+
+    const showingCountEl = dropdownMenu.querySelector('.q-showing-count');
+    if (showingCountEl) {
+      showingCountEl.textContent = `Showing ${visibleCount} of ${totalCount}`;
+    }
+
+    if (syncCheckboxes) {
+      updateDropdownCounter('qLabel', 'Questions', 'question_ids[]');
+    }
   }
 
   function selectAllDropdownCheckboxes(btn, selectAll, labelId, prefix, inputName) {
     const dropdownMenu = btn.closest('.dropdown-menu');
+    if (!dropdownMenu) return;
     const checkboxes = dropdownMenu.querySelectorAll(`.multiselect-options-list input[name="${inputName}"]`);
-    checkboxes.forEach(cb => {
-      const itemWrapper = cb.closest('.multiselect-item');
-      if (!itemWrapper || itemWrapper.style.display !== 'none') {
-        cb.checked = selectAll;
-      }
-    });
+    
+    if (selectAll) {
+      checkboxes.forEach(cb => {
+        const itemWrapper = cb.closest('.multiselect-item');
+        const isVisible = itemWrapper && !itemWrapper.hidden && !itemWrapper.classList.contains('d-none') && !itemWrapper.classList.contains('is-hidden') && !itemWrapper.style.display.includes('none');
+        if (isVisible) {
+          cb.checked = true;
+        } else {
+          cb.checked = false;
+        }
+      });
+    } else {
+      checkboxes.forEach(cb => {
+        cb.checked = false;
+      });
+    }
     updateDropdownCounter(labelId, prefix, inputName);
   }
 
@@ -1680,13 +2067,40 @@
 
     const btn = labelEl.closest('.filter-dropdown-btn');
 
-    if (checked.length === 0 || checked.length === 2) {
-      labelEl.innerText = 'Status (All)';
+    if (checked.length === 1 && checked[0].value === 'submitted') {
+      labelEl.innerText = 'Status (Submitted)';
       if (btn) btn.classList.remove('filter-active');
+    } else if (checked.length === 0 || checked.length === 2) {
+      labelEl.innerText = 'Status (All)';
+      if (btn) btn.classList.add('filter-active');
     } else {
       const val = checked[0].value === 'submitted' ? 'Submitted' : 'Pending';
       labelEl.innerText = `Status (${val})`;
       if (btn) btn.classList.add('filter-active');
+    }
+  }
+
+  function toggleResponseReadMore(elementId, btn) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const isClamped = el.classList.contains('clamped-text');
+    const label = btn.querySelector('.toggle-label');
+    const icon = btn.querySelector('.toggle-icon');
+
+    if (isClamped) {
+      el.classList.remove('clamped-text');
+      if (label) label.innerText = 'Show less';
+      if (icon) {
+        icon.classList.remove('bi-chevron-down');
+        icon.classList.add('bi-chevron-up');
+      }
+    } else {
+      el.classList.add('clamped-text');
+      if (label) label.innerText = 'Read more';
+      if (icon) {
+        icon.classList.remove('bi-chevron-up');
+        icon.classList.add('bi-chevron-down');
+      }
     }
   }
 
