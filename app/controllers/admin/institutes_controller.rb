@@ -5,6 +5,7 @@ module Admin
 
     def index
       @institutes = Institute.all
+      @status_filter = %w[all active inactive].include?(params[:status]) ? params[:status] : "active"
     end
 
     def show

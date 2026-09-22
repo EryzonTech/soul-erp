@@ -70,8 +70,8 @@
         </span>
       </td>
 
-      <td>
-        <div class="fw-medium text-dark text-wrap" style="max-width: 220px;"><%= row[:question_title] %></div>
+      <td class="col-response-question">
+        <div class="fw-medium text-dark text-wrap" style="max-width: 240px;"><%= row[:question_title] %></div>
         <% if row[:question_type].present? && row[:question_type] != '-' %>
           <span class="badge bg-light text-muted border px-1.5 py-0.5 rounded small text-capitalize mt-0.5" style="font-size: 0.7rem;">
             <%= row[:question_type].humanize %>
@@ -79,7 +79,7 @@
         <% end %>
       </td>
 
-      <td>
+      <td class="response-answer-cell align-top">
         <% if row[:status] == 'submitted' %>
           <% if row[:question_type] == 'rating' %>
             <div class="d-flex align-items-center gap-1.5">
@@ -109,14 +109,14 @@
           <% else %>
             <%
               ans_id = "ans_r_#{row[:id] || index}"
-              is_long = row[:answer].to_s.length > 140
+              ans_text = row[:answer].to_s
+              is_long = ans_text.length > 120 || ans_text.count("\n") >= 3
             %>
             <div class="response-reading-box">
-              <div class="response-reading-text small text-wrap text-break <%= 'clamped-text' if is_long %>" 
+              <div class="response-reading-text small text-break <%= 'clamped-text' if is_long %>" 
                    id="<%= ans_id %>"
-                   style="line-height: 1.55; font-size: 0.82rem; color: #1e293b;" 
-                   title="<%= row[:answer] %>">
-                <%= row[:answer] %>
+                   title="<%= ans_text %>">
+                <%= ans_text %>
               </div>
               <% if is_long %>
                 <button type="button" 

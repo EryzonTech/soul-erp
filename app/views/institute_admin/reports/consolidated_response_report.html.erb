@@ -680,13 +680,13 @@
           <tr>
             <th class="sticky-col sticky-col-num text-center">#</th>
             <th class="sticky-col sticky-col-part">Participant</th>
-            <th style="min-width: 110px;">Date</th>
-            <th style="min-width: 120px;">Section</th>
-            <th style="min-width: 190px;">Assignment Title</th>
-            <th style="min-width: 220px;">Question</th>
-            <th style="min-width: 220px;">Recorded Answer</th>
-            <th style="min-width: 110px;" class="text-center">Status</th>
-            <th style="min-width: 110px;" class="text-center">Submitted At</th>
+            <th style="width: 105px; min-width: 95px;">Date</th>
+            <th style="width: 120px; min-width: 110px;">Section</th>
+            <th style="width: 190px; min-width: 160px; max-width: 220px;">Assignment Title</th>
+            <th class="col-response-question" style="width: 220px; min-width: 180px; max-width: 260px;">Question</th>
+            <th class="col-response-answer" style="width: 340px; min-width: 260px; max-width: 420px;">Recorded Answer</th>
+            <th style="width: 110px; min-width: 100px;" class="text-center">Status</th>
+            <th style="width: 110px; min-width: 100px;" class="text-center">Submitted At</th>
           </tr>
         </thead>
         <tbody id="responseTableBody">
@@ -942,25 +942,51 @@
     background-color: #f1f5f9 !important;
   }
 
+  /* Detailed View: Recorded Answer column formatting & robust text wrapping */
+  .col-response-answer,
+  .response-answer-cell {
+    width: 340px !important;
+    min-width: 260px !important;
+    max-width: 420px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  .col-response-question {
+    width: 220px !important;
+    min-width: 180px !important;
+    max-width: 260px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+
   /* Easy Reading Experience: Text Responses & Alignment */
   .response-data-row td {
     vertical-align: top !important;
   }
   .response-reading-box {
     position: relative;
-    width: 100%;
+    width: 100% !important;
+    max-width: 420px !important;
   }
   .response-reading-text {
-    word-break: break-word;
-    font-size: 0.83rem;
+    white-space: pre-line !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    word-wrap: break-word !important;
+    font-size: 0.82rem;
     line-height: 1.55;
     color: #1e293b;
   }
   .response-reading-text.clamped-text {
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
   .btn-read-toggle {
     color: #4f46e5 !important;
@@ -1014,10 +1040,54 @@
       max-height: calc(100vh - 145px) !important;
       max-height: calc(100dvh - 145px) !important;
     }
+
+    /* Tablet: Responsive Answer Column Sizing */
+    .col-response-answer,
+    .response-answer-cell {
+      width: 280px !important;
+      min-width: 220px !important;
+      max-width: 320px !important;
+    }
+    .response-reading-box {
+      max-width: 320px !important;
+    }
+
+    /* Tablet: Unpin non-essential sticky column (Participant) per AGENTS.md Rule 12 */
+    #responseDataTable thead th.sticky-col-part,
+    .response-table-container thead th.sticky-col-part {
+      position: sticky !important;
+      top: 0 !important;
+      left: auto !important;
+      box-shadow: none !important;
+      z-index: 20 !important;
+    }
+    #responseDataTable tbody td.sticky-col-part,
+    .response-table-container tbody td.sticky-col-part {
+      position: static !important;
+      left: auto !important;
+      box-shadow: none !important;
+      z-index: auto !important;
+    }
   }
 
   @media (max-width: 576px) {
-    .sticky-col-num {
+    /* Mobile (< 576px): Fluid, unobstructed swipe by unpinning all sticky columns */
+    #responseDataTable thead th.sticky-col-num,
+    .response-table-container thead th.sticky-col-num {
+      position: sticky !important;
+      top: 0 !important;
+      left: auto !important;
+      box-shadow: none !important;
+      z-index: 20 !important;
+      width: 36px !important;
+      min-width: 36px !important;
+    }
+    #responseDataTable tbody td.sticky-col-num,
+    .response-table-container tbody td.sticky-col-num {
+      position: static !important;
+      left: auto !important;
+      box-shadow: none !important;
+      z-index: auto !important;
       width: 36px !important;
       min-width: 36px !important;
       padding-left: 4px !important;
@@ -1025,21 +1095,33 @@
       font-size: 0.78rem !important;
     }
 
-    .sticky-col-part {
-      left: 36px !important;
-      min-width: 145px !important;
-      max-width: 165px !important;
-      padding-left: 8px !important;
-      padding-right: 8px !important;
-    }
-
     #responseDataTable thead th.sticky-col-part,
     .response-table-container thead th.sticky-col-part {
-      left: 36px !important;
+      position: sticky !important;
+      top: 0 !important;
+      left: auto !important;
+      box-shadow: none !important;
+      z-index: 20 !important;
+    }
+    #responseDataTable tbody td.sticky-col-part,
+    .response-table-container tbody td.sticky-col-part {
+      position: static !important;
+      left: auto !important;
+      box-shadow: none !important;
+      z-index: auto !important;
+      min-width: 140px !important;
+      max-width: 160px !important;
     }
 
-    .sticky-col-part .text-truncate {
-      max-width: 105px !important;
+    /* Mobile: Scaled Answer Column */
+    .col-response-answer,
+    .response-answer-cell {
+      width: 230px !important;
+      min-width: 190px !important;
+      max-width: 260px !important;
+    }
+    .response-reading-box {
+      max-width: 260px !important;
     }
 
     .page-header-card h3 {

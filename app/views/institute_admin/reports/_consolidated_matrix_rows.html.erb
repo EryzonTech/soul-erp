@@ -137,12 +137,11 @@
             <% else %>
               <%
                 ans_id = "ans_m_#{row[:id] || index}_#{q[:id]}"
-                is_long = raw_ans.length > 140
+                is_long = raw_ans.length > 120 || raw_ans.count("\n") >= 3
               %>
               <div class="response-reading-box">
-                <div class="response-reading-text small text-wrap text-break <%= 'clamped-text' if is_long %>" 
+                <div class="response-reading-text small text-break <%= 'clamped-text' if is_long %>" 
                      id="<%= ans_id %>"
-                     style="line-height: 1.55; font-size: 0.82rem; color: #1e293b;" 
                      title="<%= raw_ans %>">
                   <%= raw_ans %>
                 </div>

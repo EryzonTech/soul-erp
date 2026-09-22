@@ -210,18 +210,19 @@
       </div>
 
       <!-- Status Filter Buttons -->
+      <% active_status = @status_filter.presence || 'active' %>
       <div class="col-12 col-sm-6 col-md-4 col-lg-4 text-md-end">
         <div class="d-flex align-items-center justify-content-sm-end gap-2">
           <span class="text-muted small fw-medium">Status:</span>
           <div class="status-filter-wrapper">
-            <button type="button" class="status-filter-btn active" data-filter="all" onclick="setStatusFilter('all', this)">
+            <button type="button" class="status-filter-btn <%= 'active' if active_status == 'all' %>" data-filter="all" onclick="setStatusFilter('all', this)">
               <span>All</span>
             </button>
-            <button type="button" class="status-filter-btn" data-filter="active" onclick="setStatusFilter('active', this)">
+            <button type="button" class="status-filter-btn <%= 'active' if active_status == 'active' %>" data-filter="active" onclick="setStatusFilter('active', this)">
               <i class="bi bi-check-circle-fill"></i>
               <span>Active</span>
             </button>
-            <button type="button" class="status-filter-btn" data-filter="inactive" onclick="setStatusFilter('inactive', this)">
+            <button type="button" class="status-filter-btn <%= 'active' if active_status == 'inactive' %>" data-filter="inactive" onclick="setStatusFilter('inactive', this)">
               <i class="bi bi-x-circle-fill"></i>
               <span>Inactive</span>
             </button>
@@ -239,8 +240,15 @@
         <i class="bi bi-buildings text-primary fs-5"></i>
         <h6 class="fw-bold mb-0 text-dark">Registered Institutes</h6>
       </div>
+      <% 
+        initial_visible_count = case active_status
+                                when 'active' then @institutes.count(&:active?)
+                                when 'inactive' then @institutes.count { |i| !i.active? }
+                                else @institutes.count
+                                end
+      %>
       <span class="badge bg-light text-secondary border px-2.5 py-1" id="visibleInstituteCount">
-        Showing <%= @institutes.count %> of <%= @institutes.count %>
+        Showing <%= initial_visible_count %> of <%= @institutes.count %>
       </span>
     </div>
 
@@ -271,11 +279,19 @@
             </tr>
           <% else %>
             <% @institutes.each do |institute| %>
+              <%
+                is_initially_visible = case active_status
+                                       when 'active' then institute.active?
+                                       when 'inactive' then !institute.active?
+                                       else true
+                                       end
+              %>
               <tr class="institute-row" 
                   data-name="<%= institute.name.downcase %>" 
                   data-code="<%= (institute.code || '').downcase %>" 
                   data-type="<%= (institute.institution_type || '').downcase %>" 
-                  data-status="<%= institute.active? ? 'active' : 'inactive' %>">
+                  data-status="<%= institute.active? ? 'active' : 'inactive' %>"
+                  style="<%= 'display: none;' unless is_initially_visible %>">
                 <td>
                   <div class="d-flex align-items-center gap-3">
                     <div class="institute-avatar">
@@ -356,6 +372,13 @@
                 </td>
               </tr>
             <% end %>
+            <tr id="noFilterMatchRow" style="<%= 'display: none;' if initial_visible_count > 0 %>">
+              <td colspan="6" class="text-center py-5">
+                <div class="text-muted mb-2"><i class="bi bi-search fs-2"></i></div>
+                <h6 class="fw-bold text-dark mb-1">No Matching Institutes</h6>
+                <p class="text-muted small mb-0">No institutes match the selected filter criteria.</p>
+              </td>
+            </tr>
           <% end %>
         </tbody>
       </table>
@@ -366,10 +389,11 @@
 
 <!-- Filter JavaScript -->
 <script>
-  let currentStatusFilter = 'all';
+  let currentStatusFilter = '<%= active_status %>';
 
   function filterInstitutesTable() {
-    const searchVal = document.getElementById('instituteSearchInput').value.toLowerCase().trim();
+    const searchInput = document.getElementById('instituteSearchInput');
+    const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
     const typeVal = document.getElementById('typeFilter') ? document.getElementById('typeFilter').value.toLowerCase() : 'all';
     const rows = document.querySelectorAll('.institute-row');
     let visibleCount = 0;
@@ -396,6 +420,11 @@
     if (countBadge) {
       countBadge.textContent = `Showing ${visibleCount} of <%= @institutes.count %>`;
     }
+
+    const noMatchRow = document.getElementById('noFilterMatchRow');
+    if (noMatchRow) {
+      noMatchRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+    }
   }
 
   function setStatusFilter(status, btnElement) {
@@ -407,5 +436,8 @@
     btnElement.classList.add('active');
     filterInstitutesTable();
   }
+
+  // Ensure table filter matches initial state on load / turbo visit
+  filterInstitutesTable();
 </script>
  
