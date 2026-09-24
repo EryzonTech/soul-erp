@@ -534,10 +534,10 @@
       }
     }
 
-    /* ── Mobile View (< 768px): Unpin columns horizontally for seamless continuous header & fluid swipe ── */
+    /* ── Mobile View (< 768px): Frozen Sticky Columns (Rank & Name) & Fluid Horizontal Swipe ── */
     @media (max-width: 767.98px) {
       .leaderboard-table {
-        min-width: 460px !important;
+        min-width: 540px !important;
         border-spacing: 0 0.45rem !important;
       }
 
@@ -547,37 +547,30 @@
         max-height: 360px;
         -webkit-overflow-scrolling: touch !important;
         touch-action: pan-x pan-y !important;
+        overscroll-behavior-x: contain;
       }
 
       .leaderboard-card-body {
         padding: 0.5rem 0.65rem !important;
       }
 
-      /* Keep thead sticky to top vertically, but unpin horizontally so all cells form one unbroken bar */
+      /* Base headers and cells on mobile */
       .leaderboard-table thead th {
         position: sticky !important;
         top: 0 !important;
-        left: auto !important;
         z-index: 15 !important;
         padding: 0.45rem 0.4rem !important;
         font-size: 0.75rem;
         white-space: nowrap;
         background: #1e293b !important;
         color: #ffffff !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        will-change: auto;
       }
 
       .leaderboard-table tbody td {
-        position: static !important;
-        left: auto !important;
         padding: 0.45rem 0.4rem !important;
         font-size: 0.75rem;
         white-space: nowrap;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        will-change: auto;
+        background-color: #ffffff !important;
       }
 
       /* First and last column rounded outer corners on mobile */
@@ -608,28 +601,33 @@
         border-bottom-left-radius: 0 !important;
       }
 
-      /* Compact Rank column on mobile */
-      .leaderboard-table .sticky-col-rank,
-      .leaderboard-table tbody td.sticky-col-rank,
-      .leaderboard-table thead th.sticky-col-rank {
-        left: auto !important;
-        width: 46px !important;
-        min-width: 46px !important;
-        max-width: 46px !important;
+      /* Frozen Rank column on mobile (sticky left: 0) */
+      .leaderboard-table .sticky-col-rank {
+        left: 0 !important;
+        width: 48px !important;
+        min-width: 48px !important;
+        max-width: 48px !important;
         padding-left: 0.2rem !important;
         padding-right: 0.2rem !important;
         text-align: center;
-        box-shadow: none !important;
-        will-change: auto;
       }
 
       .leaderboard-table tbody td.sticky-col-rank {
-        position: static !important;
+        position: sticky !important;
+        left: 0 !important;
+        z-index: 8 !important;
+        background-color: #ffffff !important;
+        will-change: transform;
       }
 
       .leaderboard-table thead th.sticky-col-rank {
         position: sticky !important;
         top: 0 !important;
+        left: 0 !important;
+        z-index: 35 !important;
+        background: #1e293b !important;
+        color: #ffffff !important;
+        will-change: transform;
       }
 
       .leaderboard-table .sticky-col-rank .badge {
@@ -637,31 +635,42 @@
         padding: 0.2rem 0.35rem !important;
       }
 
-      /* Compact Name column on mobile — sits immediately next to Rank with 0px gap */
-      .leaderboard-table .sticky-col-name,
-      .leaderboard-table tbody td.sticky-col-name,
-      .leaderboard-table thead th.sticky-col-name {
-        left: auto !important;
-        width: 105px !important;
-        min-width: 90px !important;
-        max-width: 115px !important;
+      /* Frozen Name column on mobile (sticky left: 48px matching rank width) */
+      .leaderboard-table .sticky-col-name {
+        left: 48px !important;
+        width: 115px !important;
+        min-width: 105px !important;
+        max-width: 125px !important;
         padding-left: 0.35rem !important;
         padding-right: 0.35rem !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         white-space: nowrap !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        will-change: auto;
       }
 
       .leaderboard-table tbody td.sticky-col-name {
-        position: static !important;
+        position: sticky !important;
+        left: 48px !important;
+        z-index: 8 !important;
+        background-color: #ffffff !important;
+        box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.12) !important;
+        will-change: transform;
       }
 
       .leaderboard-table thead th.sticky-col-name {
         position: sticky !important;
         top: 0 !important;
+        left: 48px !important;
+        z-index: 35 !important;
+        background: #1e293b !important;
+        color: #ffffff !important;
+        box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.28) !important;
+        will-change: transform;
+      }
+
+      .leaderboard-table tbody tr:hover td.sticky-col-rank,
+      .leaderboard-table tbody tr:hover td.sticky-col-name {
+        background-color: #f8fafc !important;
       }
 
       /* Section column badge on mobile */
@@ -3561,66 +3570,294 @@
 
     // CSV / PDF export for leaderboard tables
     window.exportLeaderboard = function(type, format) {
-      var tableId   = type + 'LeaderboardTable';
-      var asgSelect = document.getElementById(type + 'LeaderboardAssignment');
-      var asgName   = asgSelect ? asgSelect.options[asgSelect.selectedIndex].text : 'Leaderboard';
-      var title     = (type === 'top' ? 'Top Submitting Participants' : 'Bottom Submitting Participants') + ' — ' + asgName;
-      var table     = document.getElementById(tableId);
+      var tableId      = type + 'LeaderboardTable';
+      var asgSelect    = document.getElementById(type + 'LeaderboardAssignment');
+      var asgName      = asgSelect && asgSelect.selectedIndex >= 0 ? asgSelect.options[asgSelect.selectedIndex].text : 'Assignment';
+      var isTop        = type === 'top';
+      var reportTitle  = isTop ? 'Top Submitting Participants Leaderboard' : 'Bottom Submitting Participants Leaderboard';
+      var fileBaseName = (isTop ? 'Top_Submitting_Participants' : 'Bottom_Submitting_Participants') + '_' + asgName.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_');
+      var table        = document.getElementById(tableId);
       if (!table) return;
 
-      // Gather rows as plain text (strip HTML tags)
+      var instituteName = <%= raw (current_institute&.name || "Soul ERP").to_json %>;
+
       function cellText(cell) {
-        return cell.innerText.replace(/\s+/g, ' ').trim();
+        return (cell ? cell.innerText : '').replace(/\s+/g, ' ').trim();
       }
 
-      var rows = [];
-      table.querySelectorAll('thead tr').forEach(function(tr) {
-        rows.push(Array.from(tr.querySelectorAll('th')).map(cellText));
-      });
-      table.querySelectorAll('tbody tr').forEach(function(tr) {
-        rows.push(Array.from(tr.querySelectorAll('td')).map(cellText));
-      });
-
       if (format === 'csv') {
-        var csv = rows.map(function(row) {
+        var csvRows = [];
+        table.querySelectorAll('thead tr').forEach(function(tr) {
+          csvRows.push(Array.from(tr.querySelectorAll('th')).map(cellText));
+        });
+        table.querySelectorAll('tbody tr').forEach(function(tr) {
+          var tds = tr.querySelectorAll('td');
+          if (tds.length === 1) {
+            csvRows.push([cellText(tds[0])]);
+          } else {
+            csvRows.push(Array.from(tds).map(cellText));
+          }
+        });
+
+        var csv = csvRows.map(function(row) {
           return row.map(function(v) { return '"' + v.replace(/"/g, '""') + '"'; }).join(',');
         }).join('\r\n');
         var blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
         var url  = URL.createObjectURL(blob);
         var a    = document.createElement('a');
         a.href     = url;
-        a.download = title.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_') + '.csv';
+        a.download = fileBaseName + '.csv';
         document.body.appendChild(a);
         a.click();
         setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
 
       } else if (format === 'pdf') {
-        // Build a printable HTML page and open in new tab for browser print-to-PDF
-        var tableHtml = '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:12px;font-family:Arial,sans-serif;">';
-        rows.forEach(function(row, i) {
-          tableHtml += '<tr>';
-          row.forEach(function(cell) {
-            var tag = i === 0 ? 'th' : 'td';
-            var style = i === 0 ? 'background:#1e293b;color:#fff;font-weight:700;text-align:left;padding:8px 10px;' : 'padding:6px 10px;border-color:#e2e8f0;';
-            tableHtml += '<' + tag + ' style="' + style + '">' + cell.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</' + tag + '>';
+        function escapeHtml(str) {
+          if (!str) return '';
+          return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        }
+
+        var parsedRows = [];
+        var totalPct = 0;
+        var criticalCount = 0;
+        var validCount = 0;
+
+        table.querySelectorAll('tbody tr').forEach(function(tr) {
+          var tds = tr.querySelectorAll('td');
+          if (!tds || tds.length === 0) return;
+          if (tds.length === 1) {
+            parsedRows.push({ empty: true, text: cellText(tds[0]) });
+            return;
+          }
+
+          var rankCell = tr.querySelector('.sticky-col-rank') || tds[0];
+          var rankText = rankCell ? rankCell.innerText.trim() : '#1';
+          var rankNum  = parseInt(rankText.replace(/\D/g, ''), 10) || (validCount + 1);
+
+          var nameCell = tr.querySelector('.sticky-col-name') || tds[1];
+          var name     = nameCell ? nameCell.innerText.trim() : '';
+
+          var sectionCell = tds[2];
+          var section     = sectionCell ? sectionCell.innerText.trim() : '-';
+
+          var participantType = '';
+          var assignmentTitle = '';
+          var progressCell    = null;
+
+          if (isTop || tds.length === 5) {
+            assignmentTitle = tds[3] ? tds[3].innerText.trim() : asgName;
+            progressCell    = tds[4];
+          } else {
+            participantType = tds[3] ? tds[3].innerText.trim() : 'Student';
+            assignmentTitle = tds[4] ? tds[4].innerText.trim() : asgName;
+            progressCell    = tds[5];
+          }
+
+          var progressLabel = '';
+          var pctVal = 0;
+          if (progressCell) {
+            var labelEl = progressCell.querySelector('.sub-progress-label');
+            var chipEl  = progressCell.querySelector('.sub-pct-chip');
+            progressLabel = labelEl ? labelEl.innerText.trim() : cellText(progressCell);
+            if (chipEl) {
+              pctVal = parseInt(chipEl.innerText.replace(/\D/g, ''), 10) || 0;
+            } else {
+              var match = progressLabel.match(/(\d+)%/);
+              if (match) pctVal = parseInt(match[1], 10);
+            }
+          }
+
+          if (pctVal < 50) criticalCount++;
+          totalPct += pctVal;
+          validCount++;
+
+          var barColor = pctVal >= 80 ? '#16a34a' : (pctVal >= 50 ? '#d97706' : '#dc2626');
+          var labelColor = pctVal >= 80 ? '#15803d' : (pctVal >= 50 ? '#b45309' : '#b91c1c');
+
+          parsedRows.push({
+            empty: false,
+            rankText: rankText,
+            rankNum: rankNum,
+            name: name,
+            section: section,
+            participantType: participantType,
+            assignmentTitle: assignmentTitle,
+            progressLabel: progressLabel,
+            pctVal: pctVal,
+            barColor: barColor,
+            labelColor: labelColor
           });
-          tableHtml += '</tr>';
         });
-        tableHtml += '</table>';
+
+        var avgPct = validCount > 0 ? Math.round(totalPct / validCount) : 0;
+        var formattedDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ' at ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+        var themeBadge = isTop
+          ? '<span class="report-badge badge-top">🏆 TOP PERFORMERS LEADERBOARD</span>'
+          : '<span class="report-badge badge-bottom">⚠️ LOW SUBMISSIONS ATTENTION LIST</span>';
+
+        var themeHeroBorder = isTop ? '#f59e0b' : '#f43f5e';
+
+        var kpiHtml = '<div class="kpi-grid">' +
+          '<div class="kpi-card"><div class="kpi-label">TOTAL PARTICIPANTS</div><div class="kpi-value">' + validCount + '</div></div>' +
+          '<div class="kpi-card"><div class="kpi-label">AVERAGE COMPLETION</div><div class="kpi-value ' + (avgPct >= 80 ? 'text-success' : (avgPct >= 50 ? 'text-warning' : 'text-danger')) + '">' + avgPct + '%</div></div>' +
+          '<div class="kpi-card"><div class="kpi-label">ASSIGNMENT SCOPE</div><div class="kpi-value text-primary text-truncate" style="font-size:13px;font-weight:700;" title="' + escapeHtml(asgName) + '">' + escapeHtml(asgName) + '</div></div>' +
+          '<div class="kpi-card"><div class="kpi-label">' + (isTop ? 'STATUS' : 'ATTENTION REQUIRED') + '</div><div class="kpi-value ' + (isTop ? 'text-success' : (criticalCount > 0 ? 'text-danger' : 'text-success')) + '">' + (isTop ? 'Consistent' : criticalCount + ' Below 50%') + '</div></div>' +
+          '</div>';
+
+        var tableHeaderCols = '<tr>' +
+          '<th style="width: 45px; text-align: center;">#</th>' +
+          '<th style="min-width: 140px;">Participant Name</th>' +
+          '<th style="width: 85px;">Section</th>' +
+          (isTop ? '' : '<th style="width: 85px;">Type</th>') +
+          '<th style="min-width: 130px;">Assignment</th>' +
+          '<th style="width: 160px;">Submitted Days &amp; Progress</th>' +
+          '</tr>';
+
+        var tableBodyRows = '';
+        if (parsedRows.length === 0 || (parsedRows.length === 1 && parsedRows[0].empty)) {
+          var emptyText = parsedRows[0] && parsedRows[0].text ? parsedRows[0].text : 'No participants found for this assignment';
+          tableBodyRows = '<tr><td colspan="' + (isTop ? 5 : 6) + '" style="text-align: center; padding: 24px; color: #64748b;">' + escapeHtml(emptyText) + '</td></tr>';
+        } else {
+          parsedRows.forEach(function(row) {
+            if (row.empty) return;
+
+            var rankBadgeClass = 'rank-default';
+            if (isTop) {
+              if (row.rankNum === 1) rankBadgeClass = 'rank-gold';
+              else if (row.rankNum === 2) rankBadgeClass = 'rank-silver';
+              else if (row.rankNum === 3) rankBadgeClass = 'rank-bronze';
+            } else {
+              rankBadgeClass = 'rank-danger';
+            }
+
+            var typeBadge = '';
+            if (!isTop) {
+              var tLower = (row.participantType || '').toLowerCase();
+              var tClass = tLower === 'student' ? 'pill-student' : (tLower === 'guardian' ? 'pill-guardian' : (tLower === 'employee' ? 'pill-employee' : 'pill-default'));
+              typeBadge = '<td><span class="pill-badge ' + tClass + '">' + escapeHtml(row.participantType) + '</span></td>';
+            }
+
+            tableBodyRows += '<tr>' +
+              '<td style="text-align: center;"><span class="rank-badge ' + rankBadgeClass + '">' + escapeHtml(row.rankText) + '</span></td>' +
+              '<td style="font-weight: 600; color: #0f172a;">' + escapeHtml(row.name) + '</td>' +
+              '<td><span class="pill-badge pill-section">' + escapeHtml(row.section) + '</span></td>' +
+              typeBadge +
+              '<td style="color: #475569; font-size: 11px;">' + escapeHtml(row.assignmentTitle) + '</td>' +
+              '<td>' +
+                '<div class="progress-cell">' +
+                  '<span class="progress-sub-text" style="color: ' + row.labelColor + ';">' + escapeHtml(row.progressLabel) + '</span>' +
+                  '<div class="progress-bar-bg">' +
+                    '<div class="progress-bar-fill" style="width: ' + Math.min(row.pctVal, 100) + '%; background-color: ' + row.barColor + ';"></div>' +
+                  '</div>' +
+                  '<span class="pct-tag">' + row.pctVal + '%</span>' +
+                '</div>' +
+              '</td>' +
+              '</tr>';
+          });
+        }
+
+        var fullHtml = '<!DOCTYPE html>' +
+          '<html lang="en">' +
+          '<head>' +
+          '<meta charset="utf-8">' +
+          '<title>' + escapeHtml(reportTitle) + ' — ' + escapeHtml(asgName) + '</title>' +
+          '<style>' +
+          '@page { size: A4 portrait; margin: 12mm 15mm 15mm 15mm; }' +
+          '* { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }' +
+          'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #1e293b; background: #ffffff; margin: 0; padding: 24px; font-size: 11.5px; line-height: 1.45; }' +
+          '.no-print { margin-bottom: 16px; display: flex; justify-content: flex-end; gap: 8px; }' +
+          '.btn-action { font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 16px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; border: 1px solid transparent; }' +
+          '.btn-print { background: #2563eb; color: #ffffff; }' +
+          '.btn-print:hover { background: #1d4ed8; }' +
+          '.btn-close { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }' +
+          '.btn-close:hover { background: #e2e8f0; }' +
+          '.report-hero { background: linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #334155 100%); color: #ffffff; padding: 20px 24px; border-radius: 12px; margin-bottom: 20px; border-top: 4px solid ' + themeHeroBorder + '; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }' +
+          '.report-hero-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 12px; }' +
+          '.institute-title { font-size: 19px; font-weight: 800; letter-spacing: -0.3px; margin: 0 0 2px 0; color: #ffffff; }' +
+          '.report-subtitle { font-size: 13px; font-weight: 600; opacity: 0.9; margin: 0; color: #e2e8f0; }' +
+          '.report-badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; }' +
+          '.badge-top { background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fde68a; }' +
+          '.badge-bottom { background: rgba(244, 63, 94, 0.2); border: 1px solid #f43f5e; color: #fecdd3; }' +
+          '.report-meta-bar { display: flex; flex-wrap: wrap; gap: 16px; font-size: 11px; opacity: 0.85; padding-top: 10px; margin-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.15); color: #cbd5e1; }' +
+          '.kpi-grid { display: flex; gap: 12px; margin-bottom: 20px; }' +
+          '.kpi-card { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; min-width: 0; }' +
+          '.kpi-label { font-size: 9.5px; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-bottom: 3px; }' +
+          '.kpi-value { font-size: 17px; font-weight: 800; color: #0f172a; line-height: 1.2; }' +
+          '.text-success { color: #16a34a !important; }' +
+          '.text-warning { color: #d97706 !important; }' +
+          '.text-danger { color: #e11d48 !important; }' +
+          '.text-primary { color: #2563eb !important; }' +
+          '.text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }' +
+          '.data-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; margin-bottom: 20px; }' +
+          '.data-table thead th { background: #0f172a; color: #ffffff; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 9px 12px; text-align: left; border: none; }' +
+          '.data-table tbody td { padding: 8px 12px; font-size: 11px; color: #334155; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }' +
+          '.data-table tbody tr:last-child td { border-bottom: none; }' +
+          '.data-table tbody tr:nth-child(even) td { background-color: #f8fafc; }' +
+          '.rank-badge { display: inline-block; font-weight: 700; font-size: 10px; padding: 2px 7px; border-radius: 9999px; text-align: center; min-width: 28px; }' +
+          '.rank-gold { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }' +
+          '.rank-silver { background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1; }' +
+          '.rank-bronze { background: #fed7aa; color: #9a3412; border: 1px solid #fdba74; }' +
+          '.rank-default { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }' +
+          '.rank-danger { background: #ffe4e6; color: #e11d48; border: 1px solid #fecdd3; }' +
+          '.pill-badge { display: inline-block; padding: 2px 7px; border-radius: 9999px; font-size: 9.5px; font-weight: 600; white-space: nowrap; }' +
+          '.pill-section { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }' +
+          '.pill-student { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }' +
+          '.pill-guardian { background: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; }' +
+          '.pill-employee { background: #fae8ff; color: #86198f; border: 1px solid #f5d0fe; }' +
+          '.pill-default { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }' +
+          '.progress-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }' +
+          '.progress-sub-text { font-weight: 600; font-size: 10px; white-space: nowrap; }' +
+          '.progress-bar-bg { flex: 1; max-width: 90px; height: 6px; background: #e2e8f0; border-radius: 9999px; overflow: hidden; margin: 0 4px; }' +
+          '.progress-bar-fill { height: 100%; border-radius: 9999px; }' +
+          '.pct-tag { font-weight: 700; font-size: 10px; color: #334155; min-width: 28px; text-align: right; }' +
+          '.report-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 9.5px; }' +
+          '@media print { body { padding: 0; } .no-print { display: none !important; } tr { page-break-inside: avoid; } }' +
+          '</style>' +
+          '</head>' +
+          '<body>' +
+          '<div class="no-print">' +
+            '<button class="btn-action btn-print" onclick="window.print()">Print / Save PDF</button>' +
+            '<button class="btn-action btn-close" onclick="window.close()">Close</button>' +
+          '</div>' +
+          '<div class="report-hero">' +
+            '<div class="report-hero-top">' +
+              '<div>' +
+                '<h1 class="institute-title">' + escapeHtml(instituteName) + '</h1>' +
+                '<p class="report-subtitle">' + escapeHtml(reportTitle) + '</p>' +
+              '</div>' +
+              '<div>' + themeBadge + '</div>' +
+            '</div>' +
+            '<div class="report-meta-bar">' +
+              '<span><strong>Assignment:</strong> ' + escapeHtml(asgName) + '</span>' +
+              '<span><strong>Generated:</strong> ' + escapeHtml(formattedDate) + '</span>' +
+              '<span><strong>Scope:</strong> ' + (isTop ? 'Highest Submissions' : 'Lowest Submissions') + '</span>' +
+            '</div>' +
+          '</div>' +
+          kpiHtml +
+          '<table class="data-table">' +
+            '<thead>' + tableHeaderCols + '</thead>' +
+            '<tbody>' + tableBodyRows + '</tbody>' +
+          '</table>' +
+          '<div class="report-footer">' +
+            '<div>Soul ERP &mdash; Institute Academic &amp; Progress Reporting System</div>' +
+            '<div>Confidential &mdash; Internal Administrative Use Only</div>' +
+          '</div>' +
+          '<script>window.onload = function() { setTimeout(function() { window.print(); }, 250); };<\/script>' +
+          '</body>' +
+          '</html>';
 
         var win = window.open('', '_blank');
-        win.document.write(
-          '<!DOCTYPE html><html><head><title>' + title + '</title>' +
-          '<style>body{font-family:Arial,sans-serif;padding:24px;color:#0f172a;}' +
-          'h2{font-size:16px;margin-bottom:4px;}p{font-size:11px;color:#64748b;margin-bottom:16px;}' +
-          '@media print{@page{margin:1.2cm;}}</style></head>' +
-          '<body><h2>' + title + '</h2>' +
-          '<p>Exported on ' + new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) + '</p>' +
-          tableHtml +
-          '<script>window.onload=function(){window.print();}<\/script>' +
-          '</body></html>'
-        );
-        win.document.close();
+        if (win) {
+          win.document.open();
+          win.document.write(fullHtml);
+          win.document.close();
+        }
       }
     };
 
