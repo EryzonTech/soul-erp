@@ -730,7 +730,7 @@
       flex-direction: column;
       align-items: flex-end;
       gap: 0.5rem;
-      flex-shrink: 0;
+      width: 100%;
     }
 
     .chart-controls-toolbar .chart-toolbar-row {
@@ -738,7 +738,8 @@
       align-items: center;
       justify-content: flex-end;
       gap: 0.5rem;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
+      max-width: 100%;
     }
 
     /* Modern Segmented Control Pills */
@@ -914,9 +915,9 @@
       position: relative;
       display: inline-flex;
       align-items: center;
-      min-width: 180px;
+      min-width: 140px;
+      max-width: 100%;
       height: 33px;
-      flex-shrink: 0;
     }
 
     .chart-datepicker-input {
@@ -1040,25 +1041,14 @@
     /* ── Media Queries for Chart Headers & Toolbars ─────────────── */
     @media (max-width: 1199.98px) {
       .chart-card-header {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 0.85rem !important;
-      }
-
-      .chart-controls-toolbar {
-        align-items: stretch !important;
-        width: 100% !important;
-      }
-
-      .chart-controls-toolbar .chart-toolbar-row {
-        justify-content: flex-start !important;
-        width: 100% !important;
+        padding: 0.85rem 1rem !important;
+        gap: 0.65rem !important;
       }
     }
 
     @media (max-width: 767.98px) {
       .chart-card-header {
-        padding: 0.85rem 1rem !important;
+        padding: 0.75rem 0.85rem !important;
       }
 
       .chart-controls-toolbar .chart-toolbar-row.scrollable-row {
@@ -1077,22 +1067,25 @@
 
     @media (max-width: 575.98px) {
       .chart-controls-toolbar .chart-toolbar-row {
-        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        gap: 0.35rem !important;
       }
 
       .chart-datepicker-wrapper {
-        min-width: 100%;
-        width: 100%;
+        min-width: 120px;
+        flex: 1 1 auto;
       }
 
       .chart-nav-group {
-        width: 100%;
+        flex: 1 1 auto;
         display: flex;
       }
 
       .chart-nav-group .chart-nav-btn {
         flex: 1;
         justify-content: center;
+        padding: 0.35rem 0.45rem;
       }
     }
 
@@ -1935,7 +1928,7 @@
         </div>
       </div>
       <div>
-        <%= link_to feedback_reports_institute_admin_reports_path, class: "btn btn-sm btn-outline-primary rounded-3 px-3" do %>
+        <%= link_to institute_admin_training_programs_path(view: "feedbacks"), class: "btn btn-sm btn-outline-primary rounded-3 px-3" do %>
           <i class="bi bi-list-ul me-1"></i> View Feedback Reports
         <% end %>
       </div>
