@@ -184,8 +184,8 @@ module InstituteAdmin
     end
 
     def streak_leaderboards
-      top_limit = params[:top_limit].present? ? [ params[:top_limit].to_i, 1 ].max : 10
-      bottom_limit = params[:bottom_limit].present? ? [ params[:bottom_limit].to_i, 1 ].max : 10
+      top_limit    = params[:top_limit].present?    ? parse_leaderboard_limit(params[:top_limit])    : 10
+      bottom_limit = params[:bottom_limit].present? ? parse_leaderboard_limit(params[:bottom_limit]) : 10
 
       data = fetch_streak_leaderboard_data(params[:assignment_id], top_limit, bottom_limit)
       render json: { success: true, **data }
@@ -547,10 +547,14 @@ module InstituteAdmin
 
       effective_end_date = [ assignment.end_date.to_date, Date.current ].min
 
+      effective_start_date = assignment.start_date&.to_date || effective_end_date
+      total_days = [ (effective_end_date - effective_start_date).to_i + 1, 1 ].max
+
       participant_stats = participants.map do |part|
         dates = submitted_dates_by_part[part.id] || Set.new
         streak = compute_continuous_streak(dates, effective_end_date)
         total_sub = dates.size
+        pct = ((total_sub.to_f / total_days) * 100).round(1)
 
         {
           id: part.id,
@@ -560,25 +564,49 @@ module InstituteAdmin
           raw_participant_type: part.participant_type.to_s,
           assignment_name: assignment.title,
           streak: streak,
-          total_submissions: total_sub
+          total_submissions: total_sub,
+          total_days: total_days,
+          submission_pct: pct
         }
       end
 
-      top_sorted = participant_stats.sort_by { |p| [ -p[:streak], -p[:total_submissions], p[:name] ] }
-      top_records = top_sorted.first(top_limit).each_with_index.map do |p, idx|
-        p.merge(rank: idx + 1)
+      # Standard competition ranking: participants with equal streak + total_submissions
+      # share the same rank; the next distinct group's rank skips past the tied count.
+      # e.g. two tied at #1 → both get rank 1, next participant gets rank 3.
+      assign_ranks = lambda do |sorted_list|
+        ranked   = []
+        rank     = 1
+        prev_key = nil
+
+        sorted_list.each_with_index do |p, idx|
+          tie_key = [ p[:streak], p[:total_submissions] ]
+          rank    = idx + 1 if tie_key != prev_key   # advance rank only on new score
+          prev_key = tie_key
+          ranked << p.merge(rank: rank)
+        end
+
+        ranked
       end
 
-      bottom_sorted = participant_stats.sort_by { |p| [ p[:streak], p[:total_submissions], p[:name] ] }
-      bottom_records = bottom_sorted.first(bottom_limit).each_with_index.map do |p, idx|
-        p.merge(rank: idx + 1)
-      end
+      top_sorted   = participant_stats.sort_by { |p| [ -p[:streak], -p[:total_submissions], p[:name] ] }
+      top_list     = top_limit == :all ? top_sorted : top_sorted.first(top_limit)
+      top_records  = assign_ranks.call(top_list)
+
+      bottom_sorted   = participant_stats.sort_by { |p| [ p[:streak], p[:total_submissions], p[:name] ] }
+      bottom_list     = bottom_limit == :all ? bottom_sorted : bottom_sorted.first(bottom_limit)
+      bottom_records  = assign_ranks.call(bottom_list)
 
       {
         assignment: { id: assignment.id, title: assignment.title },
         top: top_records,
         bottom: bottom_records
       }
+    end
+
+    # Converts the raw limit param string to either an integer or the :all sentinel.
+    def parse_leaderboard_limit(value)
+      return :all if value.to_s.strip == "all"
+      [ value.to_i, 1 ].max
     end
 
     def compute_continuous_streak(submitted_dates, effective_end_date)

@@ -1,59 +1,72 @@
 <% content_for :styles do %>
   <style>
-    .stat-card {
+    .stat-card,
+    .op-stat-card {
       border: none;
       border-radius: 20px;
       position: relative;
       overflow: hidden;
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      min-height: 140px;
+      min-height: 180px;
+      height: 100%;
+      width: 100%;
       display: flex;
       flex-direction: column;
-      justify-content: center;
     }
 
-    .stat-card:hover {
-      transform: translateY(-5px); /* Reduced movement */
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    .stat-card:hover,
+    .op-stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.18);
     }
 
-    /* ... (rest of stat-card styles unchanged) ... */
-
-    .stat-card .card-body {
+    .stat-card .card-body,
+    .op-stat-card .card-body {
+      padding: 1.2rem 1.25rem;
       position: relative;
       z-index: 1;
-      padding: 1.25rem; /* Reduced padding */
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      justify-content: space-between;
     }
 
-    .stat-card .stat-title {
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      opacity: 0.9;
-      margin-bottom: 0.25rem;
-      color: rgba(255, 255, 255, 0.9);
-    }
-
-    .stat-card .stat-value {
-      font-size: 2rem; /* Slightly smaller */
+    .stat-card .stat-title,
+    .op-stat-title {
+      font-size: 0.75rem;
       font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-card .stat-value,
+    .op-stat-value {
+      font-size: 2.1rem;
+      font-weight: 800;
       line-height: 1;
       color: #fff;
       margin-bottom: 0;
+      letter-spacing: -0.5px;
     }
 
     .stat-card .stat-icon {
       position: absolute;
       right: 1.25rem;
-      top: 50%;
+      top: 2.2rem;
       transform: translateY(-50%);
-      font-size: 3rem; /* Slightly smaller */
+      font-size: 2.75rem;
       color: rgba(255, 255, 255, 0.2);
       transition: all 0.3s ease;
+      pointer-events: none;
     }
 
-    /* ... (hover effect unchanged) ... */
+    .stat-card:hover .stat-icon {
+      transform: translateY(-50%) scale(1.1);
+      color: rgba(255, 255, 255, 0.28);
+    }
 
     /* Card Variants Row 1 */
     .stat-card-participants {
@@ -77,33 +90,6 @@
     }
 
     /* ── Operational KPI Cards (Row 2) — Vivid Gradient Redesign ── */
-    .op-stat-card {
-      border: none;
-      border-radius: 20px;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      min-height: 148px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .op-stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 16px 32px rgba(0,0,0,0.18);
-    }
-
-    .op-stat-card .card-body {
-      padding: 1.35rem 1.4rem;
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      justify-content: space-between;
-    }
-
     .op-stat-header {
       display: flex;
       align-items: flex-start;
@@ -111,33 +97,16 @@
       gap: 0.5rem;
     }
 
-    .op-stat-title {
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: rgba(255,255,255,0.8);
-      margin-bottom: 0.25rem;
-    }
-
-    .op-stat-value {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: #ffffff;
-      line-height: 1;
-      letter-spacing: -1px;
-    }
-
     .op-stat-icon-box {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.4rem;
+      font-size: 1.25rem;
       flex-shrink: 0;
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
       color: #ffffff;
       backdrop-filter: blur(4px);
       transition: transform 0.25s ease;
@@ -153,38 +122,43 @@
       right: -10px;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 7rem;
-      color: rgba(255,255,255,0.08);
+      font-size: 6.5rem;
+      color: rgba(255, 255, 255, 0.08);
       pointer-events: none;
       z-index: 0;
     }
 
     /* Breakdown row on colored background */
+    .stat-card .stat-breakdown,
     .op-stat-card .stat-breakdown,
     .op-stat-breakdown {
       display: flex;
       align-items: center;
       gap: 0.35rem;
       flex-wrap: wrap;
-      margin-top: 0.75rem;
+      margin-top: auto;
       padding-top: 0.55rem;
-      border-top: 1px solid rgba(255,255,255,0.2);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      min-height: 52px;
     }
 
+    .stat-card .stat-breakdown-pill,
     .op-stat-card .stat-breakdown-pill,
     .op-stat-breakdown-pill {
-      font-size: 0.71rem;
+      font-size: 0.69rem;
       font-weight: 600;
-      padding: 0.22rem 0.6rem;
+      padding: 0.18rem 0.5rem;
       border-radius: 9999px;
-      background: rgba(255,255,255,0.18);
+      background: rgba(255, 255, 255, 0.18);
       color: #ffffff !important;
-      border: 1px solid rgba(255,255,255,0.25);
+      border: 1px solid rgba(255, 255, 255, 0.25);
       white-space: nowrap;
       letter-spacing: 0.1px;
       backdrop-filter: blur(4px);
+      line-height: 1.3;
     }
 
+    .stat-card .stat-breakdown-pill strong,
     .op-stat-card .stat-breakdown-pill strong,
     .op-stat-breakdown-pill strong {
       color: #ffffff !important;
@@ -194,22 +168,22 @@
     /* Card gradient variants */
     .op-stat-card-responses {
       background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #0891b2 100%);
-      box-shadow: 0 8px 20px rgba(6,182,212,0.35);
+      box-shadow: 0 8px 20px rgba(6, 182, 212, 0.35);
     }
 
     .op-stat-card-trainers {
       background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%);
-      box-shadow: 0 8px 20px rgba(139,92,246,0.35);
+      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.35);
     }
 
     .op-stat-card-programs {
       background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
-      box-shadow: 0 8px 20px rgba(16,185,129,0.35);
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
     }
 
     .op-stat-card-feedback {
       background: linear-gradient(135deg, #db2777 0%, #ec4899 50%, #f472b6 100%);
-      box-shadow: 0 8px 20px rgba(236,72,153,0.35);
+      box-shadow: 0 8px 20px rgba(236, 72, 153, 0.35);
     }
 
     /* Coloured participant type pill variants */
@@ -320,6 +294,59 @@
       border-radius: 8px;
     }
 
+    /* Submission progress cell */
+    .sub-progress-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 110px;
+    }
+    .sub-progress-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .sub-progress-bar-track {
+      height: 5px;
+      border-radius: 99px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+    .sub-progress-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+    .sub-pct-chip {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #64748b;
+    }
+
+    /* Export buttons */
+    .leaderboard-export-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.28rem 0.6rem;
+      border-radius: 6px;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      text-decoration: none;
+    }
+    .leaderboard-export-btn:hover {
+      border-color: #cbd5e1;
+      background: #fff;
+      color: #0f172a;
+    }
+    .leaderboard-export-btn.csv-btn:hover  { border-color: #6ee7b7; color: #065f46; }
+    .leaderboard-export-btn.pdf-btn:hover  { border-color: #fca5a5; color: #991b1b; }
+
     .leaderboard-table {
       width: 100%;
       min-width: 680px;
@@ -332,7 +359,10 @@
     .leaderboard-table thead th {
       padding: 0.9rem 1rem;
       background: #1e293b;
+      color: #fff;
       white-space: nowrap;
+      font-size: 0.85rem;
+      font-weight: 700;
     }
 
     .leaderboard-table tbody td {
@@ -360,128 +390,22 @@
       background-color: #f8fafc !important;
     }
 
-    /* ── Frozen Sticky Columns (Rank & Participant Name) ───────── */
-    .leaderboard-table .sticky-col {
-      position: sticky !important;
-    }
-
-    /* Column 1: Rank */
-    .leaderboard-table .sticky-col-rank {
-      left: 0 !important;
-      width: 68px !important;
-      min-width: 68px !important;
-      max-width: 68px !important;
-      text-align: center;
-    }
-
-    /* Column 2: Participant Name */
-    .leaderboard-table .sticky-col-name {
-      left: 68px !important;
-      min-width: 155px !important;
-      max-width: 220px !important;
-      box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
-    }
-
-    /* Intersection Headers (Sticky Top & Left) */
-    .leaderboard-table thead th.sticky-col-rank {
-      position: sticky !important;
-      top: 0 !important;
-      left: 0 !important;
-      z-index: 25 !important;
-      background: #1e293b !important;
-      color: #fff !important;
-      border-top-left-radius: 8px;
-      border-bottom-left-radius: 8px;
-    }
-
-    .leaderboard-table thead th.sticky-col-name {
-      position: sticky !important;
-      top: 0 !important;
-      left: 68px !important;
-      z-index: 25 !important;
-      background: #1e293b !important;
-      color: #fff !important;
-      box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.25) !important;
-    }
-
-    .leaderboard-table thead th:first-child:not(.sticky-col-rank) {
-      border-top-left-radius: 8px;
-      border-bottom-left-radius: 8px;
-    }
-
-    .leaderboard-table thead th:last-child {
-      border-top-right-radius: 8px;
-      border-bottom-right-radius: 8px;
-    }
-
-    /* Body Frozen Cells */
-    .leaderboard-table tbody td.sticky-col-rank {
-      position: sticky !important;
-      left: 0 !important;
-      z-index: 6 !important;
-      background-color: #ffffff !important;
-      border-top-left-radius: 8px;
-      border-bottom-left-radius: 8px;
-    }
-
-    .leaderboard-table tbody td.sticky-col-name {
-      position: sticky !important;
-      left: 68px !important;
-      z-index: 6 !important;
-      background-color: #ffffff !important;
-      box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
-    }
-
-    .leaderboard-table tbody td:first-child:not(.sticky-col-rank) {
-      border-top-left-radius: 8px;
-      border-bottom-left-radius: 8px;
-    }
-
-    .leaderboard-table tbody td:last-child {
-      border-top-right-radius: 8px;
-      border-bottom-right-radius: 8px;
-    }
-
-    /* Hover State for Sticky Cells */
-    .leaderboard-table tbody tr:hover td.sticky-col-rank,
-    .leaderboard-table tbody tr:hover td.sticky-col-name {
-      background-color: #f8fafc !important;
-    }
-
-    /* Mobile unpinning for narrow phone viewports (< 576px) */
-    @media (max-width: 575.98px) {
-      .leaderboard-table .sticky-col-name {
-        position: static !important;
-        left: auto !important;
-        box-shadow: none !important;
-      }
-      .leaderboard-table thead th.sticky-col-name {
-        position: sticky !important;
-        top: 0 !important;
-        left: auto !important;
-        box-shadow: none !important;
-        z-index: 20 !important;
-      }
-    }
-
-    /* Bronze rank badge (rank #3) */
-    .bg-bronze {
-      background-color: #cd7f32 !important;
-    }
-
-    /* Prevent column headers from truncating in leaderboard */
-    .leaderboard-sticky-head th {
-      white-space: nowrap;
+    /* Scroll container and custom scrollbar */
+    .leaderboard-table-scroll {
+      overflow-x: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
     }
 
     .leaderboard-table-scroll .leaderboard-sticky-head th {
       position: sticky;
       top: 0;
-      z-index: 2;
-      background: #1e293b; /* must repeat here so thead stays opaque when scrolling */
+      z-index: 15;
+      background: #1e293b;
+      white-space: nowrap;
     }
 
-    /* Custom thin scrollbar for the leaderboard */
     .leaderboard-table-scroll::-webkit-scrollbar {
       width: 5px;
       height: 5px;
@@ -496,6 +420,264 @@
     }
     .leaderboard-table-scroll::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
+    }
+
+    /* First and last column border radii on desktop */
+    .leaderboard-table thead th:first-child {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+    .leaderboard-table thead th:last-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+    .leaderboard-table tbody td:first-child {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+    .leaderboard-table tbody td:last-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+
+    /* ── Desktop Frozen Sticky Columns (Rank & Participant Name) ───────── */
+    .leaderboard-table .sticky-col-rank {
+      left: 0 !important;
+      width: 68px !important;
+      min-width: 68px !important;
+      max-width: 68px !important;
+      text-align: center;
+    }
+
+    .leaderboard-table tbody td.sticky-col-rank {
+      position: sticky !important;
+      left: 0 !important;
+      z-index: 6 !important;
+      background-color: #ffffff !important;
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+      will-change: transform;
+    }
+
+    .leaderboard-table thead th.sticky-col-rank {
+      position: sticky !important;
+      top: 0 !important;
+      left: 0 !important;
+      z-index: 30 !important;
+      background: #1e293b !important;
+      color: #fff !important;
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+      will-change: transform;
+    }
+
+    .leaderboard-table .sticky-col-name {
+      left: 68px !important;
+      min-width: 130px !important;
+      max-width: 190px !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+
+    .leaderboard-table tbody td.sticky-col-name {
+      position: sticky !important;
+      left: 68px !important;
+      z-index: 6 !important;
+      background-color: #ffffff !important;
+      box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
+      will-change: transform;
+    }
+
+    .leaderboard-table thead th.sticky-col-name {
+      position: sticky !important;
+      top: 0 !important;
+      left: 68px !important;
+      z-index: 30 !important;
+      background: #1e293b !important;
+      color: #fff !important;
+      box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.25) !important;
+      will-change: transform;
+    }
+
+    .leaderboard-table tbody tr:hover td.sticky-col-rank,
+    .leaderboard-table tbody tr:hover td.sticky-col-name {
+      background-color: #f8fafc !important;
+    }
+
+    /* Bronze rank badge (rank #3) */
+    .bg-bronze {
+      background-color: #cd7f32 !important;
+    }
+
+    /* ── Tablet View (768px - 991.98px) ─────────────────────────────────── */
+    @media (min-width: 768px) and (max-width: 991.98px) {
+      .leaderboard-table thead th,
+      .leaderboard-table tbody td {
+        padding: 0.55rem 0.6rem !important;
+        font-size: 0.8rem;
+        white-space: nowrap;
+      }
+      .leaderboard-card-body {
+        padding: 0.75rem 0.85rem;
+      }
+      .leaderboard-table-scroll {
+        height: 420px;
+        min-height: 420px;
+        max-height: 420px;
+      }
+      .sub-progress-wrap { min-width: 90px; }
+      .sub-progress-label { font-size: 0.7rem; }
+      .leaderboard-table .sticky-col-name {
+        min-width: 110px !important;
+        max-width: 150px !important;
+      }
+    }
+
+    /* ── Mobile View (< 768px): Unpin columns horizontally for seamless continuous header & fluid swipe ── */
+    @media (max-width: 767.98px) {
+      .leaderboard-table {
+        min-width: 460px !important;
+        border-spacing: 0 0.45rem !important;
+      }
+
+      .leaderboard-table-scroll {
+        height: 360px;
+        min-height: 360px;
+        max-height: 360px;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-x pan-y !important;
+      }
+
+      .leaderboard-card-body {
+        padding: 0.5rem 0.65rem !important;
+      }
+
+      /* Keep thead sticky to top vertically, but unpin horizontally so all cells form one unbroken bar */
+      .leaderboard-table thead th {
+        position: sticky !important;
+        top: 0 !important;
+        left: auto !important;
+        z-index: 15 !important;
+        padding: 0.45rem 0.4rem !important;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        background: #1e293b !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        will-change: auto;
+      }
+
+      .leaderboard-table tbody td {
+        position: static !important;
+        left: auto !important;
+        padding: 0.45rem 0.4rem !important;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        will-change: auto;
+      }
+
+      /* First and last column rounded outer corners on mobile */
+      .leaderboard-table thead th:first-child,
+      .leaderboard-table thead th.sticky-col-rank {
+        border-top-left-radius: 8px !important;
+        border-bottom-left-radius: 8px !important;
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+      }
+      .leaderboard-table thead th:last-child {
+        border-top-right-radius: 8px !important;
+        border-bottom-right-radius: 8px !important;
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+      }
+      .leaderboard-table tbody td:first-child,
+      .leaderboard-table tbody td.sticky-col-rank {
+        border-top-left-radius: 8px !important;
+        border-bottom-left-radius: 8px !important;
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+      }
+      .leaderboard-table tbody td:last-child {
+        border-top-right-radius: 8px !important;
+        border-bottom-right-radius: 8px !important;
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+      }
+
+      /* Compact Rank column on mobile */
+      .leaderboard-table .sticky-col-rank,
+      .leaderboard-table tbody td.sticky-col-rank,
+      .leaderboard-table thead th.sticky-col-rank {
+        left: auto !important;
+        width: 46px !important;
+        min-width: 46px !important;
+        max-width: 46px !important;
+        padding-left: 0.2rem !important;
+        padding-right: 0.2rem !important;
+        text-align: center;
+        box-shadow: none !important;
+        will-change: auto;
+      }
+
+      .leaderboard-table tbody td.sticky-col-rank {
+        position: static !important;
+      }
+
+      .leaderboard-table thead th.sticky-col-rank {
+        position: sticky !important;
+        top: 0 !important;
+      }
+
+      .leaderboard-table .sticky-col-rank .badge {
+        font-size: 0.7rem !important;
+        padding: 0.2rem 0.35rem !important;
+      }
+
+      /* Compact Name column on mobile — sits immediately next to Rank with 0px gap */
+      .leaderboard-table .sticky-col-name,
+      .leaderboard-table tbody td.sticky-col-name,
+      .leaderboard-table thead th.sticky-col-name {
+        left: auto !important;
+        width: 105px !important;
+        min-width: 90px !important;
+        max-width: 115px !important;
+        padding-left: 0.35rem !important;
+        padding-right: 0.35rem !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        will-change: auto;
+      }
+
+      .leaderboard-table tbody td.sticky-col-name {
+        position: static !important;
+      }
+
+      .leaderboard-table thead th.sticky-col-name {
+        position: sticky !important;
+        top: 0 !important;
+      }
+
+      /* Section column badge on mobile */
+      .leaderboard-table td:nth-child(3) .badge {
+        max-width: 75px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.68rem;
+        display: inline-block;
+        vertical-align: middle;
+      }
+
+      .sub-progress-wrap  { min-width: 80px; }
+      .sub-progress-label { font-size: 0.68rem; }
+      .sub-pct-chip       { font-size: 0.62rem; }
     }
 
 
@@ -532,27 +714,6 @@
       transition: all 0.2s;
     }
 
-    .stat-breakdown {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      flex-wrap: wrap;
-      margin-top: 0.65rem;
-      padding-top: 0.5rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .stat-card .stat-breakdown-pill {
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 0.2rem 0.55rem;
-      border-radius: 9999px;
-      background: rgba(255, 255, 255, 0.22);
-      color: #ffffff;
-      backdrop-filter: blur(4px);
-      letter-spacing: 0.2px;
-      white-space: nowrap;
-    }
 
     /* ── Responsive Controls Toolbar & Modern Segmented Controls ────────── */
     .chart-controls-toolbar {
@@ -560,6 +721,7 @@
       flex-direction: column;
       align-items: flex-end;
       gap: 0.5rem;
+      flex-shrink: 0;
     }
 
     .chart-controls-toolbar .chart-toolbar-row {
@@ -567,7 +729,7 @@
       align-items: center;
       justify-content: flex-end;
       gap: 0.5rem;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
 
     /* Modern Segmented Control Pills */
@@ -743,7 +905,7 @@
       position: relative;
       display: inline-flex;
       align-items: center;
-      min-width: 200px;
+      min-width: 180px;
       height: 33px;
       flex-shrink: 0;
     }
@@ -905,6 +1067,10 @@
     }
 
     @media (max-width: 575.98px) {
+      .chart-controls-toolbar .chart-toolbar-row {
+        flex-wrap: wrap !important;
+      }
+
       .chart-datepicker-wrapper {
         min-width: 100%;
         width: 100%;
@@ -920,6 +1086,23 @@
         justify-content: center;
       }
     }
+
+    /* ── Leaderboard assignment filter select ─────────────────────── */
+    .leaderboard-asg-select {
+      /* Grows to fill available width but caps so it doesn't overflow */
+      flex: 1 1 140px;
+      min-width: 140px;
+      max-width: 100%;
+      /* Truncate long assignment names gracefully */
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    /* Utility: prevent flex children from overflowing their parent */
+    .min-width-0 {
+      min-width: 0;
+    }
   </style>
 <% end %>
 
@@ -928,11 +1111,13 @@
   <!-- KPI Cards Row 1 -->
   <div class="row g-4 mb-4">
     <!-- Total Participants -->
-    <div class="col-12 col-sm-6 col-xl-3">
-      <div class="stat-card stat-card-participants">
+    <div class="col-12 col-sm-6 col-xl-3 d-flex">
+      <div class="stat-card stat-card-participants w-100 h-100">
         <div class="card-body">
-          <div class="stat-title">Total Participants</div>
-          <h2 class="stat-value"><%= @total_participants %></h2>
+          <div>
+            <div class="stat-title">Total Participants</div>
+            <h2 class="stat-value"><%= @total_participants %></h2>
+          </div>
           <i class="bi bi-people-fill stat-icon"></i>
           <div class="stat-breakdown">
             <span class="stat-breakdown-pill">Students: <%= @participant_type_distribution["student"] || 0 %></span>
@@ -944,22 +1129,29 @@
     </div>
 
     <!-- Total Questions -->
-    <div class="col-12 col-sm-6 col-xl-3">
-      <div class="stat-card stat-card-questions">
+    <div class="col-12 col-sm-6 col-xl-3 d-flex">
+      <div class="stat-card stat-card-questions w-100 h-100">
         <div class="card-body">
-          <div class="stat-title">Total Questions</div>
-          <h2 class="stat-value"><%= @total_questions %></h2>
+          <div>
+            <div class="stat-title">Total Questions</div>
+            <h2 class="stat-value"><%= @total_questions %></h2>
+          </div>
           <i class="bi bi-question-circle-fill stat-icon"></i>
+          <div class="stat-breakdown">
+            <span class="stat-breakdown-pill"><i class="bi bi-patch-question-fill me-1"></i>Active Questions</span>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Total Assignments -->
-    <div class="col-12 col-sm-6 col-xl-3">
-      <div class="stat-card stat-card-assignments">
+    <div class="col-12 col-sm-6 col-xl-3 d-flex">
+      <div class="stat-card stat-card-assignments w-100 h-100">
         <div class="card-body">
-          <div class="stat-title">Total Assignments</div>
-          <h2 class="stat-value"><%= @total_assignments %></h2>
+          <div>
+            <div class="stat-title">Total Assignments</div>
+            <h2 class="stat-value"><%= @total_assignments %></h2>
+          </div>
           <i class="bi bi-clipboard-check-fill stat-icon"></i>
           <div class="stat-breakdown">
             <span class="stat-breakdown-pill">Students: <%= @assignment_type_distribution["student"] || 0 %></span>
@@ -971,12 +1163,17 @@
     </div>
 
     <!-- Total Sections -->
-    <div class="col-12 col-sm-6 col-xl-3">
-      <div class="stat-card stat-card-sections">
+    <div class="col-12 col-sm-6 col-xl-3 d-flex">
+      <div class="stat-card stat-card-sections w-100 h-100">
         <div class="card-body">
-          <div class="stat-title">Total Sections</div>
-          <h2 class="stat-value"><%= @total_sections %></h2>
+          <div>
+            <div class="stat-title">Total Sections</div>
+            <h2 class="stat-value"><%= @total_sections %></h2>
+          </div>
           <i class="bi bi-grid-fill stat-icon"></i>
+          <div class="stat-breakdown">
+            <span class="stat-breakdown-pill"><i class="bi bi-grid-fill me-1"></i>Active Sections</span>
+          </div>
         </div>
       </div>
     </div>
@@ -985,8 +1182,8 @@
   <!-- KPI Cards Row 2: Operational & Activity Metrics -->
   <div class="row g-4 mb-4">
     <!-- Today Responses -->
-    <div class="col-12 col-sm-6 col-xl-3">
-      <div class="op-stat-card op-stat-card-responses">
+    <div class="col-12 col-sm-6 col-xl-3 d-flex">
+      <div class="op-stat-card op-stat-card-responses w-100 h-100">
         <i class="bi bi-file-earmark-check-fill op-stat-watermark"></i>
         <div class="card-body">
           <div class="op-stat-header">
@@ -1008,8 +1205,8 @@
     </div>
 
     <!-- Total Trainers -->
-    <div class="col-12 col-sm-6 col-xl-3">
-      <div class="op-stat-card op-stat-card-trainers">
+    <div class="col-12 col-sm-6 col-xl-3 d-flex">
+      <div class="op-stat-card op-stat-card-trainers w-100 h-100">
         <i class="bi bi-person-workspace op-stat-watermark"></i>
         <div class="card-body">
           <div class="op-stat-header">
@@ -1029,8 +1226,8 @@
     </div>
 
     <!-- Training Programs -->
-    <div class="col-12 col-sm-6 col-xl-3">
-      <div class="op-stat-card op-stat-card-programs">
+    <div class="col-12 col-sm-6 col-xl-3 d-flex">
+      <div class="op-stat-card op-stat-card-programs w-100 h-100">
         <i class="bi bi-mortarboard-fill op-stat-watermark"></i>
         <div class="card-body">
           <div class="op-stat-header">
@@ -1052,8 +1249,8 @@
     </div>
 
     <!-- Feedback Received -->
-    <div class="col-12 col-sm-6 col-xl-3">
-      <div class="op-stat-card op-stat-card-feedback">
+    <div class="col-12 col-sm-6 col-xl-3 d-flex">
+      <div class="op-stat-card op-stat-card-feedback w-100 h-100">
         <i class="bi bi-chat-square-text-fill op-stat-watermark"></i>
         <div class="card-body">
           <div class="op-stat-header">
@@ -1080,30 +1277,32 @@
     <div class="col-12">
       <div class="card card-custom h-100">
         <div class="card-header chart-card-header border-0 d-flex flex-column flex-xl-row justify-content-between align-items-start align-items-xl-center gap-3">
-          <div class="d-flex align-items-start align-items-sm-center gap-3">
-            <div class="chart-icon-box" style="background: rgba(79,70,229,0.1); color: #4f46e5;">
+          <div class="d-flex align-items-start gap-3">
+            <div class="chart-icon-box flex-shrink-0 mt-1" style="background: rgba(79,70,229,0.1); color: #4f46e5;">
               <i class="bi bi-graph-up-arrow"></i>
             </div>
             <div>
-              <div class="d-flex align-items-center gap-2 flex-wrap">
+              <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                 <h5 class="chart-header-title mb-0">Assignment Submissions</h5>
                 <span id="submission-date-range-badge" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
                   <%= @submission_start_date.strftime("%b %d") %> – <%= @submission_end_date.strftime("%b %d, %Y") %>
                 </span>
-                <span id="submission-active-series-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
+              </div>
+              <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                <p class="chart-header-subtitle mb-0">Multi-series submission trends &amp; backlog analysis</p>
+                <span id="submission-active-series-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill" style="font-size:0.7rem; padding: 0.15rem 0.55rem;">
                   Viewing: Combined (Total &amp; Backlog)
                 </span>
               </div>
-              <p class="chart-header-subtitle">Multi-series submission trends &amp; backlog analysis</p>
               <!-- Custom Legend -->
-              <div class="d-flex align-items-center gap-3 mt-2 flex-wrap" id="submission-chart-legend">
+              <div class="d-flex align-items-center gap-3 flex-wrap" id="submission-chart-legend">
                 <div class="d-flex align-items-center gap-2">
-                  <span style="display:inline-block; width:28px; height:4px; border-radius:9999px; background:#4f46e5;"></span>
-                  <span style="font-size:0.8rem; font-weight:600; color:#334155; letter-spacing:0.01em;">Total Submissions</span>
+                  <span style="display:inline-block; width:24px; height:4px; border-radius:9999px; background:#4f46e5;"></span>
+                  <span style="font-size:0.78rem; font-weight:600; color:#334155; letter-spacing:0.01em;">Total Submissions</span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                  <span style="display:inline-block; width:28px; height:4px; border-radius:9999px; background:#ef4444;"></span>
-                  <span style="font-size:0.8rem; font-weight:600; color:#334155; letter-spacing:0.01em;">Backlog</span>
+                  <span style="display:inline-block; width:24px; height:4px; border-radius:9999px; background:#ef4444;"></span>
+                  <span style="font-size:0.78rem; font-weight:600; color:#334155; letter-spacing:0.01em;">Backlog</span>
                 </div>
               </div>
             </div>
@@ -1173,35 +1372,48 @@
     <!-- Top Submitting Participants (Streak without break) -->
     <div class="col-xl-6 col-12">
       <div class="card card-custom h-100">
-        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-          <div class="d-flex align-items-center gap-3">
-            <div class="chart-icon-box" style="background: rgba(217,119,6,0.1); color: #d97706;">
-              <i class="bi bi-trophy-fill"></i>
+        <div class="card-header chart-card-header border-0 d-flex flex-column gap-2">
+          <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+            <div class="d-flex align-items-center gap-3 min-width-0">
+              <div class="chart-icon-box flex-shrink-0" style="background: rgba(217,119,6,0.1); color: #d97706;">
+                <i class="bi bi-trophy-fill"></i>
+              </div>
+              <div class="min-width-0">
+                <p class="chart-header-title mb-0">Top Submitting Participants</p>
+                <p class="chart-header-subtitle">Submitted days / total assignment days</p>
+              </div>
             </div>
-            <div>
-              <p class="chart-header-title mb-0">Top Submitting Participants</p>
-              <p class="chart-header-subtitle">Follows streak without break</p>
+            <!-- Export buttons -->
+            <div class="d-flex align-items-center gap-1 flex-shrink-0">
+              <button type="button" class="leaderboard-export-btn csv-btn" onclick="exportLeaderboard('top', 'csv')" title="Export CSV">
+                <i class="bi bi-filetype-csv"></i> CSV
+              </button>
+              <button type="button" class="leaderboard-export-btn pdf-btn" onclick="exportLeaderboard('top', 'pdf')" title="Export PDF">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+              </button>
             </div>
           </div>
-          
-          <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+
+          <div class="d-flex align-items-center gap-2 flex-wrap">
             <!-- Assignment filter -->
-            <select class="form-select form-select-sm rounded-3 flex-grow-1 flex-sm-grow-0" id="topLeaderboardAssignment" style="min-width: 140px; max-width: 220px;" onchange="updateStreakLeaderboard('top')">
+            <select class="form-select form-select-sm rounded-3 leaderboard-asg-select" id="topLeaderboardAssignment" onchange="updateStreakLeaderboard('top')">
               <% (@available_assignments || []).each do |asg| %>
                 <option value="<%= asg.id %>" <%= 'selected' if asg.id == @default_assignment&.id %>><%= asg.title %></option>
               <% end %>
             </select>
 
             <!-- Limit selector -->
-            <div class="d-flex align-items-center gap-1">
+            <div class="d-flex align-items-center gap-1 flex-shrink-0">
               <span class="text-muted small">Show:</span>
-              <select class="form-select form-select-sm rounded-3" id="topLeaderboardLimit" style="width: 75px;" onchange="updateStreakLeaderboard('top')">
+              <select class="form-select form-select-sm rounded-3" id="topLeaderboardLimit" style="width: 90px;" onchange="updateStreakLeaderboard('top')">
                 <option value="5">5</option>
                 <option value="10" selected>10</option>
                 <option value="15">15</option>
                 <option value="20">20</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="all">All time</option>
               </select>
             </div>
           </div>
@@ -1214,29 +1426,38 @@
             <table class="table modern-table leaderboard-table mb-0" id="topLeaderboardTable">
               <thead class="leaderboard-sticky-head">
                 <tr>
-                  <th class="sticky-col sticky-col-rank" style="width: 68px;">Rank</th>
+                  <th class="sticky-col sticky-col-rank">Rank</th>
                   <th class="sticky-col sticky-col-name">Name</th>
                   <th>Section</th>
                   <th>Assignment</th>
-                  <th class="text-center">Streak</th>
+                  <th class="text-center">Submitted Days</th>
                 </tr>
               </thead>
               <tbody id="topLeaderboardBody">
                 <% if @top_submitting_participants.present? %>
                   <% @top_submitting_participants.each do |p| %>
+                    <% pct = p[:submission_pct] || 0
+                       fill_color = pct >= 80 ? '#16a34a' : (pct >= 50 ? '#d97706' : '#dc2626')
+                       label_color = pct >= 80 ? 'text-success' : (pct >= 50 ? 'text-warning' : 'text-danger') %>
                     <tr>
                       <td class="sticky-col sticky-col-rank">
                         <span class="badge <%= p[:rank] == 1 ? 'bg-warning text-dark' : (p[:rank] == 2 ? 'bg-secondary text-white' : (p[:rank] == 3 ? 'bg-bronze text-white' : 'bg-light text-dark border')) %> rounded-pill fw-bold">
                           #<%= p[:rank] %>
                         </span>
                       </td>
-                      <td class="sticky-col sticky-col-name fw-semibold text-dark"><%= p[:name] %></td>
+                      <td class="sticky-col sticky-col-name fw-semibold text-dark" title="<%= p[:name] %>"><%= p[:name] %></td>
                       <td><span class="badge bg-light text-secondary border"><%= p[:section] %></span></td>
-                      <td class="text-muted small text-truncate" style="max-width: 150px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
-                      <td class="text-center">
-                        <span class="badge bg-success-subtle text-success border border-success-subtle">
-                          <i class="bi bi-fire text-danger me-1"></i><%= pluralize(p[:streak], 'day') %>
-                        </span>
+                      <td class="text-muted small text-truncate" style="max-width: 140px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
+                      <td>
+                        <div class="sub-progress-wrap">
+                          <span class="sub-progress-label <%= label_color %>">
+                            <i class="bi bi-fire me-1"></i><%= p[:total_submissions] %> / <%= p[:total_days] %> days
+                          </span>
+                          <div class="sub-progress-bar-track">
+                            <div class="sub-progress-bar-fill" style="width: <%= [pct, 100].min %>%; background: <%= fill_color %>;"></div>
+                          </div>
+                          <span class="sub-pct-chip"><%= pct %>%</span>
+                        </div>
                       </td>
                     </tr>
                   <% end %>
@@ -1253,35 +1474,48 @@
     <!-- Bottom Submitting Participants (Never follows streak) -->
     <div class="col-xl-6 col-12">
       <div class="card card-custom h-100">
-        <div class="card-header chart-card-header border-0 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-          <div class="d-flex align-items-center gap-3">
-            <div class="chart-icon-box" style="background: rgba(225,29,72,0.1); color: #e11d48;">
-              <i class="bi bi-exclamation-triangle-fill"></i>
+        <div class="card-header chart-card-header border-0 d-flex flex-column gap-2">
+          <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+            <div class="d-flex align-items-center gap-3 min-width-0">
+              <div class="chart-icon-box flex-shrink-0" style="background: rgba(225,29,72,0.1); color: #e11d48;">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+              </div>
+              <div class="min-width-0">
+                <p class="chart-header-title mb-0">Bottom Submitting Participants</p>
+                <p class="chart-header-subtitle">Submitted days / total assignment days</p>
+              </div>
             </div>
-            <div>
-              <p class="chart-header-title mb-0">Bottom Submitting Participants</p>
-              <p class="chart-header-subtitle">Never follows streak / broken streak</p>
+            <!-- Export buttons -->
+            <div class="d-flex align-items-center gap-1 flex-shrink-0">
+              <button type="button" class="leaderboard-export-btn csv-btn" onclick="exportLeaderboard('bottom', 'csv')" title="Export CSV">
+                <i class="bi bi-filetype-csv"></i> CSV
+              </button>
+              <button type="button" class="leaderboard-export-btn pdf-btn" onclick="exportLeaderboard('bottom', 'pdf')" title="Export PDF">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+              </button>
             </div>
           </div>
 
-          <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-sm-auto justify-content-between justify-content-sm-end">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
             <!-- Assignment filter -->
-            <select class="form-select form-select-sm rounded-3 flex-grow-1 flex-sm-grow-0" id="bottomLeaderboardAssignment" style="min-width: 140px; max-width: 220px;" onchange="updateStreakLeaderboard('bottom')">
+            <select class="form-select form-select-sm rounded-3 leaderboard-asg-select" id="bottomLeaderboardAssignment" onchange="updateStreakLeaderboard('bottom')">
               <% (@available_assignments || []).each do |asg| %>
                 <option value="<%= asg.id %>" <%= 'selected' if asg.id == @default_assignment&.id %>><%= asg.title %></option>
               <% end %>
             </select>
 
             <!-- Limit selector -->
-            <div class="d-flex align-items-center gap-1">
+            <div class="d-flex align-items-center gap-1 flex-shrink-0">
               <span class="text-muted small">Show:</span>
-              <select class="form-select form-select-sm rounded-3" id="bottomLeaderboardLimit" style="width: 75px;" onchange="updateStreakLeaderboard('bottom')">
+              <select class="form-select form-select-sm rounded-3" id="bottomLeaderboardLimit" style="width: 90px;" onchange="updateStreakLeaderboard('bottom')">
                 <option value="5">5</option>
                 <option value="10" selected>10</option>
                 <option value="15">15</option>
                 <option value="20">20</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="all">All time</option>
               </select>
             </div>
           </div>
@@ -1294,24 +1528,27 @@
             <table class="table modern-table leaderboard-table mb-0" id="bottomLeaderboardTable">
               <thead class="leaderboard-sticky-head">
                 <tr>
-                  <th class="sticky-col sticky-col-rank" style="width: 68px;">Rank</th>
+                  <th class="sticky-col sticky-col-rank">Rank</th>
                   <th class="sticky-col sticky-col-name">Name</th>
                   <th>Section</th>
-                  <th>Participant Type</th>
+                  <th>Type</th>
                   <th>Assignment</th>
-                  <th class="text-center">Streak</th>
+                  <th class="text-center">Submitted Days</th>
                 </tr>
               </thead>
               <tbody id="bottomLeaderboardBody">
                 <% if @bottom_submitting_participants.present? %>
                   <% @bottom_submitting_participants.each do |p| %>
+                    <% pct = p[:submission_pct] || 0
+                       fill_color = pct >= 80 ? '#16a34a' : (pct >= 50 ? '#d97706' : '#dc2626')
+                       label_color = pct >= 80 ? 'text-success' : (pct >= 50 ? 'text-warning' : 'text-danger') %>
                     <tr>
                       <td class="sticky-col sticky-col-rank">
                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">
                           #<%= p[:rank] %>
                         </span>
                       </td>
-                      <td class="sticky-col sticky-col-name fw-semibold text-dark"><%= p[:name] %></td>
+                      <td class="sticky-col sticky-col-name fw-semibold text-dark" title="<%= p[:name] %>"><%= p[:name] %></td>
                       <td><span class="badge bg-light text-secondary border"><%= p[:section] %></span></td>
                       <td>
                         <% p_badge = case p[:raw_participant_type]
@@ -1322,11 +1559,17 @@
                                      end %>
                         <span class="badge <%= p_badge %>"><%= p[:participant_type] %></span>
                       </td>
-                      <td class="text-muted small text-truncate" style="max-width: 140px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
-                      <td class="text-center">
-                        <span class="badge bg-light text-muted border">
-                          <i class="bi bi-x-circle text-danger me-1"></i><%= p[:streak] %> days
-                        </span>
+                      <td class="text-muted small text-truncate" style="max-width: 130px;" title="<%= p[:assignment_name] %>"><%= p[:assignment_name] %></td>
+                      <td>
+                        <div class="sub-progress-wrap">
+                          <span class="sub-progress-label <%= label_color %>">
+                            <i class="bi bi-calendar-x me-1"></i><%= p[:total_submissions] %> / <%= p[:total_days] %> days
+                          </span>
+                          <div class="sub-progress-bar-track">
+                            <div class="sub-progress-bar-fill" style="width: <%= [pct, 100].min %>%; background: <%= fill_color %>;"></div>
+                          </div>
+                          <span class="sub-pct-chip"><%= pct %>%</span>
+                        </div>
                       </td>
                     </tr>
                   <% end %>
@@ -3264,24 +3507,43 @@
           var html = '';
           if (list && list.length > 0) {
             list.forEach(function(p) {
+              var pct        = p.submission_pct || 0;
+              var totalDays  = p.total_days || 1;
+              var totalSub   = p.total_submissions || 0;
+              var fillColor  = pct >= 80 ? '#16a34a' : (pct >= 50 ? '#d97706' : '#dc2626');
+              var labelClass = pct >= 80 ? 'text-success' : (pct >= 50 ? 'text-warning' : 'text-danger');
+              var barWidth   = Math.min(pct, 100);
+
+              var progressHtml =
+                '<div class="sub-progress-wrap">' +
+                  '<span class="sub-progress-label ' + labelClass + '">' +
+                    '<i class="bi bi-' + (type === 'top' ? 'fire' : 'calendar-x') + ' me-1"></i>' +
+                    totalSub + ' / ' + totalDays + ' days' +
+                  '</span>' +
+                  '<div class="sub-progress-bar-track">' +
+                    '<div class="sub-progress-bar-fill" style="width:' + barWidth + '%;background:' + fillColor + ';"></div>' +
+                  '</div>' +
+                  '<span class="sub-pct-chip">' + pct + '%</span>' +
+                '</div>';
+
               if (type === 'top') {
                 var badgeClass = p.rank === 1 ? 'bg-warning text-dark' : (p.rank === 2 ? 'bg-secondary text-white' : (p.rank === 3 ? 'bg-bronze text-white' : 'bg-light text-dark border'));
                 html += '<tr>' +
                   '<td class="sticky-col sticky-col-rank"><span class="badge ' + badgeClass + ' rounded-pill fw-bold">#' + p.rank + '</span></td>' +
-                  '<td class="sticky-col sticky-col-name fw-semibold text-dark">' + p.name + '</td>' +
+                  '<td class="sticky-col sticky-col-name fw-semibold text-dark" title="' + (p.name || '').replace(/"/g, '&quot;') + '">' + p.name + '</td>' +
                   '<td><span class="badge bg-light text-secondary border">' + p.section + '</span></td>' +
-                  '<td class="text-muted small text-truncate" style="max-width: 150px;" title="' + p.assignment_name + '">' + p.assignment_name + '</td>' +
-                  '<td class="text-center"><span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-fire text-danger me-1"></i>' + p.streak + ' ' + (p.streak === 1 ? 'day' : 'days') + '</span></td>' +
+                  '<td class="text-muted small text-truncate" style="max-width:140px;" title="' + p.assignment_name + '">' + p.assignment_name + '</td>' +
+                  '<td>' + progressHtml + '</td>' +
                   '</tr>';
               } else {
                 var pBadge = p.raw_participant_type === 'student' ? 'badge-student' : (p.raw_participant_type === 'guardian' ? 'badge-guardian' : (p.raw_participant_type === 'employee' ? 'badge-employee' : 'bg-secondary'));
                 html += '<tr>' +
                   '<td class="sticky-col sticky-col-rank"><span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">#' + p.rank + '</span></td>' +
-                  '<td class="sticky-col sticky-col-name fw-semibold text-dark">' + p.name + '</td>' +
+                  '<td class="sticky-col sticky-col-name fw-semibold text-dark" title="' + (p.name || '').replace(/"/g, '&quot;') + '">' + p.name + '</td>' +
                   '<td><span class="badge bg-light text-secondary border">' + p.section + '</span></td>' +
                   '<td><span class="badge ' + pBadge + '">' + p.participant_type + '</span></td>' +
-                  '<td class="text-muted small text-truncate" style="max-width: 140px;" title="' + p.assignment_name + '">' + p.assignment_name + '</td>' +
-                  '<td class="text-center"><span class="badge bg-light text-muted border"><i class="bi bi-x-circle text-danger me-1"></i>' + p.streak + ' days</span></td>' +
+                  '<td class="text-muted small text-truncate" style="max-width:130px;" title="' + p.assignment_name + '">' + p.assignment_name + '</td>' +
+                  '<td>' + progressHtml + '</td>' +
                   '</tr>';
               }
             });
@@ -3295,6 +3557,71 @@
           if (tbody) tbody.style.opacity = '1';
           console.error('Failed to update streak leaderboard:', err);
         });
+    };
+
+    // CSV / PDF export for leaderboard tables
+    window.exportLeaderboard = function(type, format) {
+      var tableId   = type + 'LeaderboardTable';
+      var asgSelect = document.getElementById(type + 'LeaderboardAssignment');
+      var asgName   = asgSelect ? asgSelect.options[asgSelect.selectedIndex].text : 'Leaderboard';
+      var title     = (type === 'top' ? 'Top Submitting Participants' : 'Bottom Submitting Participants') + ' — ' + asgName;
+      var table     = document.getElementById(tableId);
+      if (!table) return;
+
+      // Gather rows as plain text (strip HTML tags)
+      function cellText(cell) {
+        return cell.innerText.replace(/\s+/g, ' ').trim();
+      }
+
+      var rows = [];
+      table.querySelectorAll('thead tr').forEach(function(tr) {
+        rows.push(Array.from(tr.querySelectorAll('th')).map(cellText));
+      });
+      table.querySelectorAll('tbody tr').forEach(function(tr) {
+        rows.push(Array.from(tr.querySelectorAll('td')).map(cellText));
+      });
+
+      if (format === 'csv') {
+        var csv = rows.map(function(row) {
+          return row.map(function(v) { return '"' + v.replace(/"/g, '""') + '"'; }).join(',');
+        }).join('\r\n');
+        var blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        var url  = URL.createObjectURL(blob);
+        var a    = document.createElement('a');
+        a.href     = url;
+        a.download = title.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_') + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+
+      } else if (format === 'pdf') {
+        // Build a printable HTML page and open in new tab for browser print-to-PDF
+        var tableHtml = '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:12px;font-family:Arial,sans-serif;">';
+        rows.forEach(function(row, i) {
+          tableHtml += '<tr>';
+          row.forEach(function(cell) {
+            var tag = i === 0 ? 'th' : 'td';
+            var style = i === 0 ? 'background:#1e293b;color:#fff;font-weight:700;text-align:left;padding:8px 10px;' : 'padding:6px 10px;border-color:#e2e8f0;';
+            tableHtml += '<' + tag + ' style="' + style + '">' + cell.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</' + tag + '>';
+          });
+          tableHtml += '</tr>';
+        });
+        tableHtml += '</table>';
+
+        var win = window.open('', '_blank');
+        win.document.write(
+          '<!DOCTYPE html><html><head><title>' + title + '</title>' +
+          '<style>body{font-family:Arial,sans-serif;padding:24px;color:#0f172a;}' +
+          'h2{font-size:16px;margin-bottom:4px;}p{font-size:11px;color:#64748b;margin-bottom:16px;}' +
+          '@media print{@page{margin:1.2cm;}}</style></head>' +
+          '<body><h2>' + title + '</h2>' +
+          '<p>Exported on ' + new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) + '</p>' +
+          tableHtml +
+          '<script>window.onload=function(){window.print();}<\/script>' +
+          '</body></html>'
+        );
+        win.document.close();
+      }
     };
 
     // Initialize on first load and Turbo navigation
