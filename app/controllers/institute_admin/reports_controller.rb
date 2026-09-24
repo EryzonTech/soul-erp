@@ -1419,6 +1419,10 @@ module InstituteAdmin
 
       @date_range = params[:date_range].presence || "today"
       set_consolidated_date_range_window(@date_range)
+      @question_date_range = params[:question_date_range].presence || "all"
+      @question_from_date = params[:question_from_date]
+      @question_to_date = params[:question_to_date]
+      @question_search = params[:question_search]
       load_question_dates_map(@available_questions)
     end
 
@@ -1477,44 +1481,84 @@ module InstituteAdmin
       q_ids = questions.map(&:id)
       dates_map = Hash.new { |h, k| h[k] = Set.new }
 
-      # 1. Responses dates from AssignmentResponse
-      AssignmentResponse.joins(:participant)
-                        .where(participants: { institute_id: current_institute.id })
-                        .where(question_id: q_ids)
-                        .distinct
-                        .pluck(:question_id, :response_date)
-                        .each do |qid, rdate|
+      # 1. Actual response dates from AssignmentResponse scoped to current institute and active filters
+      resp_scope = AssignmentResponse.joins(:participant, :assignment)
+                                     .joins("INNER JOIN users ON users.id = participants.user_id")
+                                     .where(participants: { institute_id: current_institute.id })
+                                     .where(assignments: { institute_id: current_institute.id })
+                                     .where(question_id: q_ids)
+
+      if @selected_assignment_ids.present?
+        resp_scope = resp_scope.where(assignment_id: @selected_assignment_ids)
+      end
+
+      if @selected_section_ids.present?
+        resp_scope = resp_scope.where("COALESCE(participants.section_id, users.section_id) IN (?)", @selected_section_ids)
+      end
+
+      if @selected_participant_ids.present?
+        resp_scope = resp_scope.where(participant_id: @selected_participant_ids)
+      end
+
+      if @selected_participant_types.present?
+        resp_scope = resp_scope.where(participants: { participant_type: @selected_participant_types })
+      end
+
+      resp_scope.distinct.pluck(:question_id, :response_date).each do |qid, rdate|
         dates_map[qid] << rdate.to_date.to_s if rdate.present?
       end
 
-      # 2. Assignment schedules (start_date + from_day..to_day)
+      # 2. Assignment schedules: ONLY mark Today & Yesterday as active if scheduled for today/yesterday.
+      # Never inject 30..120 calendar days into dates_map to avoid polluting date filters with empty questions.
       target_assignments = if @selected_assignment_ids.present?
                              current_institute.assignments.where(id: @selected_assignment_ids)
                            else
                              current_institute.assignments.active
                            end
 
+      today_date = Date.current
+      yesterday_date = Date.yesterday
+      today_str = today_date.to_s
+      yesterday_str = yesterday_date.to_s
+
+      today_active_set = Set.new(dates_map.select { |_qid, dates| dates.include?(today_str) }.keys)
+      yesterday_active_set = Set.new(dates_map.select { |_qid, dates| dates.include?(yesterday_str) }.keys)
+
       target_assignments.where.not(start_date: nil).find_each do |asg|
         start_d = asg.start_date.to_date
         total_d = asg.total_days || 30
+
+        # Check questions in AssignmentQuestion
         asg.assignment_questions.includes(:question).each do |aq|
           q = aq.question
           next unless q && q_ids.include?(q.id)
           f_day = q.from_day || 1
           t_day = q.to_day || total_d
           max_day = [t_day, 120].min
-          (f_day..max_day).each do |day_idx|
-            sched_date = start_d + (day_idx - 1).days
-            dates_map[q.id] << sched_date.to_s
+          sched_start = start_d + (f_day - 1).days
+          sched_end = start_d + (max_day - 1).days
+          today_active_set << q.id if today_date >= sched_start && today_date <= sched_end
+          yesterday_active_set << q.id if yesterday_date >= sched_start && yesterday_date <= sched_end
+        end
+
+        # Check questions in AssignmentQuestionSet
+        asg.assignment_question_sets.includes(question_set: { question_set_items: :question }).each do |aqs|
+          aqs.question_set&.question_set_items&.each do |qsi|
+            q = qsi.question
+            next unless q && q_ids.include?(q.id)
+            f_day = q.from_day || 1
+            t_day = q.to_day || total_d
+            max_day = [t_day, 120].min
+            sched_start = start_d + (f_day - 1).days
+            sched_end = start_d + (max_day - 1).days
+            today_active_set << q.id if today_date >= sched_start && today_date <= sched_end
+            yesterday_active_set << q.id if yesterday_date >= sched_start && yesterday_date <= sched_end
           end
         end
       end
 
-      today_str = Date.current.to_s
-      yesterday_str = Date.yesterday.to_s
-
-      @today_active_question_ids = dates_map.select { |_qid, dates| dates.include?(today_str) }.keys
-      @yesterday_active_question_ids = dates_map.select { |_qid, dates| dates.include?(yesterday_str) }.keys
+      @today_active_question_ids = today_active_set.to_a
+      @yesterday_active_question_ids = yesterday_active_set.to_a
 
       @question_dates_map = dates_map.transform_values(&:to_a)
     end
@@ -1570,6 +1614,14 @@ module InstituteAdmin
                            else
                              current_institute.assignments.active
                            end
+
+      if @selected_question_ids.present?
+        asg_ids_with_q = AssignmentQuestion.where(question_id: @selected_question_ids).pluck(:assignment_id)
+        asg_ids_with_q += AssignmentQuestionSet.joins(question_set: :question_set_items)
+                                               .where(question_set_items: { question_id: @selected_question_ids })
+                                               .pluck(:assignment_id)
+        target_assignments = target_assignments.where(id: asg_ids_with_q.uniq)
+      end
 
       target_participants = if @selected_participant_ids.present?
                               current_institute.participants.includes(:user, :section).where(id: @selected_participant_ids)
@@ -1732,7 +1784,21 @@ module InstituteAdmin
       submitted_asg_ids = base_query.distinct.pluck(:assignment_id)
       pending_asg_ids = pending_rows.map { |r| r[:assignment_id] }.compact.uniq
       all_filtered_asg_ids = (submitted_asg_ids + pending_asg_ids).uniq
-      @total_filtered_assignments = all_filtered_asg_ids.size
+      if all_filtered_asg_ids.present?
+        @total_filtered_assignments = all_filtered_asg_ids.size
+      elsif @selected_assignment_ids.present?
+        @total_filtered_assignments = @selected_assignment_ids.size
+      else
+        target_asg = current_institute.assignments.active
+        if @selected_question_ids.present?
+          asg_ids_with_q = AssignmentQuestion.where(question_id: @selected_question_ids).pluck(:assignment_id)
+          asg_ids_with_q += AssignmentQuestionSet.joins(question_set: :question_set_items)
+                                                 .where(question_set_items: { question_id: @selected_question_ids })
+                                                 .pluck(:assignment_id)
+          target_asg = target_asg.where(id: asg_ids_with_q.uniq)
+        end
+        @total_filtered_assignments = target_asg.count
+      end
 
       @total_submitted_responses = base_query.count
       @total_pending_count = pending_rows.size
@@ -1961,6 +2027,10 @@ module InstituteAdmin
 
       @date_range = params[:date_range].presence || "today"
       set_consolidated_date_range_window(@date_range)
+      @question_date_range = params[:question_date_range].presence || "all"
+      @question_from_date = params[:question_from_date]
+      @question_to_date = params[:question_to_date]
+      @question_search = params[:question_search]
       @search = params[:search].to_s.strip
       load_question_dates_map(@available_questions)
 
@@ -2054,6 +2124,13 @@ module InstituteAdmin
         base_query = base_query.where(participants: { participant_type: @selected_participant_types })
       end
 
+      if @selected_question_ids.present?
+        base_query = base_query.where(
+          "EXISTS (SELECT 1 FROM assignment_responses ar WHERE ar.assignment_id = assignment_response_logs.assignment_id AND ar.participant_id = assignment_response_logs.participant_id AND ar.response_date = assignment_response_logs.response_date::date AND ar.question_id IN (?))",
+          @selected_question_ids
+        )
+      end
+
       if @start_date.present? && @end_date.present?
         s_d = [@start_date, @end_date].min
         e_d = [@start_date, @end_date].max
@@ -2097,6 +2174,14 @@ module InstituteAdmin
                            else
                              current_institute.assignments.active
                            end
+
+      if @selected_question_ids.present?
+        asg_ids_with_q = AssignmentQuestion.where(question_id: @selected_question_ids).pluck(:assignment_id)
+        asg_ids_with_q += AssignmentQuestionSet.joins(question_set: :question_set_items)
+                                               .where(question_set_items: { question_id: @selected_question_ids })
+                                               .pluck(:assignment_id)
+        target_assignments = target_assignments.where(id: asg_ids_with_q.uniq)
+      end
 
       target_participants = if @selected_participant_ids.present?
                               current_institute.participants.includes(:user, :section).where(id: @selected_participant_ids)
@@ -2245,7 +2330,10 @@ module InstituteAdmin
       all_response_ids = logs.flat_map { |l| Array(l.assignment_response_ids) }.map(&:to_i).reject(&:zero?).uniq
 
       responses = if all_response_ids.present?
-                    AssignmentResponse.where(id: all_response_ids).includes(:question)
+                    # Query both by ID and fallback by participant/assignment/date to ensure 100% response capture
+                    AssignmentResponse.where(id: all_response_ids)
+                                      .or(AssignmentResponse.where(participant_id: p_ids, assignment_id: a_ids, response_date: dates.presence || nil))
+                                      .includes(:question)
                   else
                     AssignmentResponse.where(participant_id: p_ids, assignment_id: a_ids)
                                       .where(response_date: dates.presence || nil)
@@ -2331,7 +2419,16 @@ module InstituteAdmin
       submitted_asg_ids = base_query.distinct.pluck(:assignment_id)
       pending_asg_ids = pending_rows.map { |r| r[:assignment_id] }.compact.uniq
       all_filtered_asg_ids = (submitted_asg_ids + pending_asg_ids).uniq
-      @total_filtered_assignments = all_filtered_asg_ids.size
+      if all_filtered_asg_ids.present?
+        @total_filtered_assignments = all_filtered_asg_ids.size
+      elsif @selected_assignment_ids.present?
+        @total_filtered_assignments = @selected_assignment_ids.size
+      elsif @matrix_questions.present?
+        all_q_asg_ids = @matrix_questions.flat_map { |q| q[:assignment_ids]&.to_a || [] }.compact.uniq
+        @total_filtered_assignments = all_q_asg_ids.size
+      else
+        @total_filtered_assignments = 0
+      end
 
       @total_matrix_questions_count = @matrix_questions.size
       @total_submissions_count = base_query.count

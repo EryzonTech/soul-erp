@@ -322,9 +322,14 @@
                  style="width: 440px; max-width: min(460px, calc(100vw - 1.5rem));">
               <!-- Search bar -->
               <div class="p-3 pb-2">
+                <% active_q_range = params[:question_date_range].presence || 'all' %>
+                <input type="hidden" name="question_date_range" value="<%= active_q_range %>">
+                <input type="hidden" name="question_from_date" value="<%= params[:question_from_date] %>">
+                <input type="hidden" name="question_to_date" value="<%= params[:question_to_date] %>">
+                <input type="hidden" name="question_search" value="<%= params[:question_search] %>">
                 <div class="position-relative mb-3 multiselect-search-wrapper">
                   <i class="bi bi-search"></i>
-                  <input type="text" class="form-control form-control-sm multiselect-search" style="padding-left: 34px !important;" placeholder="Search questions..." oninput="filterQuestionsWithDateAndSearch(this)">
+                  <input type="text" class="form-control form-control-sm multiselect-search" style="padding-left: 34px !important;" placeholder="Search questions..." value="<%= params[:question_search] %>" oninput="filterQuestionsWithDateAndSearch(this)">
                 </div>
 
                 <!-- Date filter card section inside question dropdown -->
@@ -342,25 +347,25 @@
 
                   <!-- 3x2 Grid for balanced pills -->
                   <div class="q-date-pills-grid">
-                    <button type="button" class="btn q-date-pill active" data-date-range="all" onclick="selectQuestionDatePill(this, 'all')">All</button>
-                    <button type="button" class="btn q-date-pill" data-date-range="today" onclick="selectQuestionDatePill(this, 'today')">Today</button>
-                    <button type="button" class="btn q-date-pill" data-date-range="yesterday" onclick="selectQuestionDatePill(this, 'yesterday')">Yesterday</button>
-                    <button type="button" class="btn q-date-pill" data-date-range="last_7_days" onclick="selectQuestionDatePill(this, 'last_7_days')">Last 7 Days</button>
-                    <button type="button" class="btn q-date-pill" data-date-range="this_month" onclick="selectQuestionDatePill(this, 'this_month')">This Month</button>
-                    <button type="button" class="btn q-date-pill" data-date-range="custom" onclick="selectQuestionDatePill(this, 'custom')">
+                    <button type="button" class="btn q-date-pill <%= 'active' if active_q_range == 'all' %>" data-date-range="all" onclick="selectQuestionDatePill(this, 'all')">All</button>
+                    <button type="button" class="btn q-date-pill <%= 'active' if active_q_range == 'today' %>" data-date-range="today" onclick="selectQuestionDatePill(this, 'today')">Today</button>
+                    <button type="button" class="btn q-date-pill <%= 'active' if active_q_range == 'yesterday' %>" data-date-range="yesterday" onclick="selectQuestionDatePill(this, 'yesterday')">Yesterday</button>
+                    <button type="button" class="btn q-date-pill <%= 'active' if active_q_range == 'last_7_days' %>" data-date-range="last_7_days" onclick="selectQuestionDatePill(this, 'last_7_days')">Last 7 Days</button>
+                    <button type="button" class="btn q-date-pill <%= 'active' if active_q_range == 'this_month' %>" data-date-range="this_month" onclick="selectQuestionDatePill(this, 'this_month')">This Month</button>
+                    <button type="button" class="btn q-date-pill <%= 'active' if active_q_range == 'custom' %>" data-date-range="custom" onclick="selectQuestionDatePill(this, 'custom')">
                       <i class="bi bi-calendar-event me-1.5"></i>Custom
                     </button>
                   </div>
 
                   <!-- Collapsible Custom Date Range Picker -->
-                  <div class="row g-2 mt-2.5 pt-2.5 border-top d-none align-items-center q-custom-date-row">
+                  <div class="row g-2 mt-2.5 pt-2.5 border-top <%= active_q_range == 'custom' ? 'd-flex' : 'd-none' %> align-items-center q-custom-date-row">
                     <div class="col-6">
                       <label class="form-label mb-1 text-muted fw-semibold" style="font-size: 0.68rem;">From Date</label>
-                      <input type="date" class="form-control form-control-sm text-secondary q-custom-from" style="font-size: 0.78rem; height: 32px;" onchange="onQuestionCustomDateChange(this)">
+                      <input type="date" class="form-control form-control-sm text-secondary q-custom-from" style="font-size: 0.78rem; height: 32px;" value="<%= params[:question_from_date] %>" onchange="onQuestionCustomDateChange(this)">
                     </div>
                     <div class="col-6">
                       <label class="form-label mb-1 text-muted fw-semibold" style="font-size: 0.68rem;">To Date</label>
-                      <input type="date" class="form-control form-control-sm text-secondary q-custom-to" style="font-size: 0.78rem; height: 32px;" onchange="onQuestionCustomDateChange(this)">
+                      <input type="date" class="form-control form-control-sm text-secondary q-custom-to" style="font-size: 0.78rem; height: 32px;" value="<%= params[:question_to_date] %>" onchange="onQuestionCustomDateChange(this)">
                     </div>
                   </div>
                 </div>
@@ -384,7 +389,9 @@
                   <% q_dates = (@question_dates_map && @question_dates_map[q.id]) || [] %>
                   <div class="form-check dropdown-item rounded px-2.5 py-2 mb-1 multiselect-item d-flex align-items-start gap-2.5"
                        data-question-id="<%= q.id %>"
-                       data-dates="<%= q_dates.join(',') %>">
+                       data-dates="<%= q_dates.join(',') %>"
+                       data-today-active="<%= @today_active_question_ids&.include?(q.id) ? 'true' : 'false' %>"
+                       data-yesterday-active="<%= @yesterday_active_question_ids&.include?(q.id) ? 'true' : 'false' %>">
                     <input class="form-check-input mt-1 flex-shrink-0" 
                            type="checkbox" 
                            name="question_ids[]" 
@@ -933,6 +940,8 @@
     background-color: #ffffff !important;
     border-right: 2px solid #e2e8f0 !important;
     box-shadow: 4px 0 10px -2px rgba(0, 0, 0, 0.08) !important;
+  }
+
   /* Easy Reading Experience: Text Responses & Alignment */
   .matrix-data-row td,
   .response-data-row td {
@@ -1820,6 +1829,10 @@
         }
       } catch (e) {}
     }
+
+    if (typeof initQuestionFilterState === 'function') {
+      initQuestionFilterState();
+    }
   };
 
   // Safe global event listeners (registered only once across Turbo visits)
@@ -1877,6 +1890,10 @@
     dropdownMenu.querySelectorAll('.q-date-pill').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
 
+    const form = btn.closest('form') || document.getElementById('consolidatedMatrixReportForm') || document.querySelector('form');
+    const rangeInput = form ? form.querySelector('input[name="question_date_range"]') : null;
+    if (rangeInput) rangeInput.value = range;
+
     const customRow = dropdownMenu.querySelector('.q-custom-date-row');
     if (customRow) {
       if (range === 'custom') {
@@ -1894,6 +1911,10 @@
           const yd = String(d.getDate()).padStart(2, '0');
           fromInput.value = `${d.getFullYear()}-${ym}-${yd}`;
         }
+        const fromHidden = form ? form.querySelector('input[name="question_from_date"]') : null;
+        const toHidden = form ? form.querySelector('input[name="question_to_date"]') : null;
+        if (fromHidden && fromInput) fromHidden.value = fromInput.value;
+        if (toHidden && toInput) toHidden.value = toInput.value;
       } else {
         customRow.classList.add('d-none');
         customRow.classList.remove('d-flex');
@@ -1906,12 +1927,26 @@
   function onQuestionCustomDateChange(input) {
     const dropdownMenu = input.closest('.dropdown-menu');
     if (!dropdownMenu) return;
+    const form = input.closest('form') || document.getElementById('consolidatedMatrixReportForm') || document.querySelector('form');
+    const customRow = dropdownMenu.querySelector('.q-custom-date-row');
+    if (customRow && form) {
+      const fromInput = customRow.querySelector('.q-custom-from');
+      const toInput = customRow.querySelector('.q-custom-to');
+      const fromHidden = form.querySelector('input[name="question_from_date"]');
+      const toHidden = form.querySelector('input[name="question_to_date"]');
+      if (fromHidden && fromInput) fromHidden.value = fromInput.value;
+      if (toHidden && toInput) toHidden.value = toInput.value;
+    }
     applyQuestionFilters(dropdownMenu, true);
   }
 
   function resetQuestionDateFilter(btn) {
     const dropdownMenu = btn.closest('.dropdown-menu');
     if (!dropdownMenu) return;
+
+    const form = btn.closest('form') || document.getElementById('consolidatedMatrixReportForm') || document.querySelector('form');
+    const rangeInput = form ? form.querySelector('input[name="question_date_range"]') : null;
+    if (rangeInput) rangeInput.value = 'all';
 
     const allPill = dropdownMenu.querySelector('.q-date-pill[data-date-range="all"]');
     if (allPill) {
@@ -1927,6 +1962,10 @@
       const toInput = customRow.querySelector('.q-custom-to');
       if (fromInput) fromInput.value = '';
       if (toInput) toInput.value = '';
+      const fromHidden = form ? form.querySelector('input[name="question_from_date"]') : null;
+      const toHidden = form ? form.querySelector('input[name="question_to_date"]') : null;
+      if (fromHidden) fromHidden.value = '';
+      if (toHidden) toHidden.value = '';
     }
 
     applyQuestionFilters(dropdownMenu, true);
@@ -1935,6 +1974,9 @@
   function filterQuestionsWithDateAndSearch(input) {
     const dropdownMenu = input.closest('.dropdown-menu');
     if (!dropdownMenu) return;
+    const form = input.closest('form') || document.getElementById('consolidatedMatrixReportForm') || document.querySelector('form');
+    const searchHidden = form ? form.querySelector('input[name="question_search"]') : null;
+    if (searchHidden) searchHidden.value = input.value;
     applyQuestionFilters(dropdownMenu, false);
   }
 
@@ -1994,9 +2036,14 @@
       const matchesSearch = !term || text.includes(term);
 
       let matchesDate = true;
-      if (range !== 'all') {
-        const datesStr = item.dataset.dates || '';
-        const dates = datesStr.split(',').map(s => s.trim()).filter(Boolean);
+      const datesStr = item.dataset.dates || '';
+      const dates = datesStr.split(',').map(s => s.trim()).filter(Boolean);
+
+      if (range === 'today') {
+        matchesDate = dates.includes(todayStr) || (item.dataset.todayActive === 'true');
+      } else if (range === 'yesterday') {
+        matchesDate = dates.includes(yesterdayStr) || (item.dataset.yesterdayActive === 'true');
+      } else if (range !== 'all') {
         if (dates.length === 0) {
           matchesDate = false;
         } else {
@@ -2036,6 +2083,28 @@
 
     if (syncCheckboxes) {
       updateDropdownCounter('qLabel', 'Questions', 'question_ids[]');
+    }
+  }
+
+  function initQuestionFilterState() {
+    const dropdownMenu = document.querySelector('.q-filter-dropdown-menu');
+    if (!dropdownMenu) return;
+
+    const form = dropdownMenu.closest('form') || document.getElementById('consolidatedMatrixReportForm') || document.querySelector('form');
+    const rangeInput = form ? form.querySelector('input[name="question_date_range"]') : null;
+    const activeRange = rangeInput ? rangeInput.value : 'all';
+
+    const activePill = dropdownMenu.querySelector(`.q-date-pill[data-date-range="${activeRange}"]`);
+    if (activePill) {
+      dropdownMenu.querySelectorAll('.q-date-pill').forEach(p => p.classList.remove('active'));
+      activePill.classList.add('active');
+    }
+
+    const searchInput = dropdownMenu.querySelector('.multiselect-search');
+    const searchVal = searchInput ? searchInput.value.trim() : '';
+
+    if (activeRange !== 'all' || searchVal) {
+      applyQuestionFilters(dropdownMenu, false);
     }
   }
 
@@ -2366,9 +2435,15 @@
     }, 15000);
   }
 
-  // Initialize Scroll Pagination and cleanup on Turbo navigation
-  document.addEventListener('turbo:load', initMatrixScrollPagination);
-  document.addEventListener('DOMContentLoaded', initMatrixScrollPagination);
+  // Initialize Scroll Pagination, Question Filter state, and cleanup on Turbo navigation
+  document.addEventListener('turbo:load', function() {
+    initMatrixScrollPagination();
+    initQuestionFilterState();
+  });
+  document.addEventListener('DOMContentLoaded', function() {
+    initMatrixScrollPagination();
+    initQuestionFilterState();
+  });
 
   document.addEventListener('turbo:before-cache', function() {
     if (exportPollTimer) {
