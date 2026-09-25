@@ -1043,15 +1043,21 @@
                    id="participantsSubmenu">
                 <div class="submenu py-1">
                   <%= link_to institute_admin_participants_path(approved: 'true'),
-                      class: "nav-link submenu-link ps-4 #{'active' if controller.controller_name == 'participants' && params[:approved] != 'false'}" do %>
+                      class: "nav-link submenu-link ps-4 #{'active' if controller.controller_name == 'participants' && params[:status] != 'suspended' && params[:approved] != 'false'}" do %>
                     <i class="bi bi-check-circle"></i>
                     <span>Approved</span>
                   <% end %>
 
                   <%= link_to institute_admin_participants_path(approved: 'false'),
-                      class: "nav-link submenu-link ps-4 #{'active' if controller.controller_name == 'participants' && params[:approved] == 'false'}" do %>
+                      class: "nav-link submenu-link ps-4 #{'active' if controller.controller_name == 'participants' && params[:approved] == 'false' && params[:status] != 'suspended'}" do %>
                     <i class="bi bi-x-circle"></i>
                     <span>Not Approved</span>
+                  <% end %>
+
+                  <%= link_to institute_admin_participants_path(status: 'suspended'),
+                      class: "nav-link submenu-link ps-4 #{'active' if controller.controller_name == 'participants' && params[:status] == 'suspended'}" do %>
+                    <i class="bi bi-pause-circle"></i>
+                    <span>Suspended</span>
                   <% end %>
                 </div>
               </div>

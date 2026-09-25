@@ -52,6 +52,8 @@ class User < ApplicationRecord
   scope :participant, -> { where(role: :participant) }
   scope :guardian, -> { where(role: :guardian) }
   scope :view_only_admin, -> { where(role: :institute_admin, view_only: true) }
+  scope :kept, -> { where(deleted_at: nil) }
+  scope :deleted, -> { where.not(deleted_at: nil) }
 
   accepts_nested_attributes_for :participant
   accepts_nested_attributes_for :trainer
@@ -72,7 +74,11 @@ class User < ApplicationRecord
   end
 
   def active_for_authentication?
-    super && active?
+    super && active? && deleted_at.nil?
+  end
+
+  def deleted?
+    deleted_at.present?
   end
 
   # This provides the reason shown to users when they can't log in

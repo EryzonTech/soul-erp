@@ -142,6 +142,8 @@ Rails.application.routes.draw do
         collection do
           patch :approve_all
           patch :approve_selected
+          patch :deactivate_selected
+          patch :reactivate_selected
         end
       end
       resources :questions do

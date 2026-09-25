@@ -21,7 +21,7 @@ module InstituteAdmin
       # Allow all GET requests except write-intent actions (new/edit)
       write_actions = %w[new edit create update destroy
                          import_question_bank import_setup finalize_import
-                         approve_all approve_selected toggle_status
+                         approve_all approve_selected deactivate_selected reactivate_selected toggle_status
                          update_status update_progress mark_completed
                          assign record reorder duplicate
                          create_certificate create_section_certificate

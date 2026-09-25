@@ -1,8 +1,10 @@
 module InstituteAdmin
   class DashboardController < InstituteAdmin::BaseController
     def index
-      # Total counts & participant type distribution (single query)
+      # Total counts & participant type distribution for active participants (single query)
       @participant_type_distribution = current_institute.participants
+                                                        .joins(:user)
+                                                        .where(users: { active: true })
                                                         .group(:participant_type)
                                                         .count
                                                         .transform_keys(&:to_s)
@@ -570,17 +572,17 @@ module InstituteAdmin
         }
       end
 
-      # Standard competition ranking: participants with equal streak + total_submissions
-      # share the same rank; the next distinct group's rank skips past the tied count.
-      # e.g. two tied at #1 → both get rank 1, next participant gets rank 3.
+      # Dense ranking: participants with equal streak + total_submissions
+      # share the same rank; the next distinct group's rank increments sequentially (1, 2, 3...)
+      # without skipping numbers, allowing multiple participants to share the same rank.
       assign_ranks = lambda do |sorted_list|
         ranked   = []
-        rank     = 1
+        rank     = 0
         prev_key = nil
 
-        sorted_list.each_with_index do |p, idx|
+        sorted_list.each do |p|
           tie_key = [ p[:streak], p[:total_submissions] ]
-          rank    = idx + 1 if tie_key != prev_key   # advance rank only on new score
+          rank += 1 if tie_key != prev_key
           prev_key = tie_key
           ranked << p.merge(rank: rank)
         end

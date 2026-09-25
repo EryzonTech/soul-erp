@@ -286,6 +286,70 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_equal 0, json["bottom"].first["streak"]
   end
 
+  test "dense ranking ensures ranks increment sequentially without skipping when ties occur" do
+    user2 = User.create!(
+      email: "student2@example.com",
+      password: "password123",
+      role: :participant,
+      first_name: "Alice",
+      last_name: "TiedTop",
+      institute: @institute,
+      section: @section,
+      active: true
+    )
+    participant2 = Participant.create!(
+      user: user2,
+      institute: @institute,
+      section_id: @section.id,
+      participant_type: "student",
+      date_of_birth: 17.years.ago.to_date
+    )
+
+    user3 = User.create!(
+      email: "student3@example.com",
+      password: "password123",
+      role: :participant,
+      first_name: "Bob",
+      last_name: "Middle",
+      institute: @institute,
+      section: @section,
+      active: true
+    )
+    Participant.create!(
+      user: user3,
+      institute: @institute,
+      section_id: @section.id,
+      participant_type: "student",
+      date_of_birth: 18.years.ago.to_date
+    )
+
+    resp2 = AssignmentResponse.create!(
+      assignment: @assignment,
+      participant: participant2,
+      question: @question,
+      answer: "Tied with John",
+      response_date: Date.current
+    )
+    AssignmentResponseLog.log_responses(
+      assignment: @assignment,
+      participant: participant2,
+      response_ids: [ resp2.id ],
+      response_date: Date.current
+    )
+
+    get institute_admin_dashboard_streak_leaderboards_url(assignment_id: @assignment.id, top_limit: 10, bottom_limit: 10)
+    assert_response :success
+
+    json = JSON.parse(response.body)
+    assert json["success"]
+
+    top_ranks = json["top"].map { |p| p["rank"] }
+    assert_equal [ 1, 1, 2, 2 ], top_ranks
+
+    bottom_ranks = json["bottom"].map { |p| p["rank"] }
+    assert_equal [ 1, 1, 2, 2 ], bottom_ranks
+  end
+
   test "dashboard index runs efficiently with bounded query count and no N+1 regression" do
     query_count = 0
     subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_name, _start, _finish, _id, payload|
@@ -300,5 +364,32 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
 
     # Ensure query count remains bounded and does not regress
     assert query_count <= 35, "Expected dashboard to execute <= 35 queries, executed #{query_count}"
+  end
+
+  test "dashboard total participants and distribution excludes inactive and soft deleted participants" do
+    initial_count = @institute.participants.joins(:user).where(users: { active: true }).count
+    get institute_admin_root_url
+    assert_response :success
+    assert_select ".stat-card-participants .stat-value", text: initial_count.to_s
+    assert_select ".stat-card-participants", text: /Students:\s*1/
+    assert_select ".stat-card-participants", text: /Guardians:\s*1/
+
+    # Deactivate the guardian user
+    @guardian_user.update!(active: false)
+
+    get institute_admin_root_url
+    assert_response :success
+    assert_select ".stat-card-participants .stat-value", text: (initial_count - 1).to_s
+    assert_select ".stat-card-participants", text: /Students:\s*1/
+    assert_select ".stat-card-participants", text: /Guardians:\s*0/
+
+    # Soft delete the student participant
+    @participant.soft_delete!
+
+    get institute_admin_root_url
+    assert_response :success
+    assert_select ".stat-card-participants .stat-value", text: (initial_count - 2).to_s
+    assert_select ".stat-card-participants", text: /Students:\s*0/
+    assert_select ".stat-card-participants", text: /Guardians:\s*0/
   end
 end

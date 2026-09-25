@@ -48,4 +48,42 @@ class ParticipantTest < ActiveSupport::TestCase
     )
     assert participant.valid?, "Participant should be valid with date_of_birth"
   end
+
+  test "soft_delete! sets deleted_at on participant and deactivates associated user" do
+    participant = Participant.create!(
+      user: @user,
+      institute: @institute,
+      section_id: @section.id,
+      participant_type: :student
+    )
+
+    assert_not participant.soft_deleted?
+    assert @user.active?
+
+    participant.soft_delete!
+
+    assert participant.soft_deleted?
+    assert participant.deleted?
+    assert_not_nil participant.deleted_at
+
+    @user.reload
+    assert_not @user.active?
+    assert_not_nil @user.deleted_at
+    assert @user.deleted?
+
+    # Filtered from kept and institute participants
+    assert_nil @institute.participants.find_by(id: participant.id)
+    assert_not_includes Participant.kept, participant
+    assert_includes Participant.deleted, participant
+
+    # Preserved in database for belongs_to associations
+    assert_equal participant, Participant.find_by(id: participant.id)
+
+    # Restore
+    participant.restore!
+    assert_not participant.soft_deleted?
+    assert_nil participant.deleted_at
+    assert_includes @institute.participants, participant
+    assert_includes Participant.kept, participant
+  end
 end

@@ -62,16 +62,40 @@ class Participant < ApplicationRecord
     inactive: 1,
     on_leave: 2,
     graduated: 3,
-    dropped: 4
+    dropped: 4,
+    suspended: 5
   }, default: :active
 
   accepts_nested_attributes_for :guardian
 
+  scope :kept, -> { where(deleted_at: nil) }
+  scope :deleted, -> { where.not(deleted_at: nil) }
+
   scope :active, -> { where(status: :active) }
+  scope :suspended, -> { where(status: :suspended) }
   scope :with_user, -> { includes(:user) }
   scope :ordered_by_name, -> {
     joins(:user).order(Arel.sql("LOWER(COALESCE(users.first_name, '')) ASC, LOWER(COALESCE(users.last_name, '')) ASC, LOWER(COALESCE(users.email, '')) ASC"))
   }
+
+  def soft_delete!
+    transaction do
+      update_columns(deleted_at: Time.current, status: Participant.statuses[:inactive], updated_at: Time.current)
+      user&.update_columns(active: false, deleted_at: Time.current, updated_at: Time.current)
+    end
+  end
+
+  def soft_deleted?
+    deleted_at.present?
+  end
+  alias_method :deleted?, :soft_deleted?
+
+  def restore!
+    transaction do
+      update_columns(deleted_at: nil, status: Participant.statuses[:active], updated_at: Time.current)
+      user&.update_columns(deleted_at: nil, active: true, updated_at: Time.current)
+    end
+  end
 
   delegate :full_name, :email, to: :user, allow_nil: true
 
