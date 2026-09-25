@@ -3703,21 +3703,44 @@
           if (progressCell) {
             var labelEl = progressCell.querySelector('.sub-progress-label');
             var chipEl  = progressCell.querySelector('.sub-pct-chip');
-            progressLabel = labelEl ? labelEl.innerText.trim() : cellText(progressCell);
-            if (chipEl) {
-              pctVal = parseInt(chipEl.innerText.replace(/\D/g, ''), 10) || 0;
+            var fillEl  = progressCell.querySelector('.sub-progress-bar-fill');
+
+            var rawText = labelEl ? labelEl.innerText : cellText(progressCell);
+            var daysMatch = rawText.match(/(\d+)\s*\/\s*(\d+)\s*days?/i);
+            if (daysMatch) {
+              progressLabel = daysMatch[1] + ' / ' + daysMatch[2] + ' days';
             } else {
-              var match = progressLabel.match(/(\d+)%/);
-              if (match) pctVal = parseInt(match[1], 10);
+              progressLabel = rawText.replace(/[🔥📅⚠️\s]+/g, ' ').trim();
+            }
+
+            // Correctly parse percentage with decimals preserved (e.g. "87.5%" -> 87.5)
+            if (chipEl) {
+              var chipMatch = chipEl.innerText.match(/[\d.]+/);
+              pctVal = chipMatch ? parseFloat(chipMatch[0]) : 0;
+            } else if (fillEl && fillEl.style.width) {
+              var widthMatch = fillEl.style.width.match(/[\d.]+/);
+              pctVal = widthMatch ? parseFloat(widthMatch[0]) : 0;
+            } else {
+              var match = progressLabel.match(/([\d.]+)%/);
+              if (match) {
+                pctVal = parseFloat(match[1]) || 0;
+              } else if (daysMatch) {
+                var sub = parseInt(daysMatch[1], 10);
+                var tot = parseInt(daysMatch[2], 10);
+                pctVal = tot > 0 ? ((sub / tot) * 100) : 0;
+              }
             }
           }
+
+          var pctClamped = Math.min(Math.max(pctVal, 0), 100);
+          var pctDisplay = (pctVal % 1 === 0 ? pctVal.toFixed(0) : pctVal.toFixed(1)) + '%';
 
           if (pctVal < 50) criticalCount++;
           totalPct += pctVal;
           validCount++;
 
           var barColor = pctVal >= 80 ? '#16a34a' : (pctVal >= 50 ? '#d97706' : '#dc2626');
-          var labelColor = pctVal >= 80 ? '#15803d' : (pctVal >= 50 ? '#b45309' : '#b91c1c');
+          var labelColor = pctVal >= 80 ? '#16a34a' : (pctVal >= 50 ? '#d97706' : '#dc2626');
 
           parsedRows.push({
             empty: false,
@@ -3729,12 +3752,15 @@
             assignmentTitle: assignmentTitle,
             progressLabel: progressLabel,
             pctVal: pctVal,
+            pctClamped: pctClamped,
+            pctDisplay: pctDisplay,
             barColor: barColor,
             labelColor: labelColor
           });
         });
 
-        var avgPct = validCount > 0 ? Math.round(totalPct / validCount) : 0;
+        var avgVal = validCount > 0 ? (totalPct / validCount) : 0;
+        var avgPct = (avgVal % 1 === 0 ? avgVal.toFixed(0) : avgVal.toFixed(1));
         var formattedDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ' at ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
         var themeBadge = isTop
@@ -3745,7 +3771,7 @@
 
         var kpiHtml = '<div class="kpi-grid">' +
           '<div class="kpi-card"><div class="kpi-label">TOTAL PARTICIPANTS</div><div class="kpi-value">' + validCount + '</div></div>' +
-          '<div class="kpi-card"><div class="kpi-label">AVERAGE COMPLETION</div><div class="kpi-value ' + (avgPct >= 80 ? 'text-success' : (avgPct >= 50 ? 'text-warning' : 'text-danger')) + '">' + avgPct + '%</div></div>' +
+          '<div class="kpi-card"><div class="kpi-label">AVERAGE COMPLETION</div><div class="kpi-value ' + (avgVal >= 80 ? 'text-success' : (avgVal >= 50 ? 'text-warning' : 'text-danger')) + '">' + avgPct + '%</div></div>' +
           '<div class="kpi-card"><div class="kpi-label">ASSIGNMENT SCOPE</div><div class="kpi-value text-primary text-truncate" style="font-size:13px;font-weight:700;" title="' + escapeHtml(asgName) + '">' + escapeHtml(asgName) + '</div></div>' +
           '<div class="kpi-card"><div class="kpi-label">' + (isTop ? 'STATUS' : 'ATTENTION REQUIRED') + '</div><div class="kpi-value ' + (isTop ? 'text-success' : (criticalCount > 0 ? 'text-danger' : 'text-success')) + '">' + (isTop ? 'Consistent' : criticalCount + ' Below 50%') + '</div></div>' +
           '</div>';
@@ -3753,10 +3779,10 @@
         var tableHeaderCols = '<tr>' +
           '<th style="width: 45px; text-align: center;">#</th>' +
           '<th style="min-width: 140px;">Participant Name</th>' +
-          '<th style="width: 85px;">Section</th>' +
+          '<th style="min-width: 100px;">Section</th>' +
           (isTop ? '' : '<th style="width: 85px;">Type</th>') +
           '<th style="min-width: 130px;">Assignment</th>' +
-          '<th style="width: 160px;">Submitted Days &amp; Progress</th>' +
+          '<th style="min-width: 130px; width: 160px;">Submitted Days</th>' +
           '</tr>';
 
         var tableBodyRows = '';
@@ -3783,6 +3809,10 @@
               typeBadge = '<td><span class="pill-badge ' + tClass + '">' + escapeHtml(row.participantType) + '</span></td>';
             }
 
+            var progressIcon = isTop
+              ? '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: -1px; margin-right: 4px; display: inline-block; flex-shrink: 0;"><path d="M8 16c3.314 0 6-2 6-5.5 0-1.5-.5-4-2.5-6 .25 1.5-1.25 2-1.25 2C11 4 9 .5 6 0c.357 2 .5 4-2 6-1.25 1-2 2.729-2 4.5C2 14 4.686 16 8 16m0-1c-1.657 0-3-1-3-2.75 0-.75.25-2 1.25-3C6.125 10 7 10.5 7 10.5c-.375-1.25.5-3.25 2-3.5-.179 1-.25 2 1 3 .625.5 1 1.364 1 2.25C11 14 9.657 15 8 15"/></svg>'
+              : '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: -1px; margin-right: 4px; display: inline-block; flex-shrink: 0;"><path d="M6.146 7.146a.5.5 0 0 1 .708 0L8 8.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 9l1.147 1.146a.5.5 0 0 1-.708.708L8 9.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 9 6.146 7.854a.5.5 0 0 1 0-.708"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>';
+
             tableBodyRows += '<tr>' +
               '<td style="text-align: center;"><span class="rank-badge ' + rankBadgeClass + '">' + escapeHtml(row.rankText) + '</span></td>' +
               '<td style="font-weight: 600; color: #0f172a;">' + escapeHtml(row.name) + '</td>' +
@@ -3790,12 +3820,12 @@
               typeBadge +
               '<td style="color: #475569; font-size: 11px;">' + escapeHtml(row.assignmentTitle) + '</td>' +
               '<td>' +
-                '<div class="progress-cell">' +
-                  '<span class="progress-sub-text" style="color: ' + row.labelColor + ';">' + escapeHtml(row.progressLabel) + '</span>' +
-                  '<div class="progress-bar-bg">' +
-                    '<div class="progress-bar-fill" style="width: ' + Math.min(row.pctVal, 100) + '%; background-color: ' + row.barColor + ';"></div>' +
+                '<div class="sub-progress-wrap">' +
+                  '<span class="sub-progress-label" style="color: ' + row.labelColor + ';">' + progressIcon + escapeHtml(row.progressLabel) + '</span>' +
+                  '<div class="sub-progress-bar-track">' +
+                    '<div class="sub-progress-bar-fill" style="width: ' + row.pctClamped + '%; background-color: ' + row.barColor + ';"></div>' +
                   '</div>' +
-                  '<span class="pct-tag">' + row.pctVal + '%</span>' +
+                  '<span class="sub-pct-chip" style="color: ' + row.labelColor + ';">' + row.pctDisplay + '</span>' +
                 '</div>' +
               '</td>' +
               '</tr>';
@@ -3807,6 +3837,7 @@
           '<head>' +
           '<meta charset="utf-8">' +
           '<title>' + escapeHtml(reportTitle) + ' — ' + escapeHtml(asgName) + '</title>' +
+          '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">' +
           '<style>' +
           '@page { size: A4 portrait; margin: 12mm 15mm 15mm 15mm; }' +
           '* { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }' +
@@ -3851,11 +3882,11 @@
           '.pill-guardian { background: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; }' +
           '.pill-employee { background: #fae8ff; color: #86198f; border: 1px solid #f5d0fe; }' +
           '.pill-default { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }' +
-          '.progress-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }' +
-          '.progress-sub-text { font-weight: 600; font-size: 10px; white-space: nowrap; }' +
-          '.progress-bar-bg { flex: 1; max-width: 90px; height: 6px; background: #e2e8f0; border-radius: 9999px; overflow: hidden; margin: 0 4px; }' +
-          '.progress-bar-fill { height: 100%; border-radius: 9999px; }' +
-          '.pct-tag { font-weight: 700; font-size: 10px; color: #334155; min-width: 28px; text-align: right; }' +
+          '.sub-progress-wrap { display: flex; flex-direction: column; gap: 3px; min-width: 120px; }' +
+          '.sub-progress-label { font-size: 10px; font-weight: 600; white-space: nowrap; line-height: 1.2; display: inline-flex; align-items: center; }' +
+          '.sub-progress-bar-track { width: 100%; height: 6px; border-radius: 9999px; background: #e2e8f0; overflow: hidden; display: block; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }' +
+          '.sub-progress-bar-fill { height: 100%; border-radius: 9999px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }' +
+          '.sub-pct-chip { font-size: 9.5px; font-weight: 700; line-height: 1.2; }' +
           '.report-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 9.5px; }' +
           '@media print { body { padding: 0; } .no-print { display: none !important; } tr { page-break-inside: avoid; } }' +
           '</style>' +

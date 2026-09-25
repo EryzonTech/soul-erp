@@ -342,4 +342,95 @@ class InstituteAdmin::ParticipantsControllerTest < ActionDispatch::IntegrationTe
     assert_not @user_student.reload.active?
     assert_equal "suspended", @participant_student.reload.status
   end
+
+  test "index renders per_page filter dropdown with 20, 50, 100, All options" do
+    get institute_admin_participants_path(approved: "true")
+    assert_response :success
+    assert_select "select[name='per_page']" do
+      assert_select "option[value='20']"
+      assert_select "option[value='50']"
+      assert_select "option[value='100']"
+      assert_select "option[value='all']"
+    end
+  end
+
+  test "index with custom per_page values 50, 100, all and invalid fallback" do
+    # Default 20
+    get institute_admin_participants_path(approved: "true")
+    assert_response :success
+    assert_select "select[name='per_page'] option[value='20'][selected]"
+
+    # 50 per page
+    get institute_admin_participants_path(approved: "true", per_page: "50")
+    assert_response :success
+    assert_select "select[name='per_page'] option[value='50'][selected]"
+
+    # 100 per page
+    get institute_admin_participants_path(approved: "true", per_page: "100")
+    assert_response :success
+    assert_select "select[name='per_page'] option[value='100'][selected]"
+
+    # All per page (case insensitive)
+    get institute_admin_participants_path(approved: "true", per_page: "all")
+    assert_response :success
+    assert_select "select[name='per_page'] option[value='all'][selected]"
+
+    get institute_admin_participants_path(approved: "true", per_page: "ALL")
+    assert_response :success
+    assert_select "select[name='per_page'] option[value='all'][selected]"
+
+    # Invalid per_page falls back to default 20
+    get institute_admin_participants_path(approved: "true", per_page: "invalid_999")
+    assert_response :success
+    assert_select "select[name='per_page'] option[value='20'][selected]"
+  end
+
+  test "per_page all displays all participants on a single page" do
+    # Create 25 additional participants to exceed standard 20 per page
+    25.times do |i|
+      u = User.create!(
+        email: "extra_student_#{i}_#{SecureRandom.hex(4)}@test.com",
+        password: "password123",
+        role: :participant,
+        first_name: "Extra",
+        last_name: "Student#{i}",
+        active: true,
+        institute: @institute,
+        section: @section_a
+      )
+      Participant.create!(
+        user: u,
+        institute: @institute,
+        section_id: @section_a.id,
+        participant_type: :student
+      )
+    end
+
+    total_approved = @institute.participants.joins(:user).where(users: { active: true }).where.not(status: :suspended).count
+    assert total_approved > 20
+
+    # With default 20 per page, exactly 20 participant rows are rendered
+    get institute_admin_participants_path(approved: "true")
+    assert_response :success
+    assert_select ".approved-participant-checkbox", count: 20
+    assert_select ".pagination"
+
+    # With per_page=all, all participants are returned on page 1 and no pagination buttons needed
+    get institute_admin_participants_path(approved: "true", per_page: "all")
+    assert_response :success
+    assert_select ".approved-participant-checkbox", count: total_approved
+    assert_includes response.body, "Showing all #{total_approved} participants"
+  end
+
+  test "per_page is rendered in suspended and not approved views and preserved in pagination links" do
+    # Not approved view
+    get institute_admin_participants_path(approved: "false", per_page: "50")
+    assert_response :success
+    assert_select "select[name='per_page'] option[value='50'][selected]"
+
+    # Suspended view
+    get institute_admin_participants_path(status: "suspended", per_page: "100")
+    assert_response :success
+    assert_select "select[name='per_page'] option[value='100'][selected]"
+  end
 end
