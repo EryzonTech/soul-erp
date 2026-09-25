@@ -3,14 +3,24 @@
     <div class="d-flex justify-content-between align-items-center">
       <div>
         <h5 class="mb-0">
-          <% if params[:approved] == 'false' %>
+          <% if params[:status] == 'suspended' %>
+            Suspended Participants
+          <% elsif params[:approved] == 'false' %>
             Not Approved Participants
           <% else %>
             Approved Participants
           <% end %>
         </h5>
       </div>
-      <% if params[:approved] == 'false' %>
+      <% if params[:status] == 'suspended' %>
+        <% if @participants.any? %>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-approve" id="reactivateSelectedBtn" onclick="reactivateSelected()" style="display: none;">
+              <i class="bi bi-play-circle-fill me-2"></i><span id="suspendedSelectedCount">0</span> Selected - Reactivate
+            </button>
+          </div>
+        <% end %>
+      <% elsif params[:approved] == 'false' %>
         <% if @participants.any? %>
           <div class="d-flex gap-2">
             <button type="button" class="btn btn-approve" id="approveSelectedBtn" onclick="approveSelected()" style="display: none;">
@@ -22,9 +32,14 @@
           </div>
         <% end %>
       <% else %>
-        <%= link_to new_institute_admin_participant_path, class: "btn btn-primary" do %>
-          <i class="bi bi-plus-lg"></i> Add Participant
-        <% end %>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-suspend-selected" id="deactivateSelectedBtn" onclick="deactivateSelected()" style="display: none;">
+            <i class="bi bi-pause-circle-fill me-2"></i><span id="approvedSelectedCount">0</span> Selected - Suspend
+          </button>
+          <%= link_to new_institute_admin_participant_path, class: "btn btn-primary" do %>
+            <i class="bi bi-plus-lg"></i> Add Participant
+          <% end %>
+        </div>
       <% end %>
     </div>
   </div>
@@ -147,6 +162,62 @@
     position: relative;
     z-index: 1;
   }
+
+  .btn-suspend {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+  }
+
+  .btn-suspend:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
+    color: white;
+  }
+
+  .btn-suspend-selected {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+    position: relative;
+    overflow: hidden;
+    font-weight: 500;
+  }
+
+  .btn-suspend-selected::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .btn-suspend-selected:hover::before {
+    width: 200px;
+    height: 200px;
+  }
+
+  .btn-suspend-selected:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
+    color: white;
+  }
+
+  .btn-suspend-selected i {
+    position: relative;
+    z-index: 1;
+  }
   
   .action-btn:active {
     transform: translateY(0);
@@ -164,7 +235,8 @@
       font-size: 14px;
     }
     
-    .btn-approve {
+    .btn-approve,
+    .btn-suspend-selected {
       padding: 6px 12px;
       font-size: 14px;
     }
@@ -268,7 +340,251 @@
   }
 </style>
 
-  <% if params[:approved] == 'false' %>
+  <% if params[:status] == 'suspended' %>
+    <!-- Suspended Participants Section -->
+    <div class="card-body">
+      <!-- 4 TOP SCORE CARDS FOR SUSPENDED -->
+      <div class="row g-3 mb-4">
+        <!-- Card 1: Total Suspended -->
+        <div class="col-12 col-sm-6 col-xl-3">
+          <div class="inst-kpi-card flex-column justify-content-between h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Total Suspended</div>
+                <div class="h3 fw-bold mb-0 text-warning"><%= @total_suspended_count || 0 %></div>
+              </div>
+              <div class="inst-kpi-icon inst-kpi-icon-warning">
+                <i class="bi bi-pause-circle-fill"></i>
+              </div>
+            </div>
+            <div class="inst-kpi-breakdown">
+              <span class="inst-kpi-pill inst-kpi-pill-stu" title="Students">
+                <i class="bi bi-mortarboard"></i>Stu: <%= @suspended_by_type&.fetch('student', 0) || 0 %>
+              </span>
+              <span class="inst-kpi-pill inst-kpi-pill-gua" title="Guardians">
+                <i class="bi bi-shield-shaded"></i>Gua: <%= @suspended_by_type&.fetch('guardian', 0) || 0 %>
+              </span>
+              <span class="inst-kpi-pill inst-kpi-pill-emp" title="Employees">
+                <i class="bi bi-briefcase"></i>Emp: <%= @suspended_by_type&.fetch('employee', 0) || 0 %>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Students -->
+        <div class="col-12 col-sm-6 col-xl-3">
+          <div class="inst-kpi-card flex-column justify-content-between h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Students Suspended</div>
+                <div class="h3 fw-bold mb-0 text-primary"><%= @suspended_by_type&.fetch('student', 0) || 0 %></div>
+              </div>
+              <div class="inst-kpi-icon inst-kpi-icon-primary">
+                <i class="bi bi-mortarboard-fill"></i>
+              </div>
+            </div>
+            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted mt-auto" style="font-size: 0.75rem;">
+              <span class="fw-medium text-secondary">Share of suspended</span>
+              <span class="badge bg-primary-subtle text-primary rounded-pill fw-semibold px-2.5 py-1">
+                <%= @total_suspended_count && @total_suspended_count > 0 ? sprintf("%g%%", (((@suspended_by_type&.fetch('student', 0) || 0).to_f / @total_suspended_count) * 100).round(1)) : "0%" %>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Guardians -->
+        <div class="col-12 col-sm-6 col-xl-3">
+          <div class="inst-kpi-card flex-column justify-content-between h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Guardians Suspended</div>
+                <div class="h3 fw-bold mb-0" style="color: #7e22ce;"><%= @suspended_by_type&.fetch('guardian', 0) || 0 %></div>
+              </div>
+              <div class="inst-kpi-icon inst-kpi-icon-purple">
+                <i class="bi bi-shield-shaded"></i>
+              </div>
+            </div>
+            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted mt-auto" style="font-size: 0.75rem;">
+              <span class="fw-medium text-secondary">Share of suspended</span>
+              <span class="badge rounded-pill fw-semibold px-2.5 py-1" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;">
+                <%= @total_suspended_count && @total_suspended_count > 0 ? sprintf("%g%%", (((@suspended_by_type&.fetch('guardian', 0) || 0).to_f / @total_suspended_count) * 100).round(1)) : "0%" %>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Employees -->
+        <div class="col-12 col-sm-6 col-xl-3">
+          <div class="inst-kpi-card flex-column justify-content-between h-100 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div>
+                <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Employees Suspended</div>
+                <div class="h3 fw-bold mb-0 text-warning"><%= @suspended_by_type&.fetch('employee', 0) || 0 %></div>
+              </div>
+              <div class="inst-kpi-icon inst-kpi-icon-warning">
+                <i class="bi bi-briefcase-fill"></i>
+              </div>
+            </div>
+            <div class="pt-2 border-top border-light-subtle d-flex align-items-center justify-content-between text-muted mt-auto" style="font-size: 0.75rem;">
+              <span class="fw-medium text-secondary">Share of suspended</span>
+              <span class="badge bg-warning-subtle text-warning rounded-pill fw-semibold px-2.5 py-1 border border-warning-subtle">
+                <%= @total_suspended_count && @total_suspended_count > 0 ? sprintf("%g%%", (((@suspended_by_type&.fetch('employee', 0) || 0).to_f / @total_suspended_count) * 100).round(1)) : "0%" %>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Section -->
+      <div class="filter-section mb-4">
+        <div class="filter-header d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0"><i class="bi bi-funnel me-2"></i>Filter Suspended Participants</h6>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearFilters()">
+            <i class="bi bi-x-circle me-1"></i>Clear Filters
+          </button>
+        </div>
+        
+        <%= form_with url: institute_admin_participants_path, method: :get, local: true, class: "filter-form" do |f| %>
+          <%= hidden_field_tag :status, params[:status] %>
+          
+          <div class="row g-3 align-items-center">
+            <!-- Search by Name or Mobile -->
+            <div class="col-lg-3 col-md-6">
+              <%= text_field_tag :search, params[:search], class: "form-control filter-input", placeholder: "Search by name or mobile..." %>
+            </div>
+            
+            <!-- Filter by Type -->
+            <div class="col-lg-2 col-md-6">
+              <%= select_tag :participant_type, 
+                  options_for_select([
+                    ['All Types', ''],
+                    ['Student', 'student'],
+                    ['Guardian', 'guardian'],
+                    ['Employee', 'employee']
+                  ], params[:participant_type]), 
+                  class: "form-select filter-input" %>
+            </div>
+            
+            <!-- Filter by Section -->
+            <div class="col-lg-3 col-md-6">
+              <%= select_tag :section_id, 
+                  options_for_select([['All Sections', '']] + @sections.map { |s| [s.name, s.id] }, params[:section_id]), 
+                  class: "form-select filter-input" %>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="col-lg-4 col-md-6">
+              <div class="d-flex gap-2">
+                <%= button_tag type: 'submit', class: 'btn btn-primary flex-grow-1 filter-btn' do %>
+                  <i class="bi bi-funnel-fill me-2"></i>Apply Filters
+                <% end %>
+                <%= link_to institute_admin_participants_path(status: 'suspended'), class: 'btn btn-outline-secondary flex-grow-1 filter-btn' do %>
+                  <i class="bi bi-arrow-clockwise me-2"></i>Reset
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      
+      <% if @participants.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th style="width: 40px;">
+                  <input type="checkbox" id="selectAllSuspended" class="form-check-input" onchange="toggleSelectAllSuspended(this)">
+                </th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Section</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @participants.each do |participant| %>
+                <tr>
+                  <td>
+                    <input type="checkbox" class="form-check-input suspended-participant-checkbox" 
+                           value="<%= participant.id %>" 
+                           onchange="updateSuspendedSelectedCount()">
+                  </td>
+                  <td>
+                    <div class="fw-semibold text-dark"><%= participant.user.full_name %></div>
+                    <div class="text-muted small"><%= participant.user.email %></div>
+                    <% if participant.phone_number.present? || participant.user.phone.present? %>
+                      <div class="text-muted small"><i class="bi bi-telephone me-1"></i><%= participant.phone_number.presence || participant.user.phone %></div>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% badge_class = case participant.participant_type&.downcase
+                                     when 'student', nil then 'badge-student'
+                                     when 'guardian'     then 'badge-guardian'
+                                     when 'employee'     then 'badge-employee'
+                                     else 'bg-secondary'
+                                     end %>
+                    <span class="badge <%= badge_class %>">
+                      <%= participant.participant_type&.titleize || "Student" %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if participant.student? || participant.participant_type.nil? || participant.employee? %>
+                      <%= participant.section&.name || 'Not Assigned' %>
+                    <% elsif participant.guardian? %>
+                      <% if participant.guardian_for_participant&.section %>
+                        <%= participant.guardian_for_participant.section.name %>
+                      <% else %>
+                        <span class="text-muted">Student's Section</span>
+                      <% end %>
+                    <% end %>
+                  </td>
+                  <td>
+                    <span class="badge rounded-pill fw-semibold px-2.5 py-1" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;">
+                      <i class="bi bi-pause-circle me-1"></i>Suspended
+                    </span>
+                  </td>
+                  <td>
+                    <%= link_to institute_admin_participant_path(participant), class: "btn action-btn btn-view me-2", title: "View" do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
+                    <%= link_to edit_institute_admin_participant_path(participant), class: "btn action-btn btn-edit me-2", title: "Edit" do %>
+                      <i class="bi bi-pencil"></i>
+                    <% end %>
+                    <button type="button" class="btn action-btn btn-delete me-2" title="Delete" 
+                            onclick="showDeleteModal('<%= escape_javascript(participant.user.full_name) %>', '<%= institute_admin_participant_path(participant) %>')">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                    <button type="button" class="btn btn-approve" title="Reactivate"
+                            onclick="showReactivateModal('<%= escape_javascript(participant.user.full_name) %>', '<%= toggle_status_institute_admin_participant_path(participant) %>')">
+                      <i class="bi bi-play-circle"></i> Reactivate
+                    </button>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination for Suspended -->
+        <% if @participants.total_pages > 1 %>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="text-muted">
+              Showing <%= @participants.offset_value + 1 %> to <%= [@participants.offset_value + @participants.limit_value, @participants.total_count].min %> of <%= @participants.total_count %> participants
+            </div>
+            <div>
+              <%= paginate @participants, params: { status: 'suspended', search: params[:search], participant_type: params[:participant_type], section_id: params[:section_id] } %>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="text-center py-4">
+          <i class="bi bi-pause-circle fs-1 text-muted mb-3"></i>
+          <p class="text-muted mb-0">No suspended participants found</p>
+        </div>
+      <% end %>
+    </div>
+  <% elsif params[:approved] == 'false' %>
     <!-- Not Approved Participants Section -->
     <div class="card-body">
       <!-- Filter Section -->
@@ -342,7 +658,7 @@
                 <tr>
                   <td>
                     <input type="checkbox" class="form-check-input participant-checkbox" 
-                           value="<%= participant.user.id %>" 
+                           value="<%= participant.id %>" 
                            onchange="updateSelectedCount()">
                   </td>
                   <td><%= participant.user.full_name %></td>
@@ -655,6 +971,9 @@
           <table class="table table-hover align-middle">
             <thead>
               <tr>
+                <th style="width: 40px;" class="text-center">
+                  <input type="checkbox" id="selectAllApproved" class="form-check-input" onchange="toggleSelectAllApproved(this)">
+                </th>
                 <th style="width: 50px;" class="text-center">#</th>
                 <th>Name</th>
                 <th>Mobile Number</th>
@@ -666,6 +985,11 @@
             <tbody>
               <% @participants.each_with_index do |participant, idx| %>
                 <tr>
+                  <td class="text-center">
+                    <input type="checkbox" class="form-check-input approved-participant-checkbox" 
+                           value="<%= participant.id %>" 
+                           onchange="updateApprovedSelectedCount()">
+                  </td>
                   <td class="text-center fw-medium text-secondary">
                     <%= @participants.offset_value + idx + 1 %>
                   </td>
@@ -715,8 +1039,12 @@
                     <%= link_to edit_institute_admin_participant_path(participant), class: "btn action-btn btn-edit me-2", title: "Edit" do %>
                       <i class="bi bi-pencil"></i>
                     <% end %>
+                    <button type="button" class="btn action-btn btn-suspend me-2" title="Suspend / Deactivate" 
+                            onclick="showSuspendModal('<%= escape_javascript(participant.user.full_name) %>', '<%= toggle_status_institute_admin_participant_path(participant) %>')">
+                      <i class="bi bi-pause-circle"></i>
+                    </button>
                     <button type="button" class="btn action-btn btn-delete" title="Delete" 
-                            onclick="showDeleteModal('<%= participant.user.full_name %>', '<%= institute_admin_participant_path(participant) %>')">
+                            onclick="showDeleteModal('<%= escape_javascript(participant.user.full_name) %>', '<%= institute_admin_participant_path(participant) %>')">
                       <i class="bi bi-trash"></i>
                     </button>
                   </td>
@@ -763,7 +1091,7 @@
       <h3 class="modal-title">Delete Participant?</h3>
       <p class="modal-message">
         Are you sure you want to delete <strong id="participantName"></strong>? 
-        This action cannot be undone and all associated data will be permanently removed.
+        The participant will be deactivated and removed from active institute records.
       </p>
       
       <!-- Actions -->
@@ -889,6 +1217,146 @@
   </div>
 </div>
 
+<!-- Beautiful Suspend Confirmation Modal -->
+<div id="suspendModal" class="custom-modal" style="display: none;">
+  <div class="modal-overlay"></div>
+  <div class="modal-container">
+    <div class="modal-content">
+      <!-- Icon -->
+      <div class="modal-icon">
+        <div class="icon-circle-suspend">
+          <i class="bi bi-pause-circle"></i>
+        </div>
+      </div>
+      
+      <!-- Content -->
+      <h3 class="modal-title">Suspend Participant?</h3>
+      <p class="modal-message">
+        Are you sure you want to suspend / deactivate <strong id="suspendParticipantName"></strong>? 
+        They will no longer be able to log in or appear on active dashboards until reactivated.
+      </p>
+      
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button type="button" class="btn-modal btn-cancel" onclick="closeSuspendModal()">
+          <i class="bi bi-x-circle me-2"></i>Cancel
+        </button>
+        <form id="suspendForm" method="post" style="display: inline-block;">
+          <input type="hidden" name="_method" value="patch">
+          <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+          <button type="submit" class="btn-modal btn-suspend-confirm">
+            <i class="bi bi-pause-circle me-2"></i>Yes, Suspend
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Suspend Selected Confirmation Modal -->
+<div id="deactivateSelectedModal" class="custom-modal" style="display: none;">
+  <div class="modal-overlay"></div>
+  <div class="modal-container">
+    <div class="modal-content">
+      <div class="modal-icon">
+        <div class="icon-circle-suspend">
+          <i class="bi bi-pause-circle-fill"></i>
+        </div>
+      </div>
+
+      <h3 class="modal-title">Suspend Selected Participants</h3>
+      <p class="modal-message">
+        Are you sure you want to suspend / deactivate <strong id="deactivateSelectedCount">0</strong> <span id="deactivateSelectedCountText">participants</span>?
+        They will no longer be able to log in or appear on active dashboards until reactivated.
+      </p>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-modal btn-cancel" onclick="closeDeactivateSelectedModal()">
+          <i class="bi bi-x-circle me-2"></i>Cancel
+        </button>
+        <form id="deactivateSelectedForm" action="<%= deactivate_selected_institute_admin_participants_path %>" method="post" style="display: inline-block;">
+          <input type="hidden" name="_method" value="patch">
+          <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+          <input type="hidden" id="selectedDeactivateParticipantIds" name="selected_ids" value="">
+          <button type="submit" class="btn-modal btn-suspend-confirm">
+            <i class="bi bi-pause-circle me-2"></i>Yes, Suspend Selected
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reactivate Single Confirmation Modal -->
+<div id="reactivateModal" class="custom-modal" style="display: none;">
+  <div class="modal-overlay"></div>
+  <div class="modal-container">
+    <div class="modal-content">
+      <!-- Icon -->
+      <div class="modal-icon">
+        <div class="icon-circle-approve">
+          <i class="bi bi-play-circle"></i>
+        </div>
+      </div>
+      
+      <!-- Content -->
+      <h3 class="modal-title">Reactivate Participant?</h3>
+      <p class="modal-message">
+        Are you sure you want to reactivate <strong id="reactivateParticipantName"></strong>? 
+        They will regain active access to the system and appear on institute reports and dashboards.
+      </p>
+      
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button type="button" class="btn-modal btn-cancel" onclick="closeReactivateModal()">
+          <i class="bi bi-x-circle me-2"></i>Cancel
+        </button>
+        <form id="reactivateForm" method="post" style="display: inline-block;">
+          <input type="hidden" name="_method" value="patch">
+          <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+          <button type="submit" class="btn-modal btn-approve-confirm">
+            <i class="bi bi-play-circle me-2"></i>Yes, Reactivate
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reactivate Selected Confirmation Modal -->
+<div id="reactivateSelectedModal" class="custom-modal" style="display: none;">
+  <div class="modal-overlay"></div>
+  <div class="modal-container">
+    <div class="modal-content">
+      <div class="modal-icon">
+        <div class="icon-circle-approve">
+          <i class="bi bi-play-circle-fill"></i>
+        </div>
+      </div>
+
+      <h3 class="modal-title">Reactivate Selected Participants</h3>
+      <p class="modal-message">
+        Are you sure you want to reactivate <strong id="reactivateSelectedCount">0</strong> <span id="reactivateSelectedCountText">participants</span>?
+        They will regain access to the system immediately.
+      </p>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-modal btn-cancel" onclick="closeReactivateSelectedModal()">
+          <i class="bi bi-x-circle me-2"></i>Cancel
+        </button>
+        <form id="reactivateSelectedForm" action="<%= reactivate_selected_institute_admin_participants_path %>" method="post" style="display: inline-block;">
+          <input type="hidden" name="_method" value="patch">
+          <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+          <input type="hidden" id="selectedReactivateParticipantIds" name="selected_ids" value="">
+          <button type="submit" class="btn-modal btn-approve-confirm">
+            <i class="bi bi-play-circle me-2"></i>Yes, Reactivate Selected
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
   .custom-modal {
     position: fixed;
@@ -965,6 +1433,23 @@
     font-size: 2rem;
     color: #16a34a;
   }
+
+  .icon-circle-suspend {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s infinite;
+  }
+
+  .icon-circle-suspend i {
+    font-size: 2rem;
+    color: #d97706;
+  }
   
   .modal-title {
     font-size: 1.25rem;
@@ -986,8 +1471,17 @@
   }
   
   #approveModal .modal-message strong,
-  #approveAllModal .modal-message strong {
+  #approveAllModal .modal-message strong,
+  #approveSelectedModal .modal-message strong,
+  #reactivateModal .modal-message strong,
+  #reactivateSelectedModal .modal-message strong {
     color: #16a34a;
+    font-weight: 600;
+  }
+
+  #suspendModal .modal-message strong,
+  #deactivateSelectedModal .modal-message strong {
+    color: #d97706;
     font-weight: 600;
   }
   
@@ -1047,6 +1541,18 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(34, 197, 94, 0.4);
   }
+
+  .btn-suspend-confirm {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+  }
+
+  .btn-suspend-confirm:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
+  }
   
   .btn-modal:active {
     transform: translateY(0);
@@ -1103,6 +1609,15 @@
     }
     
     .icon-circle-approve i {
+      font-size: 1.75rem;
+    }
+
+    .icon-circle-suspend {
+      width: 56px;
+      height: 56px;
+    }
+
+    .icon-circle-suspend i {
       font-size: 1.75rem;
     }
     
@@ -1451,6 +1966,144 @@
     document.getElementById('approveAllModal').style.display = 'none';
     document.body.style.overflow = 'auto';
   }
+
+  // Approved Participants Multi-select & Suspend functions
+  function toggleSelectAllApproved(checkbox) {
+    const checkboxes = document.querySelectorAll('.approved-participant-checkbox');
+    checkboxes.forEach(cb => {
+      cb.checked = checkbox.checked;
+    });
+    updateApprovedSelectedCount();
+  }
+
+  function updateApprovedSelectedCount() {
+    const checkboxes = document.querySelectorAll('.approved-participant-checkbox:checked');
+    const count = checkboxes.length;
+    const deactivateBtn = document.getElementById('deactivateSelectedBtn');
+    const countSpan = document.getElementById('approvedSelectedCount');
+    const selectAllCheckbox = document.getElementById('selectAllApproved');
+    
+    if (deactivateBtn && countSpan) {
+      if (count > 0) {
+        deactivateBtn.style.display = 'inline-flex';
+        countSpan.textContent = count;
+      } else {
+        deactivateBtn.style.display = 'none';
+      }
+    }
+    
+    const allCheckboxes = document.querySelectorAll('.approved-participant-checkbox');
+    if (selectAllCheckbox) {
+      selectAllCheckbox.checked = allCheckboxes.length > 0 && count === allCheckboxes.length;
+    }
+  }
+
+  function deactivateSelected() {
+    const checkboxes = document.querySelectorAll('.approved-participant-checkbox:checked');
+    const ids = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (ids.length === 0) {
+      alert('Please select at least one participant to suspend.');
+      return;
+    }
+    
+    showDeactivateSelectedModal(ids);
+  }
+
+  function showDeactivateSelectedModal(ids) {
+    const count = ids.length;
+    document.getElementById('deactivateSelectedCount').textContent = count;
+    document.getElementById('deactivateSelectedCountText').textContent = count > 1 ? 'participants' : 'participant';
+    document.getElementById('selectedDeactivateParticipantIds').value = ids.join(',');
+    document.getElementById('deactivateSelectedModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDeactivateSelectedModal() {
+    document.getElementById('deactivateSelectedModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+
+  function showSuspendModal(participantName, suspendUrl) {
+    document.getElementById('suspendParticipantName').textContent = participantName;
+    document.getElementById('suspendForm').action = suspendUrl;
+    document.getElementById('suspendModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSuspendModal() {
+    document.getElementById('suspendModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+
+  // Suspended Participants Multi-select & Reactivate functions
+  function toggleSelectAllSuspended(checkbox) {
+    const checkboxes = document.querySelectorAll('.suspended-participant-checkbox');
+    checkboxes.forEach(cb => {
+      cb.checked = checkbox.checked;
+    });
+    updateSuspendedSelectedCount();
+  }
+
+  function updateSuspendedSelectedCount() {
+    const checkboxes = document.querySelectorAll('.suspended-participant-checkbox:checked');
+    const count = checkboxes.length;
+    const reactivateBtn = document.getElementById('reactivateSelectedBtn');
+    const countSpan = document.getElementById('suspendedSelectedCount');
+    const selectAllCheckbox = document.getElementById('selectAllSuspended');
+    
+    if (reactivateBtn && countSpan) {
+      if (count > 0) {
+        reactivateBtn.style.display = 'inline-flex';
+        countSpan.textContent = count;
+      } else {
+        reactivateBtn.style.display = 'none';
+      }
+    }
+    
+    const allCheckboxes = document.querySelectorAll('.suspended-participant-checkbox');
+    if (selectAllCheckbox) {
+      selectAllCheckbox.checked = allCheckboxes.length > 0 && count === allCheckboxes.length;
+    }
+  }
+
+  function reactivateSelected() {
+    const checkboxes = document.querySelectorAll('.suspended-participant-checkbox:checked');
+    const ids = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (ids.length === 0) {
+      alert('Please select at least one participant to reactivate.');
+      return;
+    }
+    
+    showReactivateSelectedModal(ids);
+  }
+
+  function showReactivateSelectedModal(ids) {
+    const count = ids.length;
+    document.getElementById('reactivateSelectedCount').textContent = count;
+    document.getElementById('reactivateSelectedCountText').textContent = count > 1 ? 'participants' : 'participant';
+    document.getElementById('selectedReactivateParticipantIds').value = ids.join(',');
+    document.getElementById('reactivateSelectedModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeReactivateSelectedModal() {
+    document.getElementById('reactivateSelectedModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+
+  function showReactivateModal(participantName, reactivateUrl) {
+    document.getElementById('reactivateParticipantName').textContent = participantName;
+    document.getElementById('reactivateForm').action = reactivateUrl;
+    document.getElementById('reactivateModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeReactivateModal() {
+    document.getElementById('reactivateModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
   
   // Close modal when clicking overlay
   document.addEventListener('DOMContentLoaded', function() {
@@ -1458,6 +2111,10 @@
     const approveModal = document.getElementById('approveModal');
     const approveAllModal = document.getElementById('approveAllModal');
     const approveSelectedModal = document.getElementById('approveSelectedModal');
+    const suspendModal = document.getElementById('suspendModal');
+    const deactivateSelectedModal = document.getElementById('deactivateSelectedModal');
+    const reactivateModal = document.getElementById('reactivateModal');
+    const reactivateSelectedModal = document.getElementById('reactivateSelectedModal');
     
     if (deleteModal) {
       const overlay = deleteModal.querySelector('.modal-overlay');
@@ -1478,6 +2135,26 @@
       const overlay = approveSelectedModal.querySelector('.modal-overlay');
       if (overlay) overlay.addEventListener('click', closeApproveSelectedModal);
     }
+
+    if (suspendModal) {
+      const overlay = suspendModal.querySelector('.modal-overlay');
+      if (overlay) overlay.addEventListener('click', closeSuspendModal);
+    }
+
+    if (deactivateSelectedModal) {
+      const overlay = deactivateSelectedModal.querySelector('.modal-overlay');
+      if (overlay) overlay.addEventListener('click', closeDeactivateSelectedModal);
+    }
+
+    if (reactivateModal) {
+      const overlay = reactivateModal.querySelector('.modal-overlay');
+      if (overlay) overlay.addEventListener('click', closeReactivateModal);
+    }
+
+    if (reactivateSelectedModal) {
+      const overlay = reactivateSelectedModal.querySelector('.modal-overlay');
+      if (overlay) overlay.addEventListener('click', closeReactivateSelectedModal);
+    }
   });
   
   // Close modal with Escape key
@@ -1487,6 +2164,10 @@
       closeApproveModal();
       closeApproveAllModal();
       closeApproveSelectedModal();
+      closeSuspendModal();
+      closeDeactivateSelectedModal();
+      closeReactivateModal();
+      closeReactivateSelectedModal();
     }
   });
 </script>

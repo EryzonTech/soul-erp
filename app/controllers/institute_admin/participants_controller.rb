@@ -7,22 +7,31 @@ module InstituteAdmin
     before_action :set_sections, only: [ :new, :create, :edit, :update ]
 
     def index
-      @participants = current_institute.participants.includes(:section, :guardian_for_participant, user: :section).order(created_at: :desc)
+      @participants = current_institute.participants
+                                       .joins(:user)
+                                       .includes(:section, :guardian_for_participant, user: :section)
+                                       .order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(users.first_name, ''), users.email))) ASC, LOWER(TRIM(COALESCE(users.last_name, ''))) ASC"))
       @sections = current_institute.sections.order(:name)
 
       # Score card metrics for approved participants
-      base_approved = current_institute.participants.joins(:user).where(users: { active: true })
+      base_approved = current_institute.participants.joins(:user).where(users: { active: true }).where.not(status: :suspended)
       @total_approved_count = base_approved.count
       @approved_by_type = base_approved.group(:participant_type).count
       @total_sections_count = current_institute.sections.count
 
-      # Filter by approval status
-      if params[:approved] == "false"
-        @participants = @participants.joins(:user).where(users: { active: false })
+      # Filter by status / approval state
+      if params[:status] == "suspended"
+        @participants = @participants.where(status: :suspended)
+        @approval_status = "suspended"
+        base_suspended = current_institute.participants.where(status: :suspended)
+        @total_suspended_count = base_suspended.count
+        @suspended_by_type = base_suspended.group(:participant_type).count
+      elsif params[:approved] == "false"
+        @participants = @participants.where(users: { active: false }).where.not(status: :suspended)
         @approval_status = "not_approved"
       else
-        # Default is to show approved participants
-        @participants = @participants.joins(:user).where(users: { active: true })
+        # Default is to show approved participants (active and not suspended)
+        @participants = @participants.where(users: { active: true }).where.not(status: :suspended)
         @approval_status = "approved"
       end
 
@@ -38,7 +47,7 @@ module InstituteAdmin
       # Filter by participant types (multi-select with backward compatibility)
       @selected_participant_types = parse_multiselect_param(params[:participant_types])
       if @selected_participant_types.empty? && params[:participant_type].present? && params[:participant_type] != "all"
-        @selected_participant_types = [params[:participant_type].to_s]
+        @selected_participant_types = [ params[:participant_type].to_s ]
       end
       if @selected_participant_types.present? && !@selected_participant_types.include?("all")
         @participants = @participants.where(participant_type: @selected_participant_types)
@@ -47,7 +56,7 @@ module InstituteAdmin
       # Filter by sections (multi-select with backward compatibility)
       @selected_section_ids = parse_multiselect_param(params[:section_ids])
       if @selected_section_ids.empty? && params[:section_id].present? && params[:section_id] != "all"
-        @selected_section_ids = [params[:section_id].to_s]
+        @selected_section_ids = [ params[:section_id].to_s ]
       end
       if @selected_section_ids.present? && !@selected_section_ids.include?("all")
         @participants = @participants.where(section_id: @selected_section_ids)
@@ -164,16 +173,9 @@ module InstituteAdmin
 
     def destroy
       begin
-        if @user.destroy
-          redirect_to institute_admin_participants_path,
-            notice: "Participant was successfully deleted."
-        else
-          redirect_to institute_admin_participants_path,
-            alert: "Failed to delete participant: #{@user.errors.full_messages.to_sentence}"
-        end
-      rescue ActiveRecord::InvalidForeignKey => e
+        @participant.soft_delete!
         redirect_to institute_admin_participants_path,
-          alert: "Cannot delete participant because it is referenced by other records. Please remove those associations first."
+          notice: "Participant was successfully deleted."
       rescue StandardError => e
         redirect_to institute_admin_participants_path,
           alert: "An error occurred: #{e.message}"
@@ -199,30 +201,52 @@ module InstituteAdmin
     end
 
     def toggle_status
-      # Toggle the active status
-      @user.active = !@user.active
+      # Toggle the active/suspended status
+      new_active = nil
+      new_status = nil
 
-      if @user.save
-        status_message = @user.active? ? "approved" : "unapproved"
-        redirect_back fallback_location: institute_admin_participants_path,
-          notice: "Participant was successfully #{status_message}."
+      if @participant.suspended?
+        new_status = :active
+        new_active = true
+      elsif @user.active?
+        new_status = :suspended
+        new_active = false
       else
-        redirect_back fallback_location: institute_admin_participants_path,
-          alert: "Failed to update participant status: #{@user.errors.full_messages.to_sentence}"
+        # Was unapproved / pending approval -> approve it
+        new_status = :active
+        new_active = true
       end
+
+      ActiveRecord::Base.transaction do
+        @participant.update_columns(status: Participant.statuses[new_status], updated_at: Time.current)
+        @user.update_columns(active: new_active, updated_at: Time.current)
+      end
+
+      status_message = new_active ? "activated" : "suspended"
+      redirect_back fallback_location: institute_admin_participants_path,
+        notice: "Participant was successfully #{status_message}."
+    rescue => e
+      redirect_back fallback_location: institute_admin_participants_path,
+        alert: "Failed to update participant status: #{e.message}"
     end
 
     def approve_all
-      # Get all not approved participants for the current institute
-      not_approved_users = current_institute.users
-                          .where(role: :participant, active: false)
-                          .joins(:participant)
+      # Get all not approved participants (excluding suspended) for the current institute
+      not_approved_participants = current_institute.participants
+                                                   .joins(:user)
+                                                   .where(users: { active: false })
+                                                   .where.not(status: :suspended)
+                                                   .includes(:user)
 
-      # Approve all participants
       count = 0
-      not_approved_users.find_each do |user|
-        user.active = true
-        count += 1 if user.save
+      ActiveRecord::Base.transaction do
+        not_approved_participants.find_each do |participant|
+          participant.update_columns(status: Participant.statuses[:active], updated_at: Time.current)
+          if participant.user
+            participant.user.update_columns(active: true, updated_at: Time.current)
+            count += 1
+          end
+        end
       end
 
       if count > 0
@@ -241,11 +265,17 @@ module InstituteAdmin
         redirect_to institute_admin_participants_path(approved: false), alert: "No participants selected." and return
       end
 
-      users = current_institute.users.where(id: ids, role: :participant, active: false)
+      participants = resolve_participants(ids)
+
       count = 0
-      users.find_each do |user|
-        user.active = true
-        count += 1 if user.save
+      ActiveRecord::Base.transaction do
+        participants.each do |p|
+          p.update_columns(status: Participant.statuses[:active], updated_at: Time.current)
+          if p.user && !p.user.active?
+            p.user.update_columns(active: true, updated_at: Time.current)
+            count += 1
+          end
+        end
       end
 
       if count > 0
@@ -257,7 +287,79 @@ module InstituteAdmin
       end
     end
 
+    # Deactivate / suspend a selected list of participants (bulk suspend)
+    def deactivate_selected
+      ids = params[:selected_ids].to_s.split(",").map(&:strip).reject(&:blank?)
+      if ids.empty?
+        redirect_to institute_admin_participants_path(approved: true), alert: "No participants selected." and return
+      end
+
+      participants = resolve_participants(ids)
+
+      count = 0
+      ActiveRecord::Base.transaction do
+        participants.each do |p|
+          p.update_columns(status: Participant.statuses[:suspended], updated_at: Time.current)
+          if p.user && p.user.active?
+            p.user.update_columns(active: false, updated_at: Time.current)
+            count += 1
+          end
+        end
+      end
+
+      if count > 0
+        redirect_to institute_admin_participants_path(approved: true),
+          notice: "Successfully suspended #{count} participant#{count > 1 ? 's' : ''}."
+      else
+        redirect_to institute_admin_participants_path(approved: true),
+          alert: "No participants were suspended."
+      end
+    end
+
+    # Reactivate a selected list of suspended participants (bulk reactivate)
+    def reactivate_selected
+      ids = params[:selected_ids].to_s.split(",").map(&:strip).reject(&:blank?)
+      if ids.empty?
+        redirect_to institute_admin_participants_path(status: "suspended"), alert: "No participants selected." and return
+      end
+
+      participants = resolve_participants(ids).where(status: :suspended)
+
+      count = 0
+      ActiveRecord::Base.transaction do
+        participants.each do |p|
+          p.update_columns(status: Participant.statuses[:active], updated_at: Time.current)
+          if p.user && !p.user.active?
+            p.user.update_columns(active: true, updated_at: Time.current)
+            count += 1
+          end
+        end
+      end
+
+      if count > 0
+        redirect_to institute_admin_participants_path(status: "suspended"),
+          notice: "Successfully reactivated #{count} participant#{count > 1 ? 's' : ''}."
+      else
+        redirect_to institute_admin_participants_path(status: "suspended"),
+          alert: "No participants were reactivated."
+      end
+    end
+
     private
+
+    def resolve_participants(ids)
+      participants = current_institute.participants.where(id: ids).includes(:user)
+      if participants.count < ids.size
+        found_p_ids = participants.pluck(:id).map(&:to_s)
+        found_u_ids = participants.map(&:user_id).compact.map(&:to_s)
+        remaining_ids = ids.map(&:to_s) - found_p_ids - found_u_ids
+        if remaining_ids.any?
+          user_id_participants = current_institute.participants.where(user_id: remaining_ids).includes(:user)
+          participants = participants.or(user_id_participants)
+        end
+      end
+      participants
+    end
 
     def set_participant
       # Try to find the participant directly through the institute's participants

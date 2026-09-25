@@ -77,29 +77,29 @@ class InstituteAdmin::ParticipantsControllerTest < ActionDispatch::IntegrationTe
   end
 
   test "filter by participant_types multi-select" do
-    get institute_admin_participants_path(approved: "true", participant_types: ["student"])
+    get institute_admin_participants_path(approved: "true", participant_types: [ "student" ])
     assert_response :success
     assert_includes response.body, "John Doe"
     assert_not_includes response.body, "Jane Doe"
 
-    get institute_admin_participants_path(approved: "true", participant_types: ["guardian"])
+    get institute_admin_participants_path(approved: "true", participant_types: [ "guardian" ])
     assert_response :success
     assert_includes response.body, "Jane Doe"
     assert_not_includes response.body, "John Doe"
 
-    get institute_admin_participants_path(approved: "true", participant_types: ["student", "guardian"])
+    get institute_admin_participants_path(approved: "true", participant_types: [ "student", "guardian" ])
     assert_response :success
     assert_includes response.body, "John Doe"
     assert_includes response.body, "Jane Doe"
   end
 
   test "filter by section_ids multi-select" do
-    get institute_admin_participants_path(approved: "true", section_ids: [@section_a.id])
+    get institute_admin_participants_path(approved: "true", section_ids: [ @section_a.id ])
     assert_response :success
     assert_includes response.body, "John Doe"
     assert_not_includes response.body, "Jane Doe"
 
-    get institute_admin_participants_path(approved: "true", section_ids: [@section_b.id])
+    get institute_admin_participants_path(approved: "true", section_ids: [ @section_b.id ])
     assert_response :success
     assert_includes response.body, "Jane Doe"
     assert_not_includes response.body, "John Doe"
@@ -110,5 +110,236 @@ class InstituteAdmin::ParticipantsControllerTest < ActionDispatch::IntegrationTe
     assert_response :success
     assert_includes response.body, "John Doe"
     assert_not_includes response.body, "Jane Doe"
+  end
+
+  test "index lists participants in alphabetical order by name" do
+    user_alice = User.create!(
+      email: "alice_#{SecureRandom.hex(4)}@test.com",
+      password: "password123",
+      role: :participant,
+      first_name: "Alice",
+      last_name: "Wonder",
+      active: true,
+      institute: @institute,
+      section: @section_a
+    )
+    Participant.create!(
+      user: user_alice,
+      institute: @institute,
+      section_id: @section_a.id,
+      participant_type: :student
+    )
+
+    user_zach = User.create!(
+      email: "zach_#{SecureRandom.hex(4)}@test.com",
+      password: "password123",
+      role: :participant,
+      first_name: "Zachary",
+      last_name: "Taylor",
+      active: true,
+      institute: @institute,
+      section: @section_a
+    )
+    Participant.create!(
+      user: user_zach,
+      institute: @institute,
+      section_id: @section_a.id,
+      participant_type: :student
+    )
+
+    get institute_admin_participants_path(approved: "true")
+    assert_response :success
+
+    rendered_names = css_select("tbody tr td:nth-child(3) .fw-semibold").map(&:text).map(&:strip)
+    assert_equal rendered_names.sort_by(&:downcase), rendered_names
+    assert_equal "Alice Wonder", rendered_names.first
+    assert_equal "Zachary Taylor", rendered_names.last
+  end
+
+  test "destroy performs soft delete preserving database records" do
+    assert_difference("@institute.participants.count", -1) do
+      assert_no_difference("Participant.count") do
+        delete institute_admin_participant_path(@participant_student)
+      end
+    end
+
+    assert_redirected_to institute_admin_participants_path
+    assert_equal "Participant was successfully deleted.", flash[:notice]
+
+    # Participant is excluded from institute participants
+    assert_nil @institute.participants.find_by(id: @participant_student.id)
+
+    # But records exist in database with deleted_at set and user deactivated
+    deleted_participant = Participant.find(@participant_student.id)
+    assert_not_nil deleted_participant.deleted_at
+    assert deleted_participant.soft_deleted?
+
+    @user_student.reload
+    assert_not_nil @user_student.deleted_at
+    assert_not @user_student.active?
+  end
+
+  test "toggle_status deactivates active participant to suspended and reactivates suspended participant" do
+    assert @user_student.active?
+    assert_equal "active", @participant_student.status
+
+    # Suspend / deactivate
+    patch toggle_status_institute_admin_participant_path(@participant_student)
+    assert_redirected_to institute_admin_participants_path
+    assert_equal "Participant was successfully suspended.", flash[:notice]
+    assert_not @user_student.reload.active?
+    assert_equal "suspended", @participant_student.reload.status
+
+    # Reactivate
+    patch toggle_status_institute_admin_participant_path(@participant_student)
+    assert_redirected_to institute_admin_participants_path
+    assert_equal "Participant was successfully activated.", flash[:notice]
+    assert @user_student.reload.active?
+    assert_equal "active", @participant_student.reload.status
+  end
+
+  test "deactivate_selected performs bulk suspension" do
+    assert @user_student.active?
+    assert @user_guardian.active?
+
+    patch deactivate_selected_institute_admin_participants_path, params: {
+      selected_ids: "#{@participant_student.id},#{@participant_guardian.id}"
+    }
+
+    assert_redirected_to institute_admin_participants_path(approved: true)
+    assert_equal "Successfully suspended 2 participants.", flash[:notice]
+
+    assert_not @user_student.reload.active?
+    assert_not @user_guardian.reload.active?
+    assert_equal "suspended", @participant_student.reload.status
+    assert_equal "suspended", @participant_guardian.reload.status
+  end
+
+  test "index with status=suspended lists only suspended participants and isolates from not approved" do
+    # Create an unapproved (pending) participant
+    user_pending = User.create!(
+      email: "pending_#{SecureRandom.hex(4)}@test.com",
+      password: "password123",
+      role: :participant,
+      first_name: "Pending",
+      last_name: "Student",
+      active: false,
+      institute: @institute,
+      section: @section_a
+    )
+    participant_pending = Participant.create!(
+      user: user_pending,
+      institute: @institute,
+      section_id: @section_a.id,
+      participant_type: :student,
+      status: :active
+    )
+
+    # Suspend @participant_student
+    @participant_student.update!(status: :suspended)
+    @user_student.update!(active: false)
+
+    # 1. Suspended index
+    get institute_admin_participants_path(status: "suspended")
+    assert_response :success
+    assert_includes response.body, "Suspended Participants"
+    assert_includes response.body, "John Doe"
+    assert_not_includes response.body, "Pending Student"
+    assert_not_includes response.body, "Jane Doe"
+    assert_includes response.body, "Total Suspended"
+
+    # 2. Not Approved index (must NOT show suspended participant)
+    get institute_admin_participants_path(approved: "false")
+    assert_response :success
+    assert_includes response.body, "Not Approved Participants"
+    assert_includes response.body, "Pending Student"
+    assert_not_includes response.body, "John Doe"
+
+    # 3. Approved index (must NOT show suspended participant)
+    get institute_admin_participants_path(approved: "true")
+    assert_response :success
+    assert_includes response.body, "Approved Participants"
+    assert_includes response.body, "Jane Doe"
+    assert_not_includes response.body, "John Doe"
+    assert_not_includes response.body, "Pending Student"
+  end
+
+  test "reactivate_selected performs bulk reactivation of suspended participants" do
+    @participant_student.update!(status: :suspended)
+    @user_student.update!(active: false)
+    @participant_guardian.update!(status: :suspended)
+    @user_guardian.update!(active: false)
+
+    patch reactivate_selected_institute_admin_participants_path, params: {
+      selected_ids: "#{@participant_student.id},#{@participant_guardian.id}"
+    }
+
+    assert_redirected_to institute_admin_participants_path(status: "suspended")
+    assert_equal "Successfully reactivated 2 participants.", flash[:notice]
+
+    assert @user_student.reload.active?
+    assert @user_guardian.reload.active?
+    assert_equal "active", @participant_student.reload.status
+    assert_equal "active", @participant_guardian.reload.status
+  end
+
+  test "view_only admin cannot perform deactivate_selected, reactivate_selected, toggle_status, or destroy" do
+    view_only_user = User.create!(
+      email: "view_only_#{SecureRandom.hex(4)}@test.com",
+      password: "password123",
+      role: :institute_admin,
+      first_name: "View",
+      last_name: "Admin",
+      view_only: true,
+      institute: @institute,
+      active: true
+    )
+    sign_in view_only_user
+
+    patch deactivate_selected_institute_admin_participants_path, params: {
+      selected_ids: "#{@participant_student.id}"
+    }
+    assert_redirected_to institute_admin_root_path
+    assert_equal "You have view-only access and cannot perform this action.", flash[:alert]
+    assert @user_student.reload.active?
+
+    patch reactivate_selected_institute_admin_participants_path, params: {
+      selected_ids: "#{@participant_student.id}"
+    }
+    assert_redirected_to institute_admin_root_path
+    assert_equal "You have view-only access and cannot perform this action.", flash[:alert]
+
+    patch toggle_status_institute_admin_participant_path(@participant_student)
+    assert_redirected_to institute_admin_root_path
+    assert_equal "You have view-only access and cannot perform this action.", flash[:alert]
+    assert @user_student.reload.active?
+
+    delete institute_admin_participant_path(@participant_student)
+    assert_redirected_to institute_admin_root_path
+    assert_equal "You have view-only access and cannot perform this action.", flash[:alert]
+    assert_nil @participant_student.reload.deleted_at
+  end
+
+  test "deactivate_selected succeeds when another user shares duplicate phone and does not confuse participant IDs with user IDs" do
+    other_user = User.new(
+      email: "duplicate_phone_#{SecureRandom.hex(4)}@test.com",
+      password: "password123",
+      role: :participant,
+      first_name: "Duplicate",
+      last_name: "PhoneUser",
+      phone: @user_student.phone,
+      active: true,
+      institute: @institute
+    )
+    other_user.save(validate: false)
+
+    patch deactivate_selected_institute_admin_participants_path, params: {
+      selected_ids: "#{@participant_student.id}"
+    }
+
+    assert_redirected_to institute_admin_participants_path(approved: true)
+    assert_equal "Successfully suspended 1 participant.", flash[:notice]
+    assert_not @user_student.reload.active?
+    assert_equal "suspended", @participant_student.reload.status
   end
 end

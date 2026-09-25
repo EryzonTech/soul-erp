@@ -7,7 +7,8 @@ class Institute < ApplicationRecord
   has_many :sections, dependent: :destroy
   has_many :training_programs, dependent: :destroy
   has_many :trainers, dependent: :destroy
-  has_many :participants, dependent: :destroy
+  has_many :participants, -> { kept }, dependent: :destroy
+  has_many :all_participants, class_name: "Participant", dependent: :destroy
   has_many :trainer_profiles
   has_many :participant_profiles
   has_many :questions, -> { order(position: :asc, created_at: :asc, id: :asc) }, dependent: :destroy

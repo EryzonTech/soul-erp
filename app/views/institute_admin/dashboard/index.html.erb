@@ -989,6 +989,37 @@
       font-weight: 600 !important;
     }
 
+    /* ── Submissions Chart Modern Legend Chips ──────────────────── */
+    .sub-legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.38rem;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #334155;
+      background: rgba(241, 245, 249, 0.85);
+      border: 1px solid #e2e8f0;
+      padding: 0.16rem 0.5rem;
+      border-radius: 6px;
+      line-height: 1.3;
+      letter-spacing: 0.01em;
+      transition: all 0.15s ease;
+    }
+
+    .sub-legend-chip:hover {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .sub-legend-indicator {
+      display: inline-block;
+      width: 14px;
+      height: 4px;
+      border-radius: 9999px;
+      flex-shrink: 0;
+    }
+
     /* ── Unified Chart Card Header ────────────────────────────── */
     .chart-card-header {
       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
@@ -1039,10 +1070,23 @@
     }
 
     /* ── Media Queries for Chart Headers & Toolbars ─────────────── */
+    @media (min-width: 1200px) {
+      .chart-controls-toolbar {
+        width: auto !important;
+      }
+    }
+
     @media (max-width: 1199.98px) {
       .chart-card-header {
         padding: 0.85rem 1rem !important;
         gap: 0.65rem !important;
+      }
+      .chart-controls-toolbar {
+        width: 100% !important;
+        align-items: flex-start !important;
+      }
+      .chart-controls-toolbar .chart-toolbar-row {
+        justify-content: flex-start !important;
       }
     }
 
@@ -1279,32 +1323,32 @@
     <div class="col-12">
       <div class="card card-custom h-100">
         <div class="card-header chart-card-header border-0 d-flex flex-column flex-xl-row justify-content-between align-items-start align-items-xl-center gap-3">
-          <div class="d-flex align-items-start gap-3">
-            <div class="chart-icon-box flex-shrink-0 mt-1" style="background: rgba(79,70,229,0.1); color: #4f46e5;">
+          <div class="d-flex align-items-center gap-3 min-width-0">
+            <div class="chart-icon-box flex-shrink-0" style="background: rgba(79,70,229,0.1); color: #4f46e5;">
               <i class="bi bi-graph-up-arrow"></i>
             </div>
-            <div>
+            <div class="min-width-0">
               <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                 <h5 class="chart-header-title mb-0">Assignment Submissions</h5>
-                <span id="submission-date-range-badge" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size:0.72rem; padding: 0.2rem 0.6rem;">
-                  <%= @submission_start_date.strftime("%b %d") %> – <%= @submission_end_date.strftime("%b %d, %Y") %>
+                <span id="submission-date-range-badge" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill d-inline-flex align-items-center" style="font-size:0.72rem; padding: 0.22rem 0.62rem; font-weight: 600;">
+                  <i class="bi bi-calendar3 me-1"></i><%= @submission_start_date.strftime("%b %d") %> – <%= @submission_end_date.strftime("%b %d, %Y") %>
+                </span>
+                <span id="submission-active-series-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill d-none" style="font-size:0.7rem; padding: 0.18rem 0.55rem; font-weight: 600;">
                 </span>
               </div>
-              <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
                 <p class="chart-header-subtitle mb-0">Multi-series submission trends &amp; backlog analysis</p>
-                <span id="submission-active-series-badge" class="badge bg-secondary-subtle text-dark border border-secondary-subtle rounded-pill" style="font-size:0.7rem; padding: 0.15rem 0.55rem;">
-                  Viewing: Combined (Total &amp; Backlog)
-                </span>
-              </div>
-              <!-- Custom Legend -->
-              <div class="d-flex align-items-center gap-3 flex-wrap" id="submission-chart-legend">
-                <div class="d-flex align-items-center gap-2">
-                  <span style="display:inline-block; width:24px; height:4px; border-radius:9999px; background:#4f46e5;"></span>
-                  <span style="font-size:0.78rem; font-weight:600; color:#334155; letter-spacing:0.01em;">Total Submissions</span>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                  <span style="display:inline-block; width:24px; height:4px; border-radius:9999px; background:#ef4444;"></span>
-                  <span style="font-size:0.78rem; font-weight:600; color:#334155; letter-spacing:0.01em;">Backlog</span>
+                <span class="text-muted opacity-50 d-none d-sm-inline">·</span>
+                <!-- Custom Legend -->
+                <div class="d-inline-flex align-items-center gap-2 flex-wrap" id="submission-chart-legend">
+                  <div class="sub-legend-chip">
+                    <span class="sub-legend-indicator" style="background:#4f46e5;"></span>
+                    <span>Total Submissions</span>
+                  </div>
+                  <div class="sub-legend-chip">
+                    <span class="sub-legend-indicator" style="background:#ef4444;"></span>
+                    <span>Backlog</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2934,19 +2978,22 @@
       const activeBadge = document.getElementById('submission-active-series-badge');
       if (activeBadge) {
         if (submissionViewMode === 'combined') {
-          activeBadge.textContent = 'Viewing: Combined (Total & Backlog)';
+          activeBadge.textContent = '';
+          activeBadge.classList.add('d-none');
         } else if (submissionViewMode === 'submissions') {
+          activeBadge.classList.remove('d-none');
           if (submissionSelectedTypes.length === 3) {
-            activeBadge.textContent = 'Viewing: Submissions (All Types)';
+            activeBadge.textContent = 'All Types';
           } else {
             const names = [];
             if (submissionSelectedTypes.includes('student')) names.push('Students');
             if (submissionSelectedTypes.includes('guardian')) names.push('Guardians');
             if (submissionSelectedTypes.includes('employee')) names.push('Employees');
-            activeBadge.textContent = `Viewing: Submissions (${names.join(', ')})`;
+            activeBadge.textContent = names.join(', ');
           }
         } else if (submissionViewMode === 'backlog') {
-          activeBadge.textContent = 'Viewing: Backlog Only';
+          activeBadge.classList.remove('d-none');
+          activeBadge.textContent = 'Backlog Only';
         }
       }
 
@@ -2955,21 +3002,21 @@
       if (legendEl) {
         if (submissionViewMode === 'combined') {
           legendEl.innerHTML =
-            '<div class="d-flex align-items-center gap-2">' +
-              '<span style="display:inline-block;width:28px;height:4px;border-radius:9999px;background:#4f46e5;"></span>' +
-              '<span style="font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.01em;">Total Submissions</span>' +
+            '<div class="sub-legend-chip">' +
+              '<span class="sub-legend-indicator" style="background:#4f46e5;"></span>' +
+              '<span>Total Submissions</span>' +
             '</div>' +
-            '<div class="d-flex align-items-center gap-2">' +
-              '<span style="display:inline-block;width:28px;height:4px;border-radius:9999px;background:#ef4444;"></span>' +
-              '<span style="font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.01em;">Backlog</span>' +
+            '<div class="sub-legend-chip">' +
+              '<span class="sub-legend-indicator" style="background:#ef4444;"></span>' +
+              '<span>Backlog</span>' +
             '</div>';
         } else {
           legendEl.innerHTML = series.map((s, idx) => {
             const c = colors[idx] || '#4f46e5';
             return (
-              '<div class="d-flex align-items-center gap-2">' +
-                '<span style="display:inline-block;width:28px;height:4px;border-radius:9999px;background:' + c + ';"></span>' +
-                '<span style="font-size:0.8rem;font-weight:600;color:#334155;letter-spacing:0.01em;">' + s.name + '</span>' +
+              '<div class="sub-legend-chip">' +
+                '<span class="sub-legend-indicator" style="background:' + c + ';"></span>' +
+                '<span>' + s.name + '</span>' +
               '</div>'
             );
           }).join('');
@@ -3083,7 +3130,7 @@
       const eStr = endStr || formatDateIso(currentSubEndDate);
       if (!startStr) {
         const badge = document.getElementById('submission-date-range-badge');
-        if (badge) badge.textContent = formatRangeDisplay(currentSubStartDate, currentSubEndDate);
+        if (badge) badge.innerHTML = '<i class="bi bi-calendar3 me-1"></i>' + formatRangeDisplay(currentSubStartDate, currentSubEndDate);
       }
 
       fetch(`/institute_admin/dashboard/chart_data?chart=assignment_submission&start_date=${sStr}&end_date=${eStr}`)
@@ -3303,7 +3350,7 @@
             const sStr = formatDateIso(selectedDates[0]);
             const eStr = formatDateIso(selectedDates[1]);
             const badge = document.getElementById('submission-date-range-badge');
-            if (badge) badge.textContent = formatRangeDisplay(selectedDates[0], selectedDates[1]);
+            if (badge) badge.innerHTML = '<i class="bi bi-calendar3 me-1"></i>' + formatRangeDisplay(selectedDates[0], selectedDates[1]);
             fetchAssignmentSubmissionData(sStr, eStr);
           }
         }
