@@ -466,14 +466,27 @@
             </div>
             
             <!-- Filter by Section -->
-            <div class="col-lg-3 col-md-6">
+            <div class="col-lg-2 col-md-6">
               <%= select_tag :section_id, 
                   options_for_select([['All Sections', '']] + @sections.map { |s| [s.name, s.id] }, params[:section_id]), 
                   class: "form-select filter-input" %>
             </div>
+
+            <!-- Filter by Per Page -->
+            <div class="col-lg-2 col-md-6">
+              <%= select_tag :per_page, 
+                  options_for_select([
+                    ['20 per page', '20'],
+                    ['50 per page', '50'],
+                    ['100 per page', '100'],
+                    ['All', 'all']
+                  ], @per_page), 
+                  class: "form-select filter-input",
+                  onchange: "this.form.submit();" %>
+            </div>
             
             <!-- Action Buttons -->
-            <div class="col-lg-4 col-md-6">
+            <div class="col-lg-3 col-md-12">
               <div class="d-flex gap-2">
                 <%= button_tag type: 'submit', class: 'btn btn-primary flex-grow-1 filter-btn' do %>
                   <i class="bi bi-funnel-fill me-2"></i>Apply Filters
@@ -567,14 +580,20 @@
         </div>
         
         <!-- Pagination for Suspended -->
-        <% if @participants.total_pages > 1 %>
-          <div class="d-flex justify-content-between align-items-center mt-3">
-            <div class="text-muted">
-              Showing <%= @participants.offset_value + 1 %> to <%= [@participants.offset_value + @participants.limit_value, @participants.total_count].min %> of <%= @participants.total_count %> participants
+        <% if @participants.total_count > 0 %>
+          <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mt-3 pt-2 border-top">
+            <div class="text-muted small">
+              <% if @per_page == 'all' %>
+                Showing all <%= @participants.total_count %> participants
+              <% else %>
+                Showing <%= @participants.offset_value + 1 %> to <%= [@participants.offset_value + @participants.limit_value, @participants.total_count].min %> of <%= @participants.total_count %> participants
+              <% end %>
             </div>
-            <div>
-              <%= paginate @participants, params: { status: 'suspended', search: params[:search], participant_type: params[:participant_type], section_id: params[:section_id] } %>
-            </div>
+            <% if @participants.total_pages > 1 %>
+              <div>
+                <%= paginate @participants, params: { status: 'suspended', search: params[:search], participant_type: params[:participant_type], section_id: params[:section_id], per_page: @per_page } %>
+              </div>
+            <% end %>
           </div>
         <% end %>
       <% else %>
@@ -618,14 +637,27 @@
             </div>
             
             <!-- Filter by Section -->
-            <div class="col-lg-3 col-md-6">
+            <div class="col-lg-2 col-md-6">
               <%= select_tag :section_id, 
                   options_for_select([['All Sections', '']] + @sections.map { |s| [s.name, s.id] }, params[:section_id]), 
                   class: "form-select filter-input" %>
             </div>
+
+            <!-- Filter by Per Page -->
+            <div class="col-lg-2 col-md-6">
+              <%= select_tag :per_page, 
+                  options_for_select([
+                    ['20 per page', '20'],
+                    ['50 per page', '50'],
+                    ['100 per page', '100'],
+                    ['All', 'all']
+                  ], @per_page), 
+                  class: "form-select filter-input",
+                  onchange: "this.form.submit();" %>
+            </div>
             
             <!-- Action Buttons -->
-            <div class="col-lg-4 col-md-6">
+            <div class="col-lg-3 col-md-12">
               <div class="d-flex gap-2">
                 <%= button_tag type: 'submit', class: 'btn btn-primary flex-grow-1 filter-btn' do %>
                   <i class="bi bi-funnel-fill me-2"></i>Apply Filters
@@ -709,14 +741,20 @@
         </div>
         
         <!-- Pagination for Not Approved -->
-        <% if @participants.total_pages > 1 %>
-          <div class="d-flex justify-content-between align-items-center mt-3">
-            <div class="text-muted">
-              Showing <%= @participants.offset_value + 1 %> to <%= [@participants.offset_value + @participants.limit_value, @participants.total_count].min %> of <%= @participants.total_count %> participants
+        <% if @participants.total_count > 0 %>
+          <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mt-3 pt-2 border-top">
+            <div class="text-muted small">
+              <% if @per_page == 'all' %>
+                Showing all <%= @participants.total_count %> participants
+              <% else %>
+                Showing <%= @participants.offset_value + 1 %> to <%= [@participants.offset_value + @participants.limit_value, @participants.total_count].min %> of <%= @participants.total_count %> participants
+              <% end %>
             </div>
-            <div>
-              <%= paginate @participants, params: { approved: 'false', search: params[:search], participant_type: params[:participant_type], section_id: params[:section_id] } %>
-            </div>
+            <% if @participants.total_pages > 1 %>
+              <div>
+                <%= paginate @participants, params: { approved: 'false', search: params[:search], participant_type: params[:participant_type], section_id: params[:section_id], per_page: @per_page } %>
+              </div>
+            <% end %>
           </div>
         <% end %>
       <% else %>
@@ -827,6 +865,7 @@
         part_active_filters_count += 1 if params[:search].present?
         part_active_filters_count += 1 if @selected_participant_types.present? && @selected_participant_types.size < 3
         part_active_filters_count += 1 if @selected_section_ids.present? && !@selected_section_ids.include?('all')
+        part_active_filters_count += 1 if params[:per_page].present? && params[:per_page] != '20'
       %>
       <div class="filter-toolbar-card bg-white rounded-4 shadow-sm border mb-4 p-3 p-md-4">
         <%= form_with url: institute_admin_participants_path, method: :get, local: true, id: "approvedParticipantsForm", class: "filter-form" do |f| %>
@@ -961,6 +1000,27 @@
                 </div>
               </div>
             </div>
+
+            <!-- Filter by Per Page (20, 50, 100, All) -->
+            <div class="col-12 col-md-12 col-lg-4">
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 ps-3 pe-2 text-secondary" style="border-radius: 10px 0 0 10px; border-color: #cbd5e1; height: 42px;">
+                  <i class="bi bi-list-ol text-primary me-1.5"></i>
+                  <span class="small fw-semibold text-secondary">Show:</span>
+                </span>
+                <%= select_tag :per_page, 
+                    options_for_select([
+                      ['20 per page', '20'],
+                      ['50 per page', '50'],
+                      ['100 per page', '100'],
+                      ['All', 'all']
+                    ], @per_page),
+                    id: "perPageSelectApproved",
+                    class: "form-select border-start-0 text-dark fw-medium",
+                    style: "border-radius: 0 10px 10px 0; border-color: #cbd5e1; height: 42px; font-size: 0.86rem; cursor: pointer;",
+                    onchange: "document.getElementById('approvedParticipantsForm').submit();" %>
+              </div>
+            </div>
           </div>
         <% end %>
       </div>
@@ -1055,14 +1115,20 @@
         </div>
         
         <!-- Pagination for Approved -->
-        <% if @participants.total_pages > 1 %>
-          <div class="d-flex justify-content-between align-items-center mt-3">
-            <div class="text-muted">
-              Showing <%= @participants.offset_value + 1 %> to <%= [@participants.offset_value + @participants.limit_value, @participants.total_count].min %> of <%= @participants.total_count %> participants
+        <% if @participants.total_count > 0 %>
+          <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mt-3 pt-2 border-top">
+            <div class="text-muted small">
+              <% if @per_page == 'all' %>
+                Showing all <%= @participants.total_count %> participants
+              <% else %>
+                Showing <%= @participants.offset_value + 1 %> to <%= [@participants.offset_value + @participants.limit_value, @participants.total_count].min %> of <%= @participants.total_count %> participants
+              <% end %>
             </div>
-            <div>
-              <%= paginate @participants, params: { approved: 'true', search: params[:search], participant_types: @selected_participant_types, section_ids: @selected_section_ids } %>
-            </div>
+            <% if @participants.total_pages > 1 %>
+              <div>
+                <%= paginate @participants, params: { approved: 'true', search: params[:search], participant_types: @selected_participant_types, section_ids: @selected_section_ids, per_page: @per_page } %>
+              </div>
+            <% end %>
           </div>
         <% end %>
       <% else %>
@@ -1868,13 +1934,16 @@
 
   function clearFilters() {
     const form = document.querySelector('.filter-form');
+    if (!form) return;
     const searchInput = form.querySelector('input[name="search"]');
     const typeSelect = form.querySelector('select[name="participant_type"]');
     const sectionSelect = form.querySelector('select[name="section_id"]');
+    const perPageSelect = form.querySelector('select[name="per_page"]');
     
     if (searchInput) searchInput.value = '';
     if (typeSelect) typeSelect.value = '';
     if (sectionSelect) sectionSelect.value = '';
+    if (perPageSelect) perPageSelect.value = '20';
   }
   
   // Multi-select functions

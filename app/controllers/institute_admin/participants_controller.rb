@@ -62,8 +62,16 @@ module InstituteAdmin
         @participants = @participants.where(section_id: @selected_section_ids)
       end
 
-      # Add pagination
-      @participants = @participants.page(params[:page]).per(20)
+      # Pagination with per_page options: 20, 50, 100, All
+      per_page_param = params[:per_page].to_s.strip.downcase
+      @per_page = %w[20 50 100 all].include?(per_page_param) ? per_page_param : "20"
+
+      if @per_page == "all"
+        total_count = @participants.except(:limit, :offset, :order).count
+        @participants = @participants.page(1).per([ total_count, 1 ].max)
+      else
+        @participants = @participants.page(params[:page]).per(@per_page.to_i)
+      end
     end
 
     def show
