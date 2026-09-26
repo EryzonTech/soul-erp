@@ -554,9 +554,10 @@ module InstituteAdmin
 
       participant_stats = participants.map do |part|
         dates = submitted_dates_by_part[part.id] || Set.new
-        streak = compute_continuous_streak(dates, effective_end_date)
-        total_sub = dates.size
-        pct = ((total_sub.to_f / total_days) * 100).round(1)
+        valid_dates = dates.select { |d| d >= effective_start_date && d <= effective_end_date }
+        streak = compute_continuous_streak(valid_dates, effective_end_date)
+        total_sub = valid_dates.size
+        pct = [ ((total_sub.to_f / total_days) * 100).round(1), 100.0 ].min
 
         {
           id: part.id,
@@ -572,16 +573,16 @@ module InstituteAdmin
         }
       end
 
-      # Dense ranking: participants with equal streak + total_submissions
-      # share the same rank; the next distinct group's rank increments sequentially (1, 2, 3...)
-      # without skipping numbers, allowing multiple participants to share the same rank.
+      # Dense ranking by submitted days:
+      # Participants with equal total_submissions share the same rank (e.g. 1, 1, 2, 3, 3, 4...).
+      # Inside tied submission counts, participants are ordered by highest active streak, then name.
       assign_ranks = lambda do |sorted_list|
         ranked   = []
         rank     = 0
         prev_key = nil
 
         sorted_list.each do |p|
-          tie_key = [ p[:streak], p[:total_submissions] ]
+          tie_key = p[:total_submissions]
           rank += 1 if tie_key != prev_key
           prev_key = tie_key
           ranked << p.merge(rank: rank)
@@ -590,13 +591,15 @@ module InstituteAdmin
         ranked
       end
 
-      top_sorted   = participant_stats.sort_by { |p| [ -p[:streak], -p[:total_submissions], p[:name] ] }
-      top_list     = top_limit == :all ? top_sorted : top_sorted.first(top_limit)
-      top_records  = assign_ranks.call(top_list)
+      # Top Submitting Participants: most submitted days first, break ties by highest streak, then name
+      top_sorted   = participant_stats.sort_by { |p| [ -p[:total_submissions], -p[:streak], p[:name].to_s.downcase ] }
+      top_ranked   = assign_ranks.call(top_sorted)
+      top_records  = top_limit == :all ? top_ranked : top_ranked.first(top_limit)
 
-      bottom_sorted   = participant_stats.sort_by { |p| [ p[:streak], p[:total_submissions], p[:name] ] }
-      bottom_list     = bottom_limit == :all ? bottom_sorted : bottom_sorted.first(bottom_limit)
-      bottom_records  = assign_ranks.call(bottom_list)
+      # Bottom Submitting Participants: fewest submitted days first, break ties by lower streak, then name
+      bottom_sorted  = participant_stats.sort_by { |p| [ p[:total_submissions], p[:streak], p[:name].to_s.downcase ] }
+      bottom_ranked  = assign_ranks.call(bottom_sorted)
+      bottom_records = bottom_limit == :all ? bottom_ranked : bottom_ranked.first(bottom_limit)
 
       {
         assignment: { id: assignment.id, title: assignment.title },
