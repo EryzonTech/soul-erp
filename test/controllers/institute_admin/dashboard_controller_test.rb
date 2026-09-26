@@ -392,4 +392,69 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_select ".stat-card-participants", text: /Students:\s*0/
     assert_select ".stat-card-participants", text: /Guardians:\s*0/
   end
+
+  test "streak leaderboards sorts primarily by total submitted days for top and bottom with streak tie breaker" do
+    # Create an assignment spanning 5 days ending today
+    test_asg = Assignment.create!(
+      title: "Sort Order Verification Assignment",
+      assignment_type: "individual",
+      start_date: 4.days.ago.beginning_of_day,
+      end_date: Time.current.end_of_day,
+      institute: @institute,
+      active: true,
+      skip_association_validation: true
+    )
+    AssignmentQuestion.create!(assignment: test_asg, question: @question)
+
+    # Participant HighDaysLowStreak: 3 submitted days (4 days ago, 3 days ago, today) -> streak 1, submissions 3
+    u_high = User.create!(email: "highdays@example.com", password: "password123", role: :participant, first_name: "High", last_name: "Days", institute: @institute, section: @section, active: true)
+    p_high = Participant.create!(user: u_high, institute: @institute, section_id: @section.id, participant_type: "student", date_of_birth: 16.years.ago.to_date)
+    AssignmentParticipant.create!(assignment: test_asg, participant: p_high)
+
+    [ 4.days.ago.to_date, 3.days.ago.to_date, Date.current ].each do |d|
+      r = AssignmentResponse.create!(assignment: test_asg, participant: p_high, question: @question, answer: "ok", response_date: d)
+      AssignmentResponseLog.log_responses(assignment: test_asg, participant: p_high, response_ids: [ r.id ], response_date: d)
+    end
+
+    # Participant LowDaysHighStreak: 2 submitted days (yesterday, today) -> streak 2, submissions 2
+    u_low = User.create!(email: "lowdays@example.com", password: "password123", role: :participant, first_name: "Low", last_name: "Days", institute: @institute, section: @section, active: true)
+    p_low = Participant.create!(user: u_low, institute: @institute, section_id: @section.id, participant_type: "student", date_of_birth: 16.years.ago.to_date)
+    AssignmentParticipant.create!(assignment: test_asg, participant: p_low)
+
+    [ 1.day.ago.to_date, Date.current ].each do |d|
+      r = AssignmentResponse.create!(assignment: test_asg, participant: p_low, question: @question, answer: "ok", response_date: d)
+      AssignmentResponseLog.log_responses(assignment: test_asg, participant: p_low, response_ids: [ r.id ], response_date: d)
+    end
+
+    # Participant ZeroDays: 0 submitted days -> streak 0, submissions 0
+    u_zero = User.create!(email: "zerodays@example.com", password: "password123", role: :participant, first_name: "Zero", last_name: "Days", institute: @institute, section: @section, active: true)
+    p_zero = Participant.create!(user: u_zero, institute: @institute, section_id: @section.id, participant_type: "student", date_of_birth: 16.years.ago.to_date)
+    AssignmentParticipant.create!(assignment: test_asg, participant: p_zero)
+
+    get institute_admin_dashboard_streak_leaderboards_url(assignment_id: test_asg.id, top_limit: 10, bottom_limit: 10)
+    assert_response :success
+
+    json = JSON.parse(response.body)
+    assert json["success"]
+
+    # Top Submitting Participants: highest submissions at the top
+    top_names = json["top"].map { |p| p["name"] }
+    assert_equal "High Days", top_names.first, "Participant with 3 days must rank higher than participant with 2 days despite lower streak"
+    assert_equal "Low Days", top_names.second
+    assert_equal "Zero Days", top_names.last
+
+    assert_equal 3, json["top"].first["total_submissions"]
+    assert_equal 2, json["top"].second["total_submissions"]
+    assert_equal 0, json["top"].last["total_submissions"]
+
+    # Bottom Submitting Participants: fewest submissions at the top
+    bottom_names = json["bottom"].map { |p| p["name"] }
+    assert_equal "Zero Days", bottom_names.first, "Participant with 0 days must be at the top of bottom submitting participants"
+    assert_equal "Low Days", bottom_names.second
+    assert_equal "High Days", bottom_names.last
+
+    assert_equal 0, json["bottom"].first["total_submissions"]
+    assert_equal 2, json["bottom"].second["total_submissions"]
+    assert_equal 3, json["bottom"].last["total_submissions"]
+  end
 end

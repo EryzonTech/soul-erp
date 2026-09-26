@@ -3622,7 +3622,19 @@
       var instituteName = <%= raw (current_institute&.name || "Soul ERP").to_json %>;
 
       function cellText(cell) {
-        return (cell ? cell.innerText : '').replace(/\s+/g, ' ').trim();
+        if (!cell) return '';
+        var wrap = cell.querySelector('.sub-progress-wrap');
+        if (wrap) {
+          var labelEl = wrap.querySelector('.sub-progress-label');
+          var chipEl = wrap.querySelector('.sub-pct-chip');
+          var rawLabel = labelEl ? labelEl.innerText : '';
+          var daysMatch = rawLabel.match(/(\d+)\s*\/\s*(\d+)\s*days?/i);
+          var daysStr = daysMatch ? (daysMatch[1] + ' / ' + daysMatch[2] + ' days') : rawLabel.replace(/[🔥📅⚠️\s]+/g, ' ').trim();
+          var pctStr = chipEl ? chipEl.innerText.trim() : '';
+          if (daysStr && pctStr) return daysStr + ' (' + pctStr + ')';
+          if (daysStr) return daysStr;
+        }
+        return cell.innerText.replace(/\s+/g, ' ').trim();
       }
 
       if (format === 'csv') {
