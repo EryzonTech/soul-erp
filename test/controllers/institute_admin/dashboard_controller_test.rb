@@ -74,18 +74,31 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     )
     AssignmentQuestion.create!(assignment: @assignment, question: @question)
 
-    resp = AssignmentResponse.create!(
+    resp_yesterday = AssignmentResponse.create!(
       assignment: @assignment,
       participant: @participant,
       question: @question,
-      answer: "Went well!",
-      response_date: Date.current
+      answer: "Went well yesterday!",
+      response_date: Date.yesterday
     )
-
     AssignmentResponseLog.log_responses(
       assignment: @assignment,
       participant: @participant,
-      response_ids: [ resp.id ],
+      response_ids: [ resp_yesterday.id ],
+      response_date: Date.yesterday
+    )
+
+    resp_today = AssignmentResponse.create!(
+      assignment: @assignment,
+      participant: @participant,
+      question: @question,
+      answer: "Went well today!",
+      response_date: Date.current
+    )
+    AssignmentResponseLog.log_responses(
+      assignment: @assignment,
+      participant: @participant,
+      response_ids: [ resp_today.id ],
       response_date: Date.current
     )
 
@@ -260,6 +273,10 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_select ".chart-header-title", text: /Bottom Submitting Participants/
     assert_select "#topLeaderboardTable", 1
     assert_select "#bottomLeaderboardTable", 1
+    assert_select "#topLeaderboardTable th.sticky-col-sl", text: "Sl.No"
+    assert_select "#bottomLeaderboardTable th.sticky-col-sl", text: "Sl.No"
+    assert_select "#topLeaderboardBody td.sticky-col-sl", text: "1"
+    assert_select "#bottomLeaderboardBody td.sticky-col-sl", text: "1"
     assert_select "#topLeaderboardAssignment", 1
     assert_select "#bottomLeaderboardAssignment", 1
 
@@ -328,13 +345,13 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
       participant: participant2,
       question: @question,
       answer: "Tied with John",
-      response_date: Date.current
+      response_date: Date.yesterday
     )
     AssignmentResponseLog.log_responses(
       assignment: @assignment,
       participant: participant2,
       response_ids: [ resp2.id ],
-      response_date: Date.current
+      response_date: Date.yesterday
     )
 
     get institute_admin_dashboard_streak_leaderboards_url(assignment_id: @assignment.id, top_limit: 10, bottom_limit: 10)
@@ -393,7 +410,7 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     assert_select ".stat-card-participants", text: /Guardians:\s*0/
   end
 
-  test "streak leaderboards sorts primarily by total submitted days for top and bottom with streak tie breaker" do
+  test "streak leaderboards sorts primarily by total submitted days for top and bottom with streak tie breaker and excludes current date" do
     # Create an assignment spanning 5 days ending today
     test_asg = Assignment.create!(
       title: "Sort Order Verification Assignment",
@@ -406,22 +423,22 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     )
     AssignmentQuestion.create!(assignment: test_asg, question: @question)
 
-    # Participant HighDaysLowStreak: 3 submitted days (4 days ago, 3 days ago, today) -> streak 1, submissions 3
+    # Participant HighDaysLowStreak: 3 past submitted days (4 days ago, 3 days ago, 2 days ago) + today (excluded) -> 3 valid submissions
     u_high = User.create!(email: "highdays@example.com", password: "password123", role: :participant, first_name: "High", last_name: "Days", institute: @institute, section: @section, active: true)
     p_high = Participant.create!(user: u_high, institute: @institute, section_id: @section.id, participant_type: "student", date_of_birth: 16.years.ago.to_date)
     AssignmentParticipant.create!(assignment: test_asg, participant: p_high)
 
-    [ 4.days.ago.to_date, 3.days.ago.to_date, Date.current ].each do |d|
+    [ 4.days.ago.to_date, 3.days.ago.to_date, 2.days.ago.to_date, Date.current ].each do |d|
       r = AssignmentResponse.create!(assignment: test_asg, participant: p_high, question: @question, answer: "ok", response_date: d)
       AssignmentResponseLog.log_responses(assignment: test_asg, participant: p_high, response_ids: [ r.id ], response_date: d)
     end
 
-    # Participant LowDaysHighStreak: 2 submitted days (yesterday, today) -> streak 2, submissions 2
+    # Participant LowDaysHighStreak: 2 past submitted days (2 days ago, yesterday) + today (excluded) -> 2 valid submissions
     u_low = User.create!(email: "lowdays@example.com", password: "password123", role: :participant, first_name: "Low", last_name: "Days", institute: @institute, section: @section, active: true)
     p_low = Participant.create!(user: u_low, institute: @institute, section_id: @section.id, participant_type: "student", date_of_birth: 16.years.ago.to_date)
     AssignmentParticipant.create!(assignment: test_asg, participant: p_low)
 
-    [ 1.day.ago.to_date, Date.current ].each do |d|
+    [ 2.days.ago.to_date, 1.day.ago.to_date, Date.current ].each do |d|
       r = AssignmentResponse.create!(assignment: test_asg, participant: p_low, question: @question, answer: "ok", response_date: d)
       AssignmentResponseLog.log_responses(assignment: test_asg, participant: p_low, response_ids: [ r.id ], response_date: d)
     end
@@ -437,14 +454,17 @@ class InstituteAdmin::DashboardControllerTest < ActionDispatch::IntegrationTest
     json = JSON.parse(response.body)
     assert json["success"]
 
-    # Top Submitting Participants: highest submissions at the top
+    # Exclude current date: total days must be 4 (4 days ago up to yesterday, excluding today)
+    assert_equal 4, json["top"].first["total_days"], "Total days must exclude current date (up to yesterday)"
+
+    # Top Submitting Participants: highest submissions at the top (today's submissions excluded)
     top_names = json["top"].map { |p| p["name"] }
     assert_equal "High Days", top_names.first, "Participant with 3 days must rank higher than participant with 2 days despite lower streak"
     assert_equal "Low Days", top_names.second
     assert_equal "Zero Days", top_names.last
 
-    assert_equal 3, json["top"].first["total_submissions"]
-    assert_equal 2, json["top"].second["total_submissions"]
+    assert_equal 3, json["top"].first["total_submissions"], "Today's submission must be excluded"
+    assert_equal 2, json["top"].second["total_submissions"], "Today's submission must be excluded"
     assert_equal 0, json["top"].last["total_submissions"]
 
     # Bottom Submitting Participants: fewest submissions at the top

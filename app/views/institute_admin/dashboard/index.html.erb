@@ -440,16 +440,16 @@
       border-bottom-right-radius: 8px;
     }
 
-    /* ── Desktop Frozen Sticky Columns (Rank & Participant Name) ───────── */
-    .leaderboard-table .sticky-col-rank {
+    /* ── Desktop Frozen Sticky Columns (Sl.No, Rank & Participant Name) ───────── */
+    .leaderboard-table .sticky-col-sl {
       left: 0 !important;
-      width: 68px !important;
-      min-width: 68px !important;
-      max-width: 68px !important;
+      width: 48px !important;
+      min-width: 48px !important;
+      max-width: 48px !important;
       text-align: center;
     }
 
-    .leaderboard-table tbody td.sticky-col-rank {
+    .leaderboard-table tbody td.sticky-col-sl {
       position: sticky !important;
       left: 0 !important;
       z-index: 6 !important;
@@ -459,7 +459,7 @@
       will-change: transform;
     }
 
-    .leaderboard-table thead th.sticky-col-rank {
+    .leaderboard-table thead th.sticky-col-sl {
       position: sticky !important;
       top: 0 !important;
       left: 0 !important;
@@ -471,8 +471,34 @@
       will-change: transform;
     }
 
+    .leaderboard-table .sticky-col-rank {
+      left: 48px !important;
+      width: 60px !important;
+      min-width: 60px !important;
+      max-width: 60px !important;
+      text-align: center;
+    }
+
+    .leaderboard-table tbody td.sticky-col-rank {
+      position: sticky !important;
+      left: 48px !important;
+      z-index: 6 !important;
+      background-color: #ffffff !important;
+      will-change: transform;
+    }
+
+    .leaderboard-table thead th.sticky-col-rank {
+      position: sticky !important;
+      top: 0 !important;
+      left: 48px !important;
+      z-index: 30 !important;
+      background: #1e293b !important;
+      color: #fff !important;
+      will-change: transform;
+    }
+
     .leaderboard-table .sticky-col-name {
-      left: 68px !important;
+      left: 108px !important;
       min-width: 130px !important;
       max-width: 190px !important;
       overflow: hidden !important;
@@ -482,7 +508,7 @@
 
     .leaderboard-table tbody td.sticky-col-name {
       position: sticky !important;
-      left: 68px !important;
+      left: 108px !important;
       z-index: 6 !important;
       background-color: #ffffff !important;
       box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.08) !important;
@@ -492,7 +518,7 @@
     .leaderboard-table thead th.sticky-col-name {
       position: sticky !important;
       top: 0 !important;
-      left: 68px !important;
+      left: 108px !important;
       z-index: 30 !important;
       background: #1e293b !important;
       color: #fff !important;
@@ -500,6 +526,7 @@
       will-change: transform;
     }
 
+    .leaderboard-table tbody tr:hover td.sticky-col-sl,
     .leaderboard-table tbody tr:hover td.sticky-col-rank,
     .leaderboard-table tbody tr:hover td.sticky-col-name {
       background-color: #f8fafc !important;
@@ -575,7 +602,7 @@
 
       /* First and last column rounded outer corners on mobile */
       .leaderboard-table thead th:first-child,
-      .leaderboard-table thead th.sticky-col-rank {
+      .leaderboard-table thead th.sticky-col-sl {
         border-top-left-radius: 8px !important;
         border-bottom-left-radius: 8px !important;
         border-top-right-radius: 0 !important;
@@ -588,7 +615,7 @@
         border-bottom-left-radius: 0 !important;
       }
       .leaderboard-table tbody td:first-child,
-      .leaderboard-table tbody td.sticky-col-rank {
+      .leaderboard-table tbody td.sticky-col-sl {
         border-top-left-radius: 8px !important;
         border-bottom-left-radius: 8px !important;
         border-top-right-radius: 0 !important;
@@ -601,9 +628,38 @@
         border-bottom-left-radius: 0 !important;
       }
 
-      /* Frozen Rank column on mobile (sticky left: 0) */
-      .leaderboard-table .sticky-col-rank {
+      /* Frozen Sl.No column on mobile (sticky left: 0) */
+      .leaderboard-table .sticky-col-sl {
         left: 0 !important;
+        width: 38px !important;
+        min-width: 38px !important;
+        max-width: 38px !important;
+        padding-left: 0.2rem !important;
+        padding-right: 0.2rem !important;
+        text-align: center;
+      }
+
+      .leaderboard-table tbody td.sticky-col-sl {
+        position: sticky !important;
+        left: 0 !important;
+        z-index: 8 !important;
+        background-color: #ffffff !important;
+        will-change: transform;
+      }
+
+      .leaderboard-table thead th.sticky-col-sl {
+        position: sticky !important;
+        top: 0 !important;
+        left: 0 !important;
+        z-index: 35 !important;
+        background: #1e293b !important;
+        color: #ffffff !important;
+        will-change: transform;
+      }
+
+      /* Frozen Rank column on mobile (sticky left: 38px) */
+      .leaderboard-table .sticky-col-rank {
+        left: 38px !important;
         width: 48px !important;
         min-width: 48px !important;
         max-width: 48px !important;
@@ -614,19 +670,21 @@
 
       .leaderboard-table tbody td.sticky-col-rank {
         position: sticky !important;
-        left: 0 !important;
+        left: 38px !important;
         z-index: 8 !important;
         background-color: #ffffff !important;
+        box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.12) !important;
         will-change: transform;
       }
 
       .leaderboard-table thead th.sticky-col-rank {
         position: sticky !important;
         top: 0 !important;
-        left: 0 !important;
+        left: 38px !important;
         z-index: 35 !important;
         background: #1e293b !important;
         color: #ffffff !important;
+        box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.28) !important;
         will-change: transform;
       }
 
@@ -635,12 +693,15 @@
         padding: 0.2rem 0.35rem !important;
       }
 
-      /* Frozen Name column on mobile (sticky left: 48px matching rank width) */
+      /* Name column on mobile: unpinned for fluid horizontal swipe */
       .leaderboard-table .sticky-col-name {
-        left: 48px !important;
-        width: 115px !important;
-        min-width: 105px !important;
-        max-width: 125px !important;
+        position: static !important;
+        left: auto !important;
+        z-index: auto !important;
+        box-shadow: none !important;
+        width: 120px !important;
+        min-width: 110px !important;
+        max-width: 140px !important;
         padding-left: 0.35rem !important;
         padding-right: 0.35rem !important;
         overflow: hidden !important;
@@ -648,33 +709,22 @@
         white-space: nowrap !important;
       }
 
-      .leaderboard-table tbody td.sticky-col-name {
-        position: sticky !important;
-        left: 48px !important;
-        z-index: 8 !important;
-        background-color: #ffffff !important;
-        box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.12) !important;
-        will-change: transform;
-      }
-
+      .leaderboard-table tbody td.sticky-col-name,
       .leaderboard-table thead th.sticky-col-name {
-        position: sticky !important;
-        top: 0 !important;
-        left: 48px !important;
-        z-index: 35 !important;
-        background: #1e293b !important;
-        color: #ffffff !important;
-        box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.28) !important;
-        will-change: transform;
+        position: static !important;
+        left: auto !important;
+        z-index: auto !important;
+        box-shadow: none !important;
       }
 
+      .leaderboard-table tbody tr:hover td.sticky-col-sl,
       .leaderboard-table tbody tr:hover td.sticky-col-rank,
       .leaderboard-table tbody tr:hover td.sticky-col-name {
         background-color: #f8fafc !important;
       }
 
       /* Section column badge on mobile */
-      .leaderboard-table td:nth-child(3) .badge {
+      .leaderboard-table td:nth-child(4) .badge {
         max-width: 75px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1472,6 +1522,7 @@
             <table class="table modern-table leaderboard-table mb-0" id="topLeaderboardTable">
               <thead class="leaderboard-sticky-head">
                 <tr>
+                  <th class="sticky-col sticky-col-sl">Sl.No</th>
                   <th class="sticky-col sticky-col-rank">Rank</th>
                   <th class="sticky-col sticky-col-name">Name</th>
                   <th>Section</th>
@@ -1481,11 +1532,12 @@
               </thead>
               <tbody id="topLeaderboardBody">
                 <% if @top_submitting_participants.present? %>
-                  <% @top_submitting_participants.each do |p| %>
+                  <% @top_submitting_participants.each_with_index do |p, idx| %>
                     <% pct = p[:submission_pct] || 0
                        fill_color = pct >= 80 ? '#16a34a' : (pct >= 50 ? '#d97706' : '#dc2626')
                        label_color = pct >= 80 ? 'text-success' : (pct >= 50 ? 'text-warning' : 'text-danger') %>
                     <tr>
+                      <td class="sticky-col sticky-col-sl text-center fw-semibold text-muted"><%= idx + 1 %></td>
                       <td class="sticky-col sticky-col-rank">
                         <span class="badge <%= p[:rank] == 1 ? 'bg-warning text-dark' : (p[:rank] == 2 ? 'bg-secondary text-white' : (p[:rank] == 3 ? 'bg-bronze text-white' : 'bg-light text-dark border')) %> rounded-pill fw-bold">
                           #<%= p[:rank] %>
@@ -1508,7 +1560,7 @@
                     </tr>
                   <% end %>
                 <% else %>
-                  <tr><td colspan="5" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>
+                  <tr><td colspan="6" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>
                 <% end %>
               </tbody>
             </table>
@@ -1574,6 +1626,7 @@
             <table class="table modern-table leaderboard-table mb-0" id="bottomLeaderboardTable">
               <thead class="leaderboard-sticky-head">
                 <tr>
+                  <th class="sticky-col sticky-col-sl">Sl.No</th>
                   <th class="sticky-col sticky-col-rank">Rank</th>
                   <th class="sticky-col sticky-col-name">Name</th>
                   <th>Section</th>
@@ -1584,11 +1637,12 @@
               </thead>
               <tbody id="bottomLeaderboardBody">
                 <% if @bottom_submitting_participants.present? %>
-                  <% @bottom_submitting_participants.each do |p| %>
+                  <% @bottom_submitting_participants.each_with_index do |p, idx| %>
                     <% pct = p[:submission_pct] || 0
                        fill_color = pct >= 80 ? '#16a34a' : (pct >= 50 ? '#d97706' : '#dc2626')
                        label_color = pct >= 80 ? 'text-success' : (pct >= 50 ? 'text-warning' : 'text-danger') %>
                     <tr>
+                      <td class="sticky-col sticky-col-sl text-center fw-semibold text-muted"><%= idx + 1 %></td>
                       <td class="sticky-col sticky-col-rank">
                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">
                           #<%= p[:rank] %>
@@ -1620,7 +1674,7 @@
                     </tr>
                   <% end %>
                 <% else %>
-                  <tr><td colspan="6" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>
+                  <tr><td colspan="7" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>
                 <% end %>
               </tbody>
             </table>
@@ -3555,9 +3609,10 @@
           var list = type === 'top' ? json.top : json.bottom;
           var html = '';
           if (list && list.length > 0) {
-            list.forEach(function(p) {
+            list.forEach(function(p, idx) {
+              var slNo       = idx + 1;
               var pct        = p.submission_pct || 0;
-              var totalDays  = p.total_days || 1;
+              var totalDays  = p.total_days || 0;
               var totalSub   = p.total_submissions || 0;
               var fillColor  = pct >= 80 ? '#16a34a' : (pct >= 50 ? '#d97706' : '#dc2626');
               var labelClass = pct >= 80 ? 'text-success' : (pct >= 50 ? 'text-warning' : 'text-danger');
@@ -3578,6 +3633,7 @@
               if (type === 'top') {
                 var badgeClass = p.rank === 1 ? 'bg-warning text-dark' : (p.rank === 2 ? 'bg-secondary text-white' : (p.rank === 3 ? 'bg-bronze text-white' : 'bg-light text-dark border'));
                 html += '<tr>' +
+                  '<td class="sticky-col sticky-col-sl text-center fw-semibold text-muted">' + slNo + '</td>' +
                   '<td class="sticky-col sticky-col-rank"><span class="badge ' + badgeClass + ' rounded-pill fw-bold">#' + p.rank + '</span></td>' +
                   '<td class="sticky-col sticky-col-name fw-semibold text-dark" title="' + (p.name || '').replace(/"/g, '&quot;') + '">' + p.name + '</td>' +
                   '<td><span class="badge bg-light text-secondary border">' + p.section + '</span></td>' +
@@ -3587,6 +3643,7 @@
               } else {
                 var pBadge = p.raw_participant_type === 'student' ? 'badge-student' : (p.raw_participant_type === 'guardian' ? 'badge-guardian' : (p.raw_participant_type === 'employee' ? 'badge-employee' : 'bg-secondary'));
                 html += '<tr>' +
+                  '<td class="sticky-col sticky-col-sl text-center fw-semibold text-muted">' + slNo + '</td>' +
                   '<td class="sticky-col sticky-col-rank"><span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold">#' + p.rank + '</span></td>' +
                   '<td class="sticky-col sticky-col-name fw-semibold text-dark" title="' + (p.name || '').replace(/"/g, '&quot;') + '">' + p.name + '</td>' +
                   '<td><span class="badge bg-light text-secondary border">' + p.section + '</span></td>' +
@@ -3597,7 +3654,7 @@
               }
             });
           } else {
-            var cols = type === 'top' ? 5 : 6;
+            var cols = type === 'top' ? 6 : 7;
             html = '<tr><td colspan="' + cols + '" class="text-center py-4 text-muted">No participants found for this assignment</td></tr>';
           }
           if (tbody) tbody.innerHTML = html;
@@ -3687,27 +3744,30 @@
             return;
           }
 
-          var rankCell = tr.querySelector('.sticky-col-rank') || tds[0];
+          var slCell   = tr.querySelector('.sticky-col-sl') || tds[0];
+          var slNo     = slCell ? slCell.innerText.trim() : (validCount + 1);
+
+          var rankCell = tr.querySelector('.sticky-col-rank') || tds[1];
           var rankText = rankCell ? rankCell.innerText.trim() : '#1';
           var rankNum  = parseInt(rankText.replace(/\D/g, ''), 10) || (validCount + 1);
 
-          var nameCell = tr.querySelector('.sticky-col-name') || tds[1];
+          var nameCell = tr.querySelector('.sticky-col-name') || tds[2];
           var name     = nameCell ? nameCell.innerText.trim() : '';
 
-          var sectionCell = tds[2];
+          var sectionCell = tds[3];
           var section     = sectionCell ? sectionCell.innerText.trim() : '-';
 
           var participantType = '';
           var assignmentTitle = '';
           var progressCell    = null;
 
-          if (isTop || tds.length === 5) {
-            assignmentTitle = tds[3] ? tds[3].innerText.trim() : asgName;
-            progressCell    = tds[4];
-          } else {
-            participantType = tds[3] ? tds[3].innerText.trim() : 'Student';
+          if (isTop || tds.length === 6) {
             assignmentTitle = tds[4] ? tds[4].innerText.trim() : asgName;
             progressCell    = tds[5];
+          } else {
+            participantType = tds[4] ? tds[4].innerText.trim() : 'Student';
+            assignmentTitle = tds[5] ? tds[5].innerText.trim() : asgName;
+            progressCell    = tds[6];
           }
 
           var progressLabel = '';
@@ -3756,6 +3816,7 @@
 
           parsedRows.push({
             empty: false,
+            slNo: slNo,
             rankText: rankText,
             rankNum: rankNum,
             name: name,
@@ -3789,7 +3850,8 @@
           '</div>';
 
         var tableHeaderCols = '<tr>' +
-          '<th style="width: 45px; text-align: center;">#</th>' +
+          '<th style="width: 40px; text-align: center;">Sl.No</th>' +
+          '<th style="width: 48px; text-align: center;">Rank</th>' +
           '<th style="min-width: 140px;">Participant Name</th>' +
           '<th style="min-width: 100px;">Section</th>' +
           (isTop ? '' : '<th style="width: 85px;">Type</th>') +
@@ -3800,7 +3862,7 @@
         var tableBodyRows = '';
         if (parsedRows.length === 0 || (parsedRows.length === 1 && parsedRows[0].empty)) {
           var emptyText = parsedRows[0] && parsedRows[0].text ? parsedRows[0].text : 'No participants found for this assignment';
-          tableBodyRows = '<tr><td colspan="' + (isTop ? 5 : 6) + '" style="text-align: center; padding: 24px; color: #64748b;">' + escapeHtml(emptyText) + '</td></tr>';
+          tableBodyRows = '<tr><td colspan="' + (isTop ? 6 : 7) + '" style="text-align: center; padding: 24px; color: #64748b;">' + escapeHtml(emptyText) + '</td></tr>';
         } else {
           parsedRows.forEach(function(row) {
             if (row.empty) return;
@@ -3826,6 +3888,7 @@
               : '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: -1px; margin-right: 4px; display: inline-block; flex-shrink: 0;"><path d="M6.146 7.146a.5.5 0 0 1 .708 0L8 8.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 9l1.147 1.146a.5.5 0 0 1-.708.708L8 9.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 9 6.146 7.854a.5.5 0 0 1 0-.708"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>';
 
             tableBodyRows += '<tr>' +
+              '<td style="text-align: center; color: #64748b; font-weight: 600; font-size: 10.5px;">' + escapeHtml(row.slNo) + '</td>' +
               '<td style="text-align: center;"><span class="rank-badge ' + rankBadgeClass + '">' + escapeHtml(row.rankText) + '</span></td>' +
               '<td style="font-weight: 600; color: #0f172a;">' + escapeHtml(row.name) + '</td>' +
               '<td><span class="pill-badge pill-section">' + escapeHtml(row.section) + '</span></td>' +
