@@ -541,23 +541,24 @@ module InstituteAdmin
 
       participants = Participant.where(id: participant_ids).includes(:user, :section)
 
+      # Exclude current date: evaluation only covers days up to yesterday (or assignment end_date if in the past)
+      effective_end_date = [ assignment.end_date.to_date, Date.yesterday ].min
+      effective_start_date = assignment.start_date&.to_date || effective_end_date
+      total_days = effective_end_date >= effective_start_date ? ((effective_end_date - effective_start_date).to_i + 1) : 0
+
       logs = AssignmentResponseLog.where(assignment_id: assignment.id)
+                                  .where("response_date < ?", Date.current)
                                   .pluck(:participant_id, :response_date)
       submitted_dates_by_part = logs.group_by(&:first).transform_values do |pairs|
         pairs.map { |p| p[1].to_date }.to_set
       end
 
-      effective_end_date = [ assignment.end_date.to_date, Date.current ].min
-
-      effective_start_date = assignment.start_date&.to_date || effective_end_date
-      total_days = [ (effective_end_date - effective_start_date).to_i + 1, 1 ].max
-
       participant_stats = participants.map do |part|
         dates = submitted_dates_by_part[part.id] || Set.new
-        valid_dates = dates.select { |d| d >= effective_start_date && d <= effective_end_date }
+        valid_dates = dates.select { |d| d >= effective_start_date && d <= effective_end_date && d < Date.current }
         streak = compute_continuous_streak(valid_dates, effective_end_date)
         total_sub = valid_dates.size
-        pct = [ ((total_sub.to_f / total_days) * 100).round(1), 100.0 ].min
+        pct = total_days.positive? ? [ ((total_sub.to_f / total_days) * 100).round(1), 100.0 ].min : 0.0
 
         {
           id: part.id,
@@ -615,22 +616,14 @@ module InstituteAdmin
     end
 
     def compute_continuous_streak(submitted_dates, effective_end_date)
-      return 0 if submitted_dates.empty?
+      return 0 if submitted_dates.blank? || effective_end_date.nil?
 
       streak = 0
       check_date = effective_end_date
 
-      if submitted_dates.include?(check_date)
-        while submitted_dates.include?(check_date)
-          streak += 1
-          check_date -= 1.day
-        end
-      elsif submitted_dates.include?(check_date - 1.day)
+      while submitted_dates.include?(check_date)
+        streak += 1
         check_date -= 1.day
-        while submitted_dates.include?(check_date)
-          streak += 1
-          check_date -= 1.day
-        end
       end
 
       streak
