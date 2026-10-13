@@ -35,8 +35,6 @@ module InstituteAdmin
         return
       end
 
-      set_consolidated_report_filters
-
       respond_to do |format|
         format.html do
           fetch_consolidated_response_reports_paginated
@@ -74,8 +72,6 @@ module InstituteAdmin
     end
 
     def consolidated_matrix_report
-      set_consolidated_matrix_filters
-
       respond_to do |format|
         format.html do
           fetch_consolidated_matrix_reports_paginated
@@ -2360,7 +2356,8 @@ module InstituteAdmin
       logs.map do |log|
         sub_date = log.response_date&.to_date
         sub_key = [ log.participant_id, log.assignment_id, sub_date ]
-        log_answers = {}
+        # Baseline responses found for this participant, assignment, and date
+        log_answers = (answers_by_submission[sub_key] || {}).dup
 
         log_resp_ids = Array(log.assignment_response_ids).map(&:to_i).reject(&:zero?)
         if log_resp_ids.present?
@@ -2379,8 +2376,6 @@ module InstituteAdmin
               question_type: resp.question&.question_type
             }
           end
-        else
-          log_answers = answers_by_submission[sub_key] || {}
         end
 
         {

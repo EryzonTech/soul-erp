@@ -104,7 +104,13 @@
           <% if row[:status] == 'pending' %>
             <span class="text-muted fst-italic small" style="font-size: 0.75rem;">Pending submission</span>
           <% elsif ans_info.blank? %>
-            <span class="text-muted fst-italic small" title="Not answered / Not part of this assignment">-</span>
+            <% if q[:assignment_ids].present? && row[:assignment_id].present? && !q[:assignment_ids].include?(row[:assignment_id]) %>
+              <span class="badge bg-light text-muted border border-light-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;" title="Not part of <%= row[:assignment_title] %>">
+                <i class="bi bi-slash-circle me-1 opacity-50"></i>N/A
+              </span>
+            <% else %>
+              <span class="text-muted fst-italic small" title="Not answered / Skipped by participant" style="font-size: 0.75rem;">-</span>
+            <% end %>
           <% else %>
             <% raw_ans = ans_info[:answer].to_s %>
             <% q_type = ans_info[:question_type] || q[:question_type] %>

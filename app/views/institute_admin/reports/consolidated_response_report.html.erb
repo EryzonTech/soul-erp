@@ -708,6 +708,10 @@
         Showing <strong id="footerLoadedCount"><%= @paginated_rows&.size || 0 %></strong> of <strong id="footerTotalCount"><%= @total_report_count || 0 %></strong> records
       </div>
       <div id="scrollStatusBox" class="d-flex align-items-center gap-2">
+        <div id="filterDirtyScrollAlert" class="d-none alert alert-warning py-1 px-2.5 mb-0 small d-inline-flex align-items-center gap-1.5 rounded-3 border-warning-subtle text-dark" style="font-size: 0.75rem;">
+          <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+          <span>Filters modified. Click <strong>Apply Filters</strong> above to update table.</span>
+        </div>
         <div id="scrollLoadingIndicator" class="d-none text-indigo small fw-medium d-inline-flex align-items-center gap-2">
           <div class="spinner-border spinner-border-sm text-indigo" role="status"></div>
           <span>Loading more records...</span>
@@ -1641,7 +1645,19 @@
   var currentResponsePage = <%= (@pagy ? @pagy.page : 1) %>;
   var hasMoreResponsePages = <%= (@pagy ? (@pagy.page < @pagy.pages) : false) %>;
   var isResponseLoading = false;
+  var isFilterFormDirty = false;
   var responseScrollObserver = null;
+
+  function markFiltersDirty() {
+    isFilterFormDirty = true;
+    const dirtyAlert = document.getElementById('filterDirtyScrollAlert');
+    if (dirtyAlert) dirtyAlert.classList.remove('d-none');
+    const loadMoreBtn = document.getElementById('manualLoadMoreBtn');
+    if (loadMoreBtn) {
+      loadMoreBtn.classList.add('disabled', 'opacity-50');
+      loadMoreBtn.title = "Filters have been modified. Click 'Apply Filters' to refresh.";
+    }
+  }
 
   function initResponseScrollPagination() {
     const sentinel = document.getElementById('infiniteScrollSentinel');
@@ -1654,7 +1670,7 @@
 
       responseScrollObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-          if (entry.isIntersecting && hasMoreResponsePages && !isResponseLoading) {
+          if (entry.isIntersecting && hasMoreResponsePages && !isResponseLoading && !isFilterFormDirty) {
             loadNextResponsePage();
           }
         });
@@ -1669,7 +1685,7 @@
 
     if (scrollContainer) {
       scrollContainer.addEventListener('scroll', () => {
-        if (!hasMoreResponsePages || isResponseLoading) return;
+        if (!hasMoreResponsePages || isResponseLoading || !isFilterFormDirty) return;
         const scrollBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
         if (scrollBottom < 200) {
           loadNextResponsePage();
@@ -1680,6 +1696,11 @@
 
   function loadNextResponsePage() {
     if (isResponseLoading || !hasMoreResponsePages) return;
+    if (isFilterFormDirty) {
+      const dirtyAlert = document.getElementById('filterDirtyScrollAlert');
+      if (dirtyAlert) dirtyAlert.classList.remove('d-none');
+      return;
+    }
 
     isResponseLoading = true;
     const nextPage = currentResponsePage + 1;
@@ -1689,9 +1710,8 @@
     if (loadingIndicator) loadingIndicator.classList.remove('d-none');
     if (loadMoreBtn) loadMoreBtn.classList.add('d-none');
 
-    const form = document.getElementById('consolidatedReportForm');
-    const formData = new FormData(form || undefined);
-    const searchParams = new URLSearchParams(formData);
+    // Build URL with current committed query parameters to prevent unapplied DOM filter drift
+    const searchParams = new URLSearchParams(window.location.search);
     searchParams.set('page', nextPage);
     searchParams.set('scroll', '1');
     searchParams.set('view', 'detailed');
@@ -1871,9 +1891,24 @@
     dropdownMenu.querySelectorAll('.q-date-pill').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
 
-    const form = btn.closest('form') || document.getElementById('consolidatedResponseReportForm') || document.querySelector('form');
+    const form = btn.closest('form') || document.getElementById('consolidatedReportForm') || document.querySelector('form');
     const rangeInput = form ? form.querySelector('input[name="question_date_range"]') : null;
     if (rangeInput) rangeInput.value = range;
+
+    // Sync with main report date filter so questions and response rows align
+    const mainDateSelect = document.getElementById('consolidatedDateRange');
+    if (mainDateSelect && range !== 'all') {
+      mainDateSelect.value = range;
+      toggleCustomDates(range, false);
+      if (range === 'custom') {
+        const customFrom = document.querySelector('input[name="start_date"]');
+        const customTo = document.querySelector('input[name="end_date"]');
+        const qFrom = form ? form.querySelector('input[name="question_from_date"]') : null;
+        const qTo = form ? form.querySelector('input[name="question_to_date"]') : null;
+        if (customFrom && qFrom) customFrom.value = qFrom.value;
+        if (customTo && qTo) customTo.value = qTo.value;
+      }
+    }
 
     const customRow = dropdownMenu.querySelector('.q-custom-date-row');
     if (customRow) {
@@ -1903,6 +1938,7 @@
     }
 
     applyQuestionFilters(dropdownMenu, true);
+    markFiltersDirty();
   }
 
   function onQuestionCustomDateChange(input) {
@@ -2191,7 +2227,7 @@
     }
   }
 
-  function toggleCustomDates(val) {
+  function toggleCustomDates(val, syncQuestionPills = true) {
     const row = document.getElementById('customDateRangeRow');
     if (!row) return;
     if (val === 'custom') {
@@ -2199,6 +2235,22 @@
     } else {
       row.classList.add('d-none');
     }
+
+    if (syncQuestionPills) {
+      const qDropdown = document.querySelector('.q-filter-dropdown-menu');
+      if (qDropdown) {
+        const qRange = val === 'all_time' ? 'all' : val;
+        const targetPill = qDropdown.querySelector(`.q-date-pill[data-date-range="${qRange}"]`);
+        if (targetPill) {
+          qDropdown.querySelectorAll('.q-date-pill').forEach(p => p.classList.remove('active'));
+          targetPill.classList.add('active');
+          const qRangeInput = document.querySelector('input[name="question_date_range"]');
+          if (qRangeInput) qRangeInput.value = qRange;
+          applyQuestionFilters(qDropdown, true);
+        }
+      }
+    }
+    markFiltersDirty();
   }
 
   // =========================================================
@@ -2293,16 +2345,21 @@
 
     showAsyncModal();
 
-    const form = document.getElementById('consolidatedReportForm');
-    const formData = new FormData(form || undefined);
-    formData.delete('_method');
-    formData.append('export_type', exportType);
-
-    const urlParams = new URLSearchParams(window.location.search);
-    for (const [key, value] of urlParams.entries()) {
-      if (key !== 'page' && key !== 'format' && !formData.has(key)) {
-        formData.append(key, value);
+    let formData;
+    if (!isFilterFormDirty && window.location.search) {
+      formData = new FormData();
+      formData.append('export_type', exportType);
+      const urlParams = new URLSearchParams(window.location.search);
+      for (const [key, value] of urlParams.entries()) {
+        if (key !== 'page' && key !== 'format' && key !== 'scroll') {
+          formData.append(key, value);
+        }
       }
+    } else {
+      const form = document.getElementById('consolidatedReportForm');
+      formData = new FormData(form || undefined);
+      formData.delete('_method');
+      formData.append('export_type', exportType);
     }
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -2416,14 +2473,25 @@
     }, 15000);
   }
 
+  function initFilterFormDirtyListeners() {
+    isFilterFormDirty = false;
+    const form = document.getElementById('consolidatedReportForm');
+    if (form) {
+      form.addEventListener('input', markFiltersDirty);
+      form.addEventListener('change', markFiltersDirty);
+    }
+  }
+
   // Initialize Scroll Pagination, Question Filter state, and cleanup on Turbo navigation
   document.addEventListener('turbo:load', function() {
     initResponseScrollPagination();
     initQuestionFilterState();
+    initFilterFormDirtyListeners();
   });
   document.addEventListener('DOMContentLoaded', function() {
     initResponseScrollPagination();
     initQuestionFilterState();
+    initFilterFormDirtyListeners();
   });
 
   document.addEventListener('turbo:before-cache', function() {
