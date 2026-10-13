@@ -566,5 +566,47 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, 'data-date-range="today"'
     assert_includes response.body, 'data-date-range="custom"'
   end
+
+  test "should hide matrix question columns with 0 responses unless explicitly selected" do
+    assignment = Assignment.create!(
+      title: "Unanswered Column Assignment",
+      start_date: 5.days.ago.to_date,
+      end_date: 5.days.from_now.to_date,
+      assignment_type: "section",
+      section: @section,
+      institute: @institute,
+      skip_association_validation: true
+    )
+    q_answered = Question.create!(title: "Answered Question Alpha", question_type: "short_answer", institute: @institute)
+    q_unanswered = Question.create!(title: "Unanswered Question Omega", question_type: "short_answer", institute: @institute)
+    AssignmentQuestion.create!(assignment: assignment, question: q_answered, order_number: 1)
+    AssignmentQuestion.create!(assignment: assignment, question: q_unanswered, order_number: 2)
+
+    r = AssignmentResponse.create!(
+      assignment: assignment,
+      participant: @participant,
+      question: q_answered,
+      answer: "Alpha Answer",
+      response_date: Date.current
+    )
+    AssignmentResponseLog.create!(
+      institute: @institute,
+      participant: @participant,
+      assignment: assignment,
+      response_date: Date.current,
+      assignment_response_ids: [ r.id ]
+    )
+
+    # Default view (no question_ids selected): q_unanswered should be automatically hidden
+    get consolidated_matrix_report_institute_admin_reports_url, params: { assignment_ids: [ assignment.id ] }
+    assert_response :success
+    assert_select "#matrixDataTable th", text: /Answered Question Alpha/
+    assert_select "#matrixDataTable th", text: /Unanswered Question Omega/, count: 0
+
+    # Explicitly selected question_ids: q_unanswered should be kept visible
+    get consolidated_matrix_report_institute_admin_reports_url, params: { assignment_ids: [ assignment.id ], question_ids: [ q_unanswered.id ] }
+    assert_response :success
+    assert_select "#matrixDataTable th", text: /Unanswered Question Omega/
+  end
 end
 
