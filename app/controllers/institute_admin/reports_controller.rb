@@ -1080,15 +1080,30 @@ module InstituteAdmin
       end
 
       if @selected_section_ids.present? && !@selected_section_ids.include?("all")
-        base_query = base_query.joins(participant: :section).where(sections: { id: @selected_section_ids })
+        if @selected_section_ids.include?("none")
+          base_query = base_query.none
+        else
+          valid_sec_ids = extract_numeric_ids(@selected_section_ids)
+          base_query = valid_sec_ids.present? ? base_query.joins(participant: :section).where(sections: { id: valid_sec_ids }) : base_query.none
+        end
       end
 
       if @selected_assignment_ids.present? && !@selected_assignment_ids.include?("all")
-        base_query = base_query.where(assignment_id: @selected_assignment_ids)
+        if @selected_assignment_ids.include?("none")
+          base_query = base_query.none
+        else
+          valid_asg_ids = extract_numeric_ids(@selected_assignment_ids)
+          base_query = valid_asg_ids.present? ? base_query.where(assignment_id: valid_asg_ids) : base_query.none
+        end
       end
 
       if @selected_participant_ids.present? && !@selected_participant_ids.include?("all")
-        base_query = base_query.where(participant_id: @selected_participant_ids)
+        if @selected_participant_ids.include?("none")
+          base_query = base_query.none
+        else
+          valid_p_ids = extract_numeric_ids(@selected_participant_ids)
+          base_query = valid_p_ids.present? ? base_query.where(participant_id: valid_p_ids) : base_query.none
+        end
       end
 
       if params[:search].present?
@@ -1105,11 +1120,21 @@ module InstituteAdmin
       all_participants = current_institute.participants.includes(:section, :user).left_outer_joins(:user, :section)
 
       if @selected_section_ids.present? && !@selected_section_ids.include?("all")
-        all_participants = all_participants.where("COALESCE(participants.section_id, users.section_id) IN (?)", @selected_section_ids)
+        if @selected_section_ids.include?("none")
+          all_participants = all_participants.none
+        else
+          valid_sec_ids = extract_numeric_ids(@selected_section_ids)
+          all_participants = valid_sec_ids.present? ? all_participants.where("COALESCE(participants.section_id, users.section_id) IN (?)", valid_sec_ids) : all_participants.none
+        end
       end
 
       if @selected_participant_ids.present? && !@selected_participant_ids.include?("all")
-        all_participants = all_participants.where(id: @selected_participant_ids)
+        if @selected_participant_ids.include?("none")
+          all_participants = all_participants.none
+        else
+          valid_p_ids = extract_numeric_ids(@selected_participant_ids)
+          all_participants = valid_p_ids.present? ? all_participants.where(id: valid_p_ids) : all_participants.none
+        end
       end
 
       if params[:search].present?
@@ -1122,19 +1147,23 @@ module InstituteAdmin
 
     # Resolve assignment/section titles for display labels.
     def resolve_report_titles
-      if @selected_assignment_ids.present? && @selected_assignment_ids.size == 1 && !@selected_assignment_ids.include?("all")
-        assignment = current_institute.assignments.find_by(id: @selected_assignment_ids.first)
+      if @selected_assignment_ids.present? && @selected_assignment_ids.size == 1 && !@selected_assignment_ids.include?("all") && !@selected_assignment_ids.include?("none")
+        asg_id = @selected_assignment_ids.first.to_i
+        assignment = asg_id > 0 ? current_institute.assignments.find_by(id: asg_id) : nil
         @assignment_title = assignment&.title
-      elsif @assignment_id.present? && @assignment_id != "all"
-        assignment = current_institute.assignments.find_by(id: @assignment_id)
+      elsif @assignment_id.present? && @assignment_id != "all" && @assignment_id != "none"
+        asg_id = @assignment_id.to_i
+        assignment = asg_id > 0 ? current_institute.assignments.find_by(id: asg_id) : nil
         @assignment_title = assignment&.title
       end
 
-      if @selected_section_ids.present? && @selected_section_ids.size == 1 && !@selected_section_ids.include?("all")
-        section = current_institute.sections.find_by(id: @selected_section_ids.first)
+      if @selected_section_ids.present? && @selected_section_ids.size == 1 && !@selected_section_ids.include?("all") && !@selected_section_ids.include?("none")
+        sec_id = @selected_section_ids.first.to_i
+        section = sec_id > 0 ? current_institute.sections.find_by(id: sec_id) : nil
         @section_title = section&.name
-      elsif @section_id.present? && @section_id != "all"
-        section = current_institute.sections.find_by(id: @section_id)
+      elsif @section_id.present? && @section_id != "all" && @section_id != "none"
+        sec_id = @section_id.to_i
+        section = sec_id > 0 ? current_institute.sections.find_by(id: sec_id) : nil
         @section_title = section&.name
       end
 
@@ -1406,22 +1435,44 @@ module InstituteAdmin
 
       participants_scope = current_institute.participants.includes(:user, :section)
       if @selected_section_ids.present?
-        participants_scope = participants_scope.where(section_id: @selected_section_ids)
+        if @selected_section_ids.include?("none")
+          participants_scope = participants_scope.none
+        else
+          valid_sec_ids = extract_numeric_ids(@selected_section_ids)
+          participants_scope = valid_sec_ids.present? ? participants_scope.where(section_id: valid_sec_ids) : participants_scope.none
+        end
       end
       if @selected_participant_types.present?
-        participants_scope = participants_scope.where(participant_type: @selected_participant_types)
+        if @selected_participant_types.include?("none")
+          participants_scope = participants_scope.none
+        else
+          participants_scope = participants_scope.where(participant_type: @selected_participant_types)
+        end
       end
       @available_participants = participants_scope.joins(:user).order("users.first_name ASC, users.last_name ASC")
       @selected_participant_ids = parse_multiselect_param(params[:participant_ids])
 
-      target_asg_ids = @selected_assignment_ids.presence || @available_assignments.pluck(:id)
-      aq_ids = AssignmentQuestion.where(assignment_id: target_asg_ids).pluck(:question_id)
-      aqs_ids = AssignmentQuestionSet.where(assignment_id: target_asg_ids)
-                                     .joins(question_set: :question_set_items)
-                                     .pluck("question_set_items.question_id")
-      all_q_ids = (aq_ids + aqs_ids).uniq
-      @available_questions = current_institute.questions.where(id: all_q_ids).order(:title)
-      if @available_questions.empty?
+      target_asg_ids = if @selected_assignment_ids.present?
+                         if @selected_assignment_ids.include?("none")
+                           []
+                         else
+                           extract_numeric_ids(@selected_assignment_ids)
+                         end
+                       else
+                         @available_assignments.pluck(:id)
+                       end
+
+      if target_asg_ids.present?
+        aq_ids = AssignmentQuestion.where(assignment_id: target_asg_ids).pluck(:question_id)
+        aqs_ids = AssignmentQuestionSet.where(assignment_id: target_asg_ids)
+                                       .joins(question_set: :question_set_items)
+                                       .pluck("question_set_items.question_id")
+        all_q_ids = (aq_ids + aqs_ids).uniq
+        @available_questions = current_institute.questions.where(id: all_q_ids).order(:title)
+      else
+        @available_questions = @selected_assignment_ids&.include?("none") ? current_institute.questions.none : current_institute.questions.active.order(:title)
+      end
+      if @available_questions.empty? && !@selected_assignment_ids&.include?("none")
         @available_questions = current_institute.questions.active.order(:title)
       end
       @selected_question_ids = parse_multiselect_param(params[:question_ids])
@@ -1454,6 +1505,47 @@ module InstituteAdmin
       else
         []
       end
+    end
+
+    def extract_numeric_ids(param_list)
+      return [] if param_list.blank?
+      Array(param_list).flat_map { |item| item.to_s.split(",") }
+                       .map(&:strip)
+                       .map(&:to_i)
+                       .reject(&:zero?)
+                       .uniq
+    end
+
+    def resolve_filtered_assignments_count
+      target_assignments = if @selected_assignment_ids.present?
+                             if @selected_assignment_ids.include?("none")
+                               current_institute.assignments.none
+                             else
+                               valid_ids = extract_numeric_ids(@selected_assignment_ids)
+                               valid_ids.present? ? current_institute.assignments.active.where(id: valid_ids) : current_institute.assignments.none
+                             end
+                           else
+                             current_institute.assignments.active
+                           end
+
+      if @selected_question_ids.present?
+        if @selected_question_ids.include?("none")
+          target_assignments = target_assignments.none
+        else
+          valid_q_ids = extract_numeric_ids(@selected_question_ids)
+          if valid_q_ids.empty?
+            target_assignments = target_assignments.none
+          else
+            asg_ids_with_q = AssignmentQuestion.where(question_id: valid_q_ids).pluck(:assignment_id)
+            asg_ids_with_q += AssignmentQuestionSet.joins(question_set: :question_set_items)
+                                                   .where(question_set_items: { question_id: valid_q_ids })
+                                                   .pluck(:assignment_id)
+            target_assignments = target_assignments.where(id: asg_ids_with_q.uniq)
+          end
+        end
+      end
+
+      target_assignments.count
     end
 
     def set_consolidated_date_range_window(range = @date_range)
@@ -1501,19 +1593,38 @@ module InstituteAdmin
                                      .where(question_id: q_ids)
 
       if @selected_assignment_ids.present?
-        resp_scope = resp_scope.where(assignment_id: @selected_assignment_ids)
+        if @selected_assignment_ids.include?("none")
+          resp_scope = resp_scope.none
+        else
+          valid_ids = extract_numeric_ids(@selected_assignment_ids)
+          resp_scope = valid_ids.present? ? resp_scope.where(assignment_id: valid_ids) : resp_scope.none
+        end
       end
 
       if @selected_section_ids.present?
-        resp_scope = resp_scope.where("COALESCE(participants.section_id, users.section_id) IN (?)", @selected_section_ids)
+        if @selected_section_ids.include?("none")
+          resp_scope = resp_scope.none
+        else
+          valid_ids = extract_numeric_ids(@selected_section_ids)
+          resp_scope = valid_ids.present? ? resp_scope.where("COALESCE(participants.section_id, users.section_id) IN (?)", valid_ids) : resp_scope.none
+        end
       end
 
       if @selected_participant_ids.present?
-        resp_scope = resp_scope.where(participant_id: @selected_participant_ids)
+        if @selected_participant_ids.include?("none")
+          resp_scope = resp_scope.none
+        else
+          valid_ids = extract_numeric_ids(@selected_participant_ids)
+          resp_scope = valid_ids.present? ? resp_scope.where(participant_id: valid_ids) : resp_scope.none
+        end
       end
 
       if @selected_participant_types.present?
-        resp_scope = resp_scope.where(participants: { participant_type: @selected_participant_types })
+        if @selected_participant_types.include?("none")
+          resp_scope = resp_scope.none
+        else
+          resp_scope = resp_scope.where(participants: { participant_type: @selected_participant_types })
+        end
       end
 
       resp_scope.distinct.pluck(:question_id, :response_date).each do |qid, rdate|
@@ -1523,7 +1634,8 @@ module InstituteAdmin
       # 2. Assignment schedules: ONLY mark Today & Yesterday as active if scheduled for today/yesterday.
       # Never inject 30..120 calendar days into dates_map to avoid polluting date filters with empty questions.
       target_assignments = if @selected_assignment_ids.present?
-                             current_institute.assignments.where(id: @selected_assignment_ids)
+                             valid_asg_ids = extract_numeric_ids(@selected_assignment_ids)
+                             current_institute.assignments.where(id: valid_asg_ids)
                            else
                              current_institute.assignments.active
                            end
@@ -1582,23 +1694,51 @@ module InstituteAdmin
                                      .where(assignments: { institute_id: current_institute.id })
 
       if @selected_assignment_ids.present?
-        base_query = base_query.where(assignment_id: @selected_assignment_ids)
+        if @selected_assignment_ids.include?("none")
+          return base_query.none
+        else
+          valid_ids = extract_numeric_ids(@selected_assignment_ids)
+          return base_query.none if valid_ids.empty?
+          base_query = base_query.where(assignment_id: valid_ids)
+        end
       end
 
       if @selected_section_ids.present?
-        base_query = base_query.where("COALESCE(participants.section_id, users.section_id) IN (?)", @selected_section_ids)
+        if @selected_section_ids.include?("none")
+          return base_query.none
+        else
+          valid_ids = extract_numeric_ids(@selected_section_ids)
+          return base_query.none if valid_ids.empty?
+          base_query = base_query.where("COALESCE(participants.section_id, users.section_id) IN (?)", valid_ids)
+        end
       end
 
       if @selected_participant_ids.present?
-        base_query = base_query.where(participant_id: @selected_participant_ids)
+        if @selected_participant_ids.include?("none")
+          return base_query.none
+        else
+          valid_ids = extract_numeric_ids(@selected_participant_ids)
+          return base_query.none if valid_ids.empty?
+          base_query = base_query.where(participant_id: valid_ids)
+        end
       end
 
       if @selected_participant_types.present?
-        base_query = base_query.where(participants: { participant_type: @selected_participant_types })
+        if @selected_participant_types.include?("none")
+          return base_query.none
+        else
+          base_query = base_query.where(participants: { participant_type: @selected_participant_types })
+        end
       end
 
       if @selected_question_ids.present?
-        base_query = base_query.where(question_id: @selected_question_ids)
+        if @selected_question_ids.include?("none")
+          return base_query.none
+        else
+          valid_ids = extract_numeric_ids(@selected_question_ids)
+          return base_query.none if valid_ids.empty?
+          base_query = base_query.where(question_id: valid_ids)
+        end
       end
 
       if @start_date.present? && @end_date.present?
@@ -1620,27 +1760,32 @@ module InstituteAdmin
 
     def build_consolidated_pending_rows(base_query)
       return [] unless @selected_statuses.include?("pending")
+      return [] if @selected_assignment_ids.include?("none") || @selected_question_ids.include?("none") || @selected_section_ids.include?("none") || @selected_participant_ids.include?("none") || @selected_participant_types.include?("none")
 
       target_assignments = if @selected_assignment_ids.present?
-                             current_institute.assignments.where(id: @selected_assignment_ids)
+                             valid_asg_ids = extract_numeric_ids(@selected_assignment_ids)
+                             current_institute.assignments.where(id: valid_asg_ids)
                            else
                              current_institute.assignments.active
                            end
 
       if @selected_question_ids.present?
-        asg_ids_with_q = AssignmentQuestion.where(question_id: @selected_question_ids).pluck(:assignment_id)
+        valid_q_ids = extract_numeric_ids(@selected_question_ids)
+        asg_ids_with_q = AssignmentQuestion.where(question_id: valid_q_ids).pluck(:assignment_id)
         asg_ids_with_q += AssignmentQuestionSet.joins(question_set: :question_set_items)
-                                               .where(question_set_items: { question_id: @selected_question_ids })
+                                               .where(question_set_items: { question_id: valid_q_ids })
                                                .pluck(:assignment_id)
         target_assignments = target_assignments.where(id: asg_ids_with_q.uniq)
       end
 
       target_participants = if @selected_participant_ids.present?
-                              current_institute.participants.includes(:user, :section).where(id: @selected_participant_ids)
+                              valid_p_ids = extract_numeric_ids(@selected_participant_ids)
+                              current_institute.participants.includes(:user, :section).where(id: valid_p_ids)
                             elsif @selected_section_ids.present?
+                              valid_sec_ids = extract_numeric_ids(@selected_section_ids)
                               current_institute.participants.includes(:user, :section)
                                                .left_outer_joins(:user)
-                                               .where("COALESCE(participants.section_id, users.section_id) IN (?)", @selected_section_ids)
+                                               .where("COALESCE(participants.section_id, users.section_id) IN (?)", valid_sec_ids)
                             else
                               current_institute.participants.includes(:user, :section)
                             end
@@ -1813,24 +1958,7 @@ module InstituteAdmin
         @participant_type_distribution = {}
       end
 
-      submitted_asg_ids = base_query.distinct.pluck(:assignment_id)
-      pending_asg_ids = pending_rows.map { |r| r[:assignment_id] }.compact.uniq
-      all_filtered_asg_ids = (submitted_asg_ids + pending_asg_ids).uniq
-      if all_filtered_asg_ids.present?
-        @total_filtered_assignments = all_filtered_asg_ids.size
-      elsif @selected_assignment_ids.present?
-        @total_filtered_assignments = @selected_assignment_ids.size
-      else
-        target_asg = current_institute.assignments.active
-        if @selected_question_ids.present?
-          asg_ids_with_q = AssignmentQuestion.where(question_id: @selected_question_ids).pluck(:assignment_id)
-          asg_ids_with_q += AssignmentQuestionSet.joins(question_set: :question_set_items)
-                                                 .where(question_set_items: { question_id: @selected_question_ids })
-                                                 .pluck(:assignment_id)
-          target_asg = target_asg.where(id: asg_ids_with_q.uniq)
-        end
-        @total_filtered_assignments = target_asg.count
-      end
+      @total_filtered_assignments = resolve_filtered_assignments_count
 
       @total_submitted_responses = base_query.count
       @total_pending_count = pending_rows.size
@@ -2034,22 +2162,44 @@ module InstituteAdmin
 
       participants_scope = current_institute.participants.includes(:user, :section)
       if @selected_section_ids.present?
-        participants_scope = participants_scope.where(section_id: @selected_section_ids)
+        if @selected_section_ids.include?("none")
+          participants_scope = participants_scope.none
+        else
+          valid_sec_ids = extract_numeric_ids(@selected_section_ids)
+          participants_scope = valid_sec_ids.present? ? participants_scope.where(section_id: valid_sec_ids) : participants_scope.none
+        end
       end
       if @selected_participant_types.present?
-        participants_scope = participants_scope.where(participant_type: @selected_participant_types)
+        if @selected_participant_types.include?("none")
+          participants_scope = participants_scope.none
+        else
+          participants_scope = participants_scope.where(participant_type: @selected_participant_types)
+        end
       end
       @available_participants = participants_scope.joins(:user).order("users.first_name ASC, users.last_name ASC")
       @selected_participant_ids = parse_multiselect_param(params[:participant_ids])
 
-      target_asg_ids = @selected_assignment_ids.presence || @available_assignments.pluck(:id)
-      aq_ids = AssignmentQuestion.where(assignment_id: target_asg_ids).pluck(:question_id)
-      aqs_ids = AssignmentQuestionSet.where(assignment_id: target_asg_ids)
-                                     .joins(question_set: :question_set_items)
-                                     .pluck("question_set_items.question_id")
-      all_q_ids = (aq_ids + aqs_ids).uniq
-      @available_questions = current_institute.questions.where(id: all_q_ids).order(:title)
-      if @available_questions.empty?
+      target_asg_ids = if @selected_assignment_ids.present?
+                         if @selected_assignment_ids.include?("none")
+                           []
+                         else
+                           extract_numeric_ids(@selected_assignment_ids)
+                         end
+                       else
+                         @available_assignments.pluck(:id)
+                       end
+
+      if target_asg_ids.present?
+        aq_ids = AssignmentQuestion.where(assignment_id: target_asg_ids).pluck(:question_id)
+        aqs_ids = AssignmentQuestionSet.where(assignment_id: target_asg_ids)
+                                       .joins(question_set: :question_set_items)
+                                       .pluck("question_set_items.question_id")
+        all_q_ids = (aq_ids + aqs_ids).uniq
+        @available_questions = current_institute.questions.where(id: all_q_ids).order(:title)
+      else
+        @available_questions = @selected_assignment_ids&.include?("none") ? current_institute.questions.none : current_institute.questions.active.order(:title)
+      end
+      if @available_questions.empty? && !@selected_assignment_ids&.include?("none")
         @available_questions = current_institute.questions.active.order(:title)
       end
       @selected_question_ids = parse_multiselect_param(params[:question_ids])
@@ -2068,8 +2218,14 @@ module InstituteAdmin
     end
 
     def resolve_matrix_questions(base_query = nil)
+      if @selected_assignment_ids.include?("none") || @selected_question_ids.include?("none")
+        @matrix_questions = []
+        return
+      end
+
       target_assignments = if @selected_assignment_ids.present?
-                             current_institute.assignments.where(id: @selected_assignment_ids)
+                             valid_asg_ids = extract_numeric_ids(@selected_assignment_ids)
+                             current_institute.assignments.where(id: valid_asg_ids)
                            else
                              current_institute.assignments.active
                            end
@@ -2124,7 +2280,8 @@ module InstituteAdmin
       # Filter matrix questions:
       # If specific questions are explicitly selected in the Questions filter, keep them even if 0 responses
       if @selected_question_ids.present?
-        sel_q_set = Set.new(@selected_question_ids.map(&:to_i))
+        valid_q_ids = extract_numeric_ids(@selected_question_ids)
+        sel_q_set = Set.new(valid_q_ids)
         questions_map.select! { |q_id, _| sel_q_set.include?(q_id) }
       elsif base_query.present? && base_query.exists?
         # When no specific questions are selected, automatically hide question columns with 0 responses across all participants in the filtered dataset
@@ -2154,26 +2311,54 @@ module InstituteAdmin
                                         .where(assignments: { institute_id: current_institute.id })
 
       if @selected_assignment_ids.present?
-        base_query = base_query.where(assignment_id: @selected_assignment_ids)
+        if @selected_assignment_ids.include?("none")
+          return base_query.none
+        else
+          valid_ids = extract_numeric_ids(@selected_assignment_ids)
+          return base_query.none if valid_ids.empty?
+          base_query = base_query.where(assignment_id: valid_ids)
+        end
       end
 
       if @selected_section_ids.present?
-        base_query = base_query.where("COALESCE(participants.section_id, users.section_id) IN (?)", @selected_section_ids)
+        if @selected_section_ids.include?("none")
+          return base_query.none
+        else
+          valid_ids = extract_numeric_ids(@selected_section_ids)
+          return base_query.none if valid_ids.empty?
+          base_query = base_query.where("COALESCE(participants.section_id, users.section_id) IN (?)", valid_ids)
+        end
       end
 
       if @selected_participant_ids.present?
-        base_query = base_query.where(participant_id: @selected_participant_ids)
+        if @selected_participant_ids.include?("none")
+          return base_query.none
+        else
+          valid_ids = extract_numeric_ids(@selected_participant_ids)
+          return base_query.none if valid_ids.empty?
+          base_query = base_query.where(participant_id: valid_ids)
+        end
       end
 
       if @selected_participant_types.present?
-        base_query = base_query.where(participants: { participant_type: @selected_participant_types })
+        if @selected_participant_types.include?("none")
+          return base_query.none
+        else
+          base_query = base_query.where(participants: { participant_type: @selected_participant_types })
+        end
       end
 
       if @selected_question_ids.present?
-        base_query = base_query.where(
-          "EXISTS (SELECT 1 FROM assignment_responses ar WHERE ar.assignment_id = assignment_response_logs.assignment_id AND ar.participant_id = assignment_response_logs.participant_id AND ar.response_date = assignment_response_logs.response_date::date AND ar.question_id IN (?))",
-          @selected_question_ids
-        )
+        if @selected_question_ids.include?("none")
+          return base_query.none
+        else
+          valid_ids = extract_numeric_ids(@selected_question_ids)
+          return base_query.none if valid_ids.empty?
+          base_query = base_query.where(
+            "EXISTS (SELECT 1 FROM assignment_responses ar WHERE ar.assignment_id = assignment_response_logs.assignment_id AND ar.participant_id = assignment_response_logs.participant_id AND ar.response_date = assignment_response_logs.response_date::date AND ar.question_id IN (?))",
+            valid_ids
+          )
+        end
       end
 
       if @start_date.present? && @end_date.present?
@@ -2213,27 +2398,32 @@ module InstituteAdmin
 
     def build_consolidated_matrix_pending_rows(base_query)
       return [] unless @selected_statuses.include?("pending")
+      return [] if @selected_assignment_ids.include?("none") || @selected_question_ids.include?("none") || @selected_section_ids.include?("none") || @selected_participant_ids.include?("none") || @selected_participant_types.include?("none")
 
       target_assignments = if @selected_assignment_ids.present?
-                             current_institute.assignments.where(id: @selected_assignment_ids)
+                             valid_asg_ids = extract_numeric_ids(@selected_assignment_ids)
+                             current_institute.assignments.where(id: valid_asg_ids)
                            else
                              current_institute.assignments.active
                            end
 
       if @selected_question_ids.present?
-        asg_ids_with_q = AssignmentQuestion.where(question_id: @selected_question_ids).pluck(:assignment_id)
+        valid_q_ids = extract_numeric_ids(@selected_question_ids)
+        asg_ids_with_q = AssignmentQuestion.where(question_id: valid_q_ids).pluck(:assignment_id)
         asg_ids_with_q += AssignmentQuestionSet.joins(question_set: :question_set_items)
-                                               .where(question_set_items: { question_id: @selected_question_ids })
+                                               .where(question_set_items: { question_id: valid_q_ids })
                                                .pluck(:assignment_id)
         target_assignments = target_assignments.where(id: asg_ids_with_q.uniq)
       end
 
       target_participants = if @selected_participant_ids.present?
-                              current_institute.participants.includes(:user, :section).where(id: @selected_participant_ids)
+                              valid_p_ids = extract_numeric_ids(@selected_participant_ids)
+                              current_institute.participants.includes(:user, :section).where(id: valid_p_ids)
                             elsif @selected_section_ids.present?
+                              valid_sec_ids = extract_numeric_ids(@selected_section_ids)
                               current_institute.participants.includes(:user, :section)
                                                .left_outer_joins(:user)
-                                               .where("COALESCE(participants.section_id, users.section_id) IN (?)", @selected_section_ids)
+                                               .where("COALESCE(participants.section_id, users.section_id) IN (?)", valid_sec_ids)
                             else
                               current_institute.participants.includes(:user, :section)
                             end
@@ -2482,19 +2672,8 @@ module InstituteAdmin
         @participant_type_distribution = {}
       end
 
-      submitted_asg_ids = base_query.distinct.pluck(:assignment_id)
-      pending_asg_ids = pending_rows.map { |r| r[:assignment_id] }.compact.uniq
-      all_filtered_asg_ids = (submitted_asg_ids + pending_asg_ids).uniq
-      if all_filtered_asg_ids.present?
-        @total_filtered_assignments = all_filtered_asg_ids.size
-      elsif @selected_assignment_ids.present?
-        @total_filtered_assignments = @selected_assignment_ids.size
-      elsif @matrix_questions.present?
-        all_q_asg_ids = @matrix_questions.flat_map { |q| q[:assignment_ids]&.to_a || [] }.compact.uniq
-        @total_filtered_assignments = all_q_asg_ids.size
-      else
-        @total_filtered_assignments = 0
-      end
+      @total_filtered_assignments = resolve_filtered_assignments_count
+      @matrix_assignments_count = @matrix_questions.present? ? @matrix_questions.flat_map { |q| q[:assignment_ids]&.to_a || [] }.compact.uniq.size : 0
 
       @total_matrix_questions_count = @matrix_questions.size
       @total_submissions_count = base_query.count

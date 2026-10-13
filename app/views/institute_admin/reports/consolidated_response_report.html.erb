@@ -104,7 +104,7 @@
         <div class="d-flex align-items-start justify-content-between mb-2">
           <div>
             <div class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.6px;">Assignments</div>
-            <div class="h3 fw-bold mb-0 text-dark mt-1"><%= @total_filtered_assignments || 0 %></div>
+            <div class="h3 fw-bold mb-0 text-dark mt-1" id="filteredAssignmentsCount"><%= @total_filtered_assignments || 0 %></div>
           </div>
           <div class="report-kpi-icon icon-primary">
             <i class="bi bi-journal-text"></i>
@@ -317,7 +317,9 @@
           <div class="dropdown multiselect-dropdown">
             <%
               active_q_range = params[:question_date_range].presence || 'today'
-              q_label_text = if @selected_question_ids.present? && @selected_question_ids.size != (@available_questions&.size || 0)
+              q_label_text = if @selected_question_ids&.include?('none')
+                               "Questions (None)"
+                             elsif @selected_question_ids.present? && @selected_question_ids.size != (@available_questions&.size || 0)
                                "Questions (#{@selected_question_ids.size})"
                              else
                                range_name = case active_q_range
