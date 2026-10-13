@@ -20,7 +20,7 @@
     %>
     <tr class="matrix-data-row <%= 'row-today-active' if is_today %>" id="matrix_row_<%= row[:id] || "pend_#{index}" %>">
       <!-- STICKY ROW CELLS -->
-      <td class="text-center fw-semibold text-secondary sticky-col sticky-col-num bg-white align-top pt-2.5" style="font-size: 0.85rem; background-color: #ffffff !important;">
+      <td class="text-center fw-semibold text-secondary sticky-col sticky-col-num bg-white align-top pt-2.5" style="font-size: 0.82rem; background-color: #ffffff !important; width: 54px; min-width: 54px; max-width: 54px; padding-left: 4px !important; padding-right: 4px !important;">
         <%= row_num %>
       </td>
 
@@ -100,7 +100,7 @@
       <% row_answers = row[:answers] || {} %>
       <% questions.each do |q| %>
         <% ans_info = row_answers[q[:id]] %>
-        <td class="matrix-cell align-top pt-2.5" style="min-width: 240px; max-width: 340px; vertical-align: top;">
+        <td class="matrix-cell align-top pt-2.5" style="min-width: 220px; max-width: 320px; width: 260px; vertical-align: top; overflow: hidden; word-break: break-word; overflow-wrap: anywhere;">
           <% if row[:status] == 'pending' %>
             <span class="text-muted fst-italic small" style="font-size: 0.75rem;">Pending submission</span>
           <% elsif ans_info.blank? %>
@@ -128,9 +128,10 @@
                 </span>
               </div>
             <% elsif q_type == 'checkboxes' %>
-              <div class="d-flex flex-wrap gap-1">
-                <% raw_ans.split(',').map(&:strip).each do |opt| %>
-                  <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill small" style="font-size: 0.72rem;">
+              <div class="d-flex flex-column align-items-start gap-1 w-100" style="max-width: 100%;">
+                <% raw_ans.split(',').map(&:strip).reject(&:blank?).each do |opt| %>
+                  <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-2 small text-wrap text-start w-100" 
+                        style="font-size: 0.72rem; line-height: 1.35; white-space: normal !important; word-break: break-word !important; overflow-wrap: anywhere !important;">
                     <%= opt %>
                   </span>
                 <% end %>
@@ -145,10 +146,11 @@
                 ans_id = "ans_m_#{row[:id] || index}_#{q[:id]}"
                 is_long = raw_ans.length > 120 || raw_ans.count("\n") >= 3
               %>
-              <div class="response-reading-box">
+              <div class="response-reading-box w-100" style="max-width: 100% !important;">
                 <div class="response-reading-text small text-break <%= 'clamped-text' if is_long %>" 
                      id="<%= ans_id %>"
-                     title="<%= raw_ans %>">
+                     title="<%= raw_ans %>"
+                     style="white-space: pre-line !important; word-break: break-word !important; overflow-wrap: anywhere !important;">
                   <%= raw_ans %>
                 </div>
                 <% if is_long %>
