@@ -169,11 +169,18 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
     get consolidated_response_report_institute_admin_reports_url, params: { assignment_ids: [ assignment1.id ], submission_statuses: [ "submitted" ], view: "detailed" }
     assert_response :success
     assert_includes response.body, "Math Answer"
+    assert_select "#filteredAssignmentsCount", text: "1"
+
+    # Filter for multiple assignments
+    get consolidated_response_report_institute_admin_reports_url, params: { assignment_ids: [ assignment1.id, assignment2.id ], submission_statuses: [ "submitted" ], view: "detailed" }
+    assert_response :success
+    assert_select "#filteredAssignmentsCount", text: "2"
 
     # Filter for assignment2 only
     get consolidated_response_report_institute_admin_reports_url, params: { assignment_ids: [ assignment2.id ], submission_statuses: [ "submitted" ], view: "detailed" }
     assert_response :success
     assert_not_includes response.body, "Math Answer"
+    assert_select "#filteredAssignmentsCount", text: "1"
   end
 
   test "should download consolidated_response_report as excel spreadsheetml" do
@@ -320,6 +327,54 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Algebra Prompt"
     assert_includes response.body, "x = 42"
+    assert_select "#filteredAssignmentsCount", text: "1"
+
+    # Filter for multiple assignments (even though assignment2 has no responses, both are in filter scope)
+    get consolidated_matrix_report_institute_admin_reports_url, params: { assignment_ids: [ assignment1.id, assignment2.id ] }
+    assert_response :success
+    assert_select "#filteredAssignmentsCount", text: "2"
+
+    # Filter for none
+    get consolidated_matrix_report_institute_admin_reports_url, params: { assignment_ids: [ "none" ] }
+    assert_response :success
+    assert_select "#filteredAssignmentsCount", text: "0"
+
+    # User reported error reproduction: question_ids="none" with comma-separated assignment_ids string
+    get consolidated_matrix_report_institute_admin_reports_url, params: {
+      search: "",
+      question_date_range: "today",
+      question_from_date: "",
+      question_to_date: "",
+      question_search: "",
+      submission_statuses: [ "submitted" ],
+      date_range: "today",
+      start_date: Date.current.to_s,
+      end_date: Date.current.to_s,
+      question_ids: "none",
+      assignment_ids: "#{assignment1.id},#{assignment2.id}"
+    }
+    assert_response :success
+    assert_select "#filteredAssignmentsCount", text: "0"
+    assert_select "#qLabel", text: /Questions \(None\)/
+
+    # User reported error reproduction on consolidated_response_report as well
+    get consolidated_response_report_institute_admin_reports_url, params: {
+      view: "detailed",
+      search: "",
+      question_date_range: "today",
+      question_from_date: "",
+      question_to_date: "",
+      question_search: "",
+      submission_statuses: [ "submitted" ],
+      date_range: "today",
+      start_date: Date.current.to_s,
+      end_date: Date.current.to_s,
+      question_ids: "none",
+      assignment_ids: "#{assignment1.id},#{assignment2.id}"
+    }
+    assert_response :success
+    assert_select "#filteredAssignmentsCount", text: "0"
+    assert_select "#qLabel", text: /Questions \(None\)/
   end
 
   test "should download consolidated_matrix_report as excel spreadsheetml" do
