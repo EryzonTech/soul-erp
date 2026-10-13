@@ -322,7 +322,7 @@
                  style="width: 440px; max-width: min(460px, calc(100vw - 1.5rem));">
               <!-- Search bar -->
               <div class="p-3 pb-2">
-                <% active_q_range = params[:question_date_range].presence || 'all' %>
+                <% active_q_range = params[:question_date_range].presence || 'today' %>
                 <input type="hidden" name="question_date_range" value="<%= active_q_range %>">
                 <input type="hidden" name="question_from_date" value="<%= params[:question_from_date] %>">
                 <input type="hidden" name="question_to_date" value="<%= params[:question_to_date] %>">
@@ -370,6 +370,12 @@
                   </div>
                 </div>
 
+                <% 
+                  today_matching_count = (@available_questions || []).count { |q| 
+                    @today_active_question_ids&.include?(q.id) || ((@question_dates_map && @question_dates_map[q.id]) || []).include?(Date.current.to_s) 
+                  }
+                  initial_visible_count = (active_q_range == 'today') ? today_matching_count : (@available_questions || []).size
+                %>
                 <!-- Action Bar: Select All / Clear & Visible Count (Fully Wrapped Border) -->
                 <div class="d-flex justify-content-between align-items-center px-3 py-2.5 mb-2 bg-light-subtle border rounded-2 q-action-bar">
                   <div class="d-flex align-items-center gap-2">
@@ -378,7 +384,7 @@
                     <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-secondary q-clear-btn" style="font-size: 0.76rem;" onclick="selectAllDropdownCheckboxes(this, false, 'qLabel', 'Questions', 'question_ids[]')">Clear</button>
                   </div>
                   <span class="text-secondary fw-medium q-showing-count" style="font-size: 0.74rem;">
-                    Showing <%= (@available_questions || []).size %> of <%= (@available_questions || []).size %>
+                    Showing <%= initial_visible_count %> of <%= (@available_questions || []).size %>
                   </span>
                 </div>
               </div>
@@ -387,11 +393,16 @@
               <div class="multiselect-options-list px-2.5 py-1" style="max-height: 260px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
                 <% (@available_questions || []).each do |q| %>
                   <% q_dates = (@question_dates_map && @question_dates_map[q.id]) || [] %>
-                  <div class="form-check dropdown-item rounded px-2.5 py-2 mb-1 multiselect-item d-flex align-items-start gap-2.5"
+                  <% 
+                    is_today_q = @today_active_question_ids&.include?(q.id) || q_dates.include?(Date.current.to_s)
+                    is_initially_hidden = (active_q_range == 'today' && !is_today_q)
+                  %>
+                  <div class="form-check dropdown-item rounded px-2.5 py-2 mb-1 multiselect-item d-flex align-items-start gap-2.5 <%= 'd-none is-hidden' if is_initially_hidden %>"
                        data-question-id="<%= q.id %>"
                        data-dates="<%= q_dates.join(',') %>"
                        data-today-active="<%= @today_active_question_ids&.include?(q.id) ? 'true' : 'false' %>"
-                       data-yesterday-active="<%= @yesterday_active_question_ids&.include?(q.id) ? 'true' : 'false' %>">
+                       data-yesterday-active="<%= @yesterday_active_question_ids&.include?(q.id) ? 'true' : 'false' %>"
+                       <%= 'hidden' if is_initially_hidden %>>
                     <input class="form-check-input mt-1 flex-shrink-0" 
                            type="checkbox" 
                            name="question_ids[]" 
@@ -1948,12 +1959,12 @@
 
     const form = btn.closest('form') || document.getElementById('consolidatedResponseReportForm') || document.querySelector('form');
     const rangeInput = form ? form.querySelector('input[name="question_date_range"]') : null;
-    if (rangeInput) rangeInput.value = 'all';
+    if (rangeInput) rangeInput.value = 'today';
 
-    const allPill = dropdownMenu.querySelector('.q-date-pill[data-date-range="all"]');
-    if (allPill) {
+    const todayPill = dropdownMenu.querySelector('.q-date-pill[data-date-range="today"]');
+    if (todayPill) {
       dropdownMenu.querySelectorAll('.q-date-pill').forEach(p => p.classList.remove('active'));
-      allPill.classList.add('active');
+      todayPill.classList.add('active');
     }
 
     const customRow = dropdownMenu.querySelector('.q-custom-date-row');
@@ -2094,7 +2105,7 @@
 
     const form = dropdownMenu.closest('form') || document.getElementById('consolidatedResponseReportForm') || document.querySelector('form');
     const rangeInput = form ? form.querySelector('input[name="question_date_range"]') : null;
-    const activeRange = rangeInput ? rangeInput.value : 'all';
+    const activeRange = rangeInput ? (rangeInput.value || 'today') : 'today';
 
     const activePill = dropdownMenu.querySelector(`.q-date-pill[data-date-range="${activeRange}"]`);
     if (activePill) {

@@ -1415,7 +1415,7 @@ module InstituteAdmin
 
       @date_range = params[:date_range].presence || "today"
       set_consolidated_date_range_window(@date_range)
-      @question_date_range = params[:question_date_range].presence || "all"
+      @question_date_range = params[:question_date_range].presence || "today"
       @question_from_date = params[:question_from_date]
       @question_to_date = params[:question_to_date]
       @question_search = params[:question_search]
@@ -2023,17 +2023,15 @@ module InstituteAdmin
 
       @date_range = params[:date_range].presence || "today"
       set_consolidated_date_range_window(@date_range)
-      @question_date_range = params[:question_date_range].presence || "all"
+      @question_date_range = params[:question_date_range].presence || "today"
       @question_from_date = params[:question_from_date]
       @question_to_date = params[:question_to_date]
       @question_search = params[:question_search]
       @search = params[:search].to_s.strip
       load_question_dates_map(@available_questions)
-
-      resolve_matrix_questions
     end
 
-    def resolve_matrix_questions
+    def resolve_matrix_questions(base_query = nil)
       target_assignments = if @selected_assignment_ids.present?
                              current_institute.assignments.where(id: @selected_assignment_ids)
                            else
@@ -2087,10 +2085,25 @@ module InstituteAdmin
         q_data[:assignments_text] = q_data[:assignment_titles].to_a.compact.join(", ")
       end
 
-      # Filter matrix questions if specific questions are selected
+      # Filter matrix questions:
+      # If specific questions are explicitly selected in the Questions filter, keep them even if 0 responses
       if @selected_question_ids.present?
         sel_q_set = Set.new(@selected_question_ids.map(&:to_i))
         questions_map.select! { |q_id, _| sel_q_set.include?(q_id) }
+      elsif base_query.present? && base_query.exists?
+        # When no specific questions are selected, automatically hide question columns with 0 responses across all participants in the filtered dataset
+        answered_q_ids = AssignmentResponse.where(
+          "EXISTS (SELECT 1 FROM assignment_response_logs arl WHERE arl.id IN (?) AND (
+            (arl.assignment_id = assignment_responses.assignment_id AND arl.participant_id = assignment_responses.participant_id AND arl.response_date::date = assignment_responses.response_date)
+            OR (arl.assignment_response_ids @> to_jsonb(assignment_responses.id))
+          ))",
+          base_query.select(:id)
+        ).where(
+          "TRIM(COALESCE(assignment_responses.answer, '')) NOT IN ('', '-') OR (assignment_responses.selected_options IS NOT NULL AND assignment_responses.selected_options::text NOT IN ('', '[]', '{}', 'null', '[\"\"]'))"
+        ).distinct.pluck(:question_id)
+
+        answered_q_set = Set.new(answered_q_ids)
+        questions_map.select! { |q_id, _| answered_q_set.include?(q_id) }
       end
 
       @matrix_questions = questions_map.values.sort_by { |q| [ q[:order], q[:id] ] }
@@ -2260,6 +2273,7 @@ module InstituteAdmin
     def fetch_consolidated_matrix_reports
       set_consolidated_matrix_filters
       base_query = build_consolidated_matrix_base_query
+      resolve_matrix_questions(base_query)
       pending_rows = build_consolidated_matrix_pending_rows(base_query)
 
       @matrix_rows = []
@@ -2283,6 +2297,7 @@ module InstituteAdmin
     def fetch_consolidated_matrix_reports_paginated
       set_consolidated_matrix_filters
       base_query = build_consolidated_matrix_base_query
+      resolve_matrix_questions(base_query)
       pending_rows_list = build_consolidated_matrix_pending_rows(base_query)
 
       submitted_count = @selected_statuses.include?("submitted") ? base_query.count : 0
