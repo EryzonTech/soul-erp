@@ -207,6 +207,7 @@
     active_filters_count += 1 if @selected_participant_types.present?
     active_filters_count += 1 if @selected_statuses.present? && @selected_statuses != ['submitted']
     active_filters_count += 1 if @date_range.present? && @date_range != 'today'
+    active_filters_count += 1 if params[:question_date_range].present? && params[:question_date_range] != 'today'
   %>
   <div class="filter-toolbar-card bg-white rounded-4 shadow-sm border mb-4 p-3 p-md-4">
     <%= form_tag consolidated_matrix_report_institute_admin_reports_path, method: :get, id: "consolidatedMatrixReportForm" do %>
@@ -229,7 +230,7 @@
             <% if params[:search].present? %>
               <button type="button" 
                       class="btn btn-link text-muted pe-3 text-decoration-none border-start-0" 
-                      onclick="document.getElementById('consolidatedMatrixSearchInput').value=''; document.getElementById('consolidatedMatrixReportForm').submit();" 
+                      onclick="clearSearchAndSubmit('consolidatedMatrixReportForm', 'consolidatedMatrixSearchInput');" 
                       title="Clear search">
                 <i class="bi bi-x-circle-fill"></i>
               </button>
@@ -303,7 +304,24 @@
         <!-- 2. Questions Multi-Select Dropdown [NEW] -->
         <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="dropdown multiselect-dropdown">
-            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_question_ids.present? && @selected_question_ids.size != (@available_questions&.size || 0) %>" 
+            <%
+              active_q_range = params[:question_date_range].presence || 'today'
+              q_label_text = if @selected_question_ids.present? && @selected_question_ids.size != (@available_questions&.size || 0)
+                               "Questions (#{@selected_question_ids.size})"
+                             else
+                               range_name = case active_q_range
+                                            when 'today' then 'Today'
+                                            when 'yesterday' then 'Yesterday'
+                                            when 'last_7_days' then 'Last 7 Days'
+                                            when 'this_month' then 'This Month'
+                                            when 'custom' then 'Custom'
+                                            else 'All'
+                                            end
+                               "Questions (#{range_name})"
+                             end
+              is_q_active = @selected_question_ids.present? || (active_q_range != 'all')
+            %>
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if is_q_active %>" 
                     type="button" 
                     data-bs-toggle="dropdown" 
                     data-bs-display="static"
@@ -312,7 +330,7 @@
               <span class="d-inline-flex align-items-center text-truncate">
                 <i class="bi bi-question-circle me-2 text-indigo flex-shrink-0"></i>
                 <span class="dropdown-label text-truncate" id="qLabel">
-                  Questions (<%= (@selected_question_ids.empty? || @selected_question_ids.size == (@available_questions&.size || 0)) ? 'All' : @selected_question_ids.size %>)
+                  <%= q_label_text %>
                 </span>
               </span>
             </button>
@@ -322,7 +340,6 @@
                  style="width: 440px; max-width: min(460px, calc(100vw - 1.5rem));">
               <!-- Search bar -->
               <div class="p-3 pb-2">
-                <% active_q_range = params[:question_date_range].presence || 'today' %>
                 <input type="hidden" name="question_date_range" value="<%= active_q_range %>">
                 <input type="hidden" name="question_from_date" value="<%= params[:question_from_date] %>">
                 <input type="hidden" name="question_to_date" value="<%= params[:question_to_date] %>">
@@ -2173,6 +2190,7 @@
     if (activeRange !== 'all' || searchVal) {
       applyQuestionFilters(dropdownMenu, false);
     }
+    updateDropdownCounter('qLabel', 'Questions', 'question_ids[]');
   }
 
   function selectAllDropdownCheckboxes(btn, selectAll, labelId, prefix, inputName) {
@@ -2206,6 +2224,36 @@
     if (!labelEl) return;
 
     const btn = labelEl.closest('.filter-dropdown-btn');
+
+    if (inputName === 'question_ids[]') {
+      const qDropdown = document.querySelector('.q-filter-dropdown-menu');
+      const activePill = qDropdown ? qDropdown.querySelector('.q-date-pill.active') : null;
+      const activeRange = activePill ? activePill.dataset.dateRange : 'today';
+
+      if (checkedBoxes.length > 0 && checkedBoxes.length !== allBoxes.length) {
+        labelEl.innerText = `${prefix} (${checkedBoxes.length})`;
+        if (btn) btn.classList.add('filter-active');
+      } else {
+        const rangeTextMap = {
+          'today': 'Today',
+          'yesterday': 'Yesterday',
+          'last_7_days': 'Last 7 Days',
+          'this_month': 'This Month',
+          'custom': 'Custom',
+          'all': 'All'
+        };
+        const rangeText = rangeTextMap[activeRange] || 'Today';
+        labelEl.innerText = `${prefix} (${rangeText})`;
+        if (btn) {
+          if (activeRange !== 'all' || checkedBoxes.length > 0) {
+            btn.classList.add('filter-active');
+          } else {
+            btn.classList.remove('filter-active');
+          }
+        }
+      }
+      return;
+    }
 
     if (checkedBoxes.length === 0 || checkedBoxes.length === allBoxes.length) {
       labelEl.innerText = `${prefix} (All)`;
@@ -2508,6 +2556,84 @@
     }, 15000);
   }
 
+  function clearSearchAndSubmit(formId, inputId) {
+    const input = document.getElementById(inputId);
+    const form = document.getElementById(formId);
+    if (input) input.value = '';
+    if (form) {
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+      } else {
+        optimizeFilterFormBeforeSubmit(form);
+        form.submit();
+      }
+    }
+  }
+
+  function optimizeFilterFormBeforeSubmit(form) {
+    if (!form) return;
+
+    const multiselectNames = [
+      'question_ids[]',
+      'assignment_ids[]',
+      'section_ids[]',
+      'participant_ids[]'
+    ];
+
+    multiselectNames.forEach(inputName => {
+      const singularName = inputName.replace('[]', '');
+      const allBoxes = form.querySelectorAll(`input[name="${inputName}"]`);
+      if (allBoxes.length === 0) return;
+
+      const checkedBoxes = form.querySelectorAll(`input[name="${inputName}"]:checked`);
+
+      // Clean up any previously injected compact inputs
+      const existingHidden = form.querySelector(`input[name="${singularName}"][data-compact="true"]`);
+      if (existingHidden) existingHidden.remove();
+
+      // Solution 1: If all boxes are checked, or none are checked:
+      // Omitting the parameter causes the backend to include all records by default.
+      // Disable checkboxes so they are omitted from the GET query string (saving 100% of bytes).
+      if (checkedBoxes.length === 0 || checkedBoxes.length === allBoxes.length) {
+        allBoxes.forEach(cb => { cb.disabled = true; });
+      } else {
+        // Solution 2: A specific subset is checked!
+        // Instead of repeating `name[]=...` dozens or hundreds of times,
+        // compress into a single comma-separated hidden input `name=1,2,3...`
+        const joinedValues = Array.from(checkedBoxes).map(cb => cb.value).join(',');
+
+        // Disable individual array checkboxes so they don't get appended to the URL
+        allBoxes.forEach(cb => { cb.disabled = true; });
+
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = singularName;
+        hiddenInput.value = joinedValues;
+        hiddenInput.setAttribute('data-compact', 'true');
+        form.appendChild(hiddenInput);
+      }
+    });
+
+    // Re-enable checkboxes shortly after submit event dispatches so bfcache or in-page navigation isn't corrupted
+    setTimeout(() => {
+      form.querySelectorAll('input[type="checkbox"]:disabled').forEach(cb => {
+        cb.disabled = false;
+      });
+      const compactInputs = form.querySelectorAll('input[data-compact="true"]');
+      compactInputs.forEach(el => el.remove());
+    }, 500);
+  }
+
+  function initFilterFormOptimization() {
+    const form = document.getElementById('consolidatedMatrixReportForm');
+    if (!form || form.dataset.optimizationInitialized === 'true') return;
+    form.dataset.optimizationInitialized = 'true';
+
+    form.addEventListener('submit', function() {
+      optimizeFilterFormBeforeSubmit(form);
+    });
+  }
+
   function initFilterFormDirtyListeners() {
     isFilterFormDirty = false;
     const form = document.getElementById('consolidatedMatrixReportForm');
@@ -2522,11 +2648,13 @@
     initMatrixScrollPagination();
     initQuestionFilterState();
     initFilterFormDirtyListeners();
+    initFilterFormOptimization();
   });
   document.addEventListener('DOMContentLoaded', function() {
     initMatrixScrollPagination();
     initQuestionFilterState();
     initFilterFormDirtyListeners();
+    initFilterFormOptimization();
   });
 
   document.addEventListener('turbo:before-cache', function() {
@@ -2541,5 +2669,9 @@
     if (typeof window.exitTableFullscreen === 'function') {
       window.exitTableFullscreen();
     }
+    document.querySelectorAll('form input[type="checkbox"]:disabled').forEach(cb => {
+      cb.disabled = false;
+    });
+    document.querySelectorAll('form input[data-compact="true"]').forEach(el => el.remove());
   });
 </script>
