@@ -46,11 +46,16 @@ module InstituteAdmin
         format.json do
           fetch_consolidated_response_reports_paginated
           page_num = [ (params[:page] || 1).to_i, 1 ].max
+          html_content = if @paginated_rows.empty? && (page_num > 1 || params[:scroll].present?)
+                           ""
+                         else
+                           render_to_string(partial: "consolidated_response_rows", formats: [ :html ], locals: { rows: @paginated_rows, start_index: @pagy ? @pagy.from : 1 })
+                         end
           render json: {
-            html: render_to_string(partial: "consolidated_response_rows", formats: [ :html ], locals: { rows: @paginated_rows, start_index: @pagy ? @pagy.from : 1 }),
+            html: html_content,
             page: page_num,
             has_more: @pagy ? (page_num < @pagy.pages) : false,
-            loaded_count: [ (@pagy ? @pagy.offset : 0) + @paginated_rows.size, @total_report_count ].min,
+            loaded_count: @paginated_rows.empty? ? @total_report_count : [ (@pagy ? @pagy.offset : 0) + @paginated_rows.size, @total_report_count ].min,
             total_count: @total_report_count
           }
         end
@@ -83,11 +88,16 @@ module InstituteAdmin
         format.json do
           fetch_consolidated_matrix_reports_paginated
           page_num = [ (params[:page] || 1).to_i, 1 ].max
+          html_content = if @paginated_matrix_rows.empty? && (page_num > 1 || params[:scroll].present?)
+                           ""
+                         else
+                           render_to_string(partial: "consolidated_matrix_rows", formats: [ :html ], locals: { rows: @paginated_matrix_rows, start_index: @pagy ? @pagy.from : 1, matrix_questions: @matrix_questions })
+                         end
           render json: {
-            html: render_to_string(partial: "consolidated_matrix_rows", formats: [ :html ], locals: { rows: @paginated_matrix_rows, start_index: @pagy ? @pagy.from : 1, matrix_questions: @matrix_questions }),
+            html: html_content,
             page: page_num,
             has_more: @pagy ? (page_num < @pagy.pages) : false,
-            loaded_count: [ (@pagy ? @pagy.offset : 0) + @paginated_matrix_rows.size, @total_matrix_count ].min,
+            loaded_count: @paginated_matrix_rows.empty? ? @total_matrix_count : [ (@pagy ? @pagy.offset : 0) + @paginated_matrix_rows.size, @total_matrix_count ].min,
             total_count: @total_matrix_count
           }
         end
@@ -937,7 +947,13 @@ module InstituteAdmin
         end
       else
         @total_report_count = submitted_logs_count + pending_count
-        @pagy = Pagy.new(count: @total_report_count, page: page_num, items: items_per_page)
+        max_pages = [ (@total_report_count.to_f / items_per_page).ceil, 1 ].max
+        clamped_page = [ [ page_num, max_pages ].min, 1 ].max
+        @pagy = begin
+                  Pagy.new(count: @total_report_count, page: clamped_page, items: items_per_page)
+                rescue Pagy::OverflowError
+                  Pagy.new(count: @total_report_count, page: 1, items: items_per_page)
+                end
 
         page_offset = @pagy.offset
         @paginated_rows = []
@@ -1734,7 +1750,27 @@ module InstituteAdmin
       page_num = [ (params[:page] || 1).to_i, 1 ].max
       items_per_page = 25
 
-      @pagy = Pagy.new(count: @total_report_count, page: page_num, items: items_per_page)
+      max_pages = [ (@total_report_count.to_f / items_per_page).ceil, 1 ].max
+      is_scroll_or_async = params[:scroll].present? || request.xhr? || request.format.json?
+
+      if is_scroll_or_async && page_num > max_pages
+        @pagy = begin
+                  Pagy.new(count: @total_report_count, page: max_pages, items: items_per_page)
+                rescue Pagy::OverflowError
+                  Pagy.new(count: @total_report_count, page: 1, items: items_per_page)
+                end
+        @paginated_rows = []
+        calculate_consolidated_kpis(base_query, pending_rows_list)
+        @report_rows = Array.new(@total_report_count)
+        return
+      end
+
+      clamped_page = [ [ page_num, max_pages ].min, 1 ].max
+      @pagy = begin
+                Pagy.new(count: @total_report_count, page: clamped_page, items: items_per_page)
+              rescue Pagy::OverflowError
+                Pagy.new(count: @total_report_count, page: 1, items: items_per_page)
+              end
       page_offset = @pagy.offset
       @paginated_rows = []
 
@@ -2307,7 +2343,27 @@ module InstituteAdmin
       page_num = [ (params[:page] || 1).to_i, 1 ].max
       items_per_page = 25
 
-      @pagy = Pagy.new(count: @total_matrix_count, page: page_num, items: items_per_page)
+      max_pages = [ (@total_matrix_count.to_f / items_per_page).ceil, 1 ].max
+      is_scroll_or_async = params[:scroll].present? || request.xhr? || request.format.json?
+
+      if is_scroll_or_async && page_num > max_pages
+        @pagy = begin
+                  Pagy.new(count: @total_matrix_count, page: max_pages, items: items_per_page)
+                rescue Pagy::OverflowError
+                  Pagy.new(count: @total_matrix_count, page: 1, items: items_per_page)
+                end
+        @paginated_matrix_rows = []
+        calculate_matrix_kpis(base_query, pending_rows_list)
+        @matrix_rows = Array.new(@total_matrix_count)
+        return
+      end
+
+      clamped_page = [ [ page_num, max_pages ].min, 1 ].max
+      @pagy = begin
+                Pagy.new(count: @total_matrix_count, page: clamped_page, items: items_per_page)
+              rescue Pagy::OverflowError
+                Pagy.new(count: @total_matrix_count, page: 1, items: items_per_page)
+              end
       page_offset = @pagy.offset
       @paginated_matrix_rows = []
 

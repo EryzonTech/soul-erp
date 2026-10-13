@@ -6,7 +6,7 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @admin = users(:one)
     @institute = @admin.institute
-    
+
     # Create section
     @section = Section.create!(
       name: "Test Section",
@@ -14,10 +14,10 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
       capacity: 30,
       institute: @institute
     )
-    
+
     # Update admin user section
     @admin.update!(section: @section)
-    
+
     # Create participant user
     @participant_user = User.create!(
       email: "student@example.com",
@@ -29,7 +29,7 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
       institute: @institute,
       section: @section
     )
-    
+
     # Create participant
     @participant = Participant.create!(
       user: @participant_user,
@@ -37,7 +37,7 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
       section_id: @section.id,
       date_of_birth: 15.years.ago.to_date
     )
-    
+
     # Create training program
     @training_program = TrainingProgram.create!(
       title: "Test Program",
@@ -50,13 +50,13 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
       end_date: 1.month.from_now.to_date,
       status: :ongoing
     )
-    
+
     # Add participant to training program
     TrainingProgramParticipant.create!(
       participant: @participant,
       training_program: @training_program
     )
-    
+
     # Create feedback
     @feedback = TrainingProgramFeedback.create!(
       participant: @participant,
@@ -64,7 +64,7 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
       rating: 5,
       content: "Great training!"
     )
-    
+
     sign_in @admin
   end
 
@@ -173,7 +173,7 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
     # Filter for assignment2 only
     get consolidated_response_report_institute_admin_reports_url, params: { assignment_ids: [ assignment2.id ], submission_statuses: [ "submitted" ], view: "detailed" }
     assert_response :success
-    refute_includes response.body, "Math Answer"
+    assert_not_includes response.body, "Math Answer"
   end
 
   test "should download consolidated_response_report as excel spreadsheetml" do
@@ -448,7 +448,7 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
     get consolidated_response_report_institute_admin_reports_url, params: { question_ids: [ q1.id ], date_range: "all_time", view: "detailed" }
     assert_response :success
     assert_includes response.body, "Alpha Answer"
-    refute_includes response.body, "Beta Answer"
+    assert_not_includes response.body, "Beta Answer"
   end
 
   test "should filter consolidated_matrix_report by participant_types" do
@@ -478,7 +478,7 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
     # Filter for guardian only - should not match student
     get consolidated_matrix_report_institute_admin_reports_url, params: { participant_types: [ "guardian" ], date_range: "all_time" }
     assert_response :success
-    refute_includes response.body, "Student Answer"
+    assert_not_includes response.body, "Student Answer"
   end
 
   test "should return scroll pagination json for consolidated_matrix_report and consolidated_response_report" do
@@ -608,5 +608,122 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "#matrixDataTable th", text: /Unanswered Question Omega/
   end
-end
 
+  test "consolidated response and matrix reports gracefully handle pagy page overflow without raising Pagy::OverflowError" do
+    # Scenario: User requests page 4 when total count only spans 1 page (e.g. 1 response exists)
+    assignment = Assignment.create!(
+      title: "Pagy Overflow Test Assignment",
+      start_date: 1.week.ago.to_date,
+      end_date: 1.week.from_now.to_date,
+      assignment_type: "section",
+      section: @section,
+      institute: @institute,
+      skip_association_validation: true
+    )
+    question = Question.create!(title: "Overflow Question", question_type: "short_answer", institute: @institute)
+    AssignmentQuestion.create!(assignment: assignment, question: question, order_number: 1)
+    resp = AssignmentResponse.create!(
+      assignment: assignment,
+      participant: @participant,
+      question: question,
+      answer: "Sample Answer",
+      response_date: Date.current
+    )
+    AssignmentResponseLog.create!(
+      institute: @institute,
+      participant: @participant,
+      assignment: assignment,
+      response_date: Date.current,
+      assignment_response_ids: [ resp.id ]
+    )
+
+    # 1. Consolidated Response Report JSON format with page=4 (Infinite Scroll requesting next page beyond range)
+    get consolidated_response_report_institute_admin_reports_url,
+        params: { view: "detailed", page: 4, scroll: "1" },
+        headers: { "Accept" => "application/json" }
+    assert_response :success
+    json_response = JSON.parse(response.body)
+    assert_equal false, json_response["has_more"]
+    assert_equal 4, json_response["page"]
+    assert_equal "", json_response["html"].strip
+
+    # 2. Consolidated Response Report HTML format with page=4 (Direct browser link with clamped fallback)
+    get consolidated_response_report_institute_admin_reports_url,
+        params: { view: "detailed", page: 4 }
+    assert_response :success
+    assert_select "#responseTableBody", 1
+
+    # 3. Consolidated Matrix Report JSON format with page=4
+    get consolidated_matrix_report_institute_admin_reports_url,
+        params: { page: 4, scroll: "1" },
+        headers: { "Accept" => "application/json" }
+    assert_response :success
+    matrix_json = JSON.parse(response.body)
+    assert_equal false, matrix_json["has_more"]
+    assert_equal 4, matrix_json["page"]
+    assert_equal "", matrix_json["html"].strip
+
+    # 4. Consolidated Matrix Report HTML format with page=4
+    get consolidated_matrix_report_institute_admin_reports_url,
+        params: { page: 4 }
+    assert_response :success
+    assert_select "#matrixDataTable", 1
+
+    # 5. Assignment Reports HTML format with page=99
+    get assignment_reports_institute_admin_reports_url,
+        params: { page: 99 }
+    assert_response :success
+  end
+
+  test "consolidated reports correctly accept compact comma-separated question_ids and dimension parameters" do
+    assignment = Assignment.create!(
+      title: "Compact Param Assignment",
+      start_date: 1.week.ago.to_date,
+      end_date: 1.week.from_now.to_date,
+      assignment_type: "section",
+      section: @section,
+      institute: @institute,
+      skip_association_validation: true
+    )
+    q1 = Question.create!(title: "Question 101", question_type: "short_answer", institute: @institute)
+    q2 = Question.create!(title: "Question 102", question_type: "short_answer", institute: @institute)
+    AssignmentQuestion.create!(assignment: assignment, question: q1, order_number: 1)
+    AssignmentQuestion.create!(assignment: assignment, question: q2, order_number: 2)
+
+    resp1 = AssignmentResponse.create!(
+      assignment: assignment,
+      participant: @participant,
+      question: q1,
+      answer: "Answer 101",
+      response_date: Date.current
+    )
+    AssignmentResponse.create!(
+      assignment: assignment,
+      participant: @participant,
+      question: q2,
+      answer: "Answer 102",
+      response_date: Date.current
+    )
+    AssignmentResponseLog.create!(
+      institute: @institute,
+      participant: @participant,
+      assignment: assignment,
+      response_date: Date.current,
+      assignment_response_ids: [ resp1.id ]
+    )
+
+    # Filter with comma-separated string `question_ids: "#{q1.id}"` (Solution 2)
+    get consolidated_response_report_institute_admin_reports_url,
+        params: { view: "detailed", question_ids: "#{q1.id}", date_range: "all_time" }
+    assert_response :success
+    assert_includes response.body, "Answer 101"
+    assert_not_includes response.body, "Answer 102"
+
+    # Filter matrix report with comma-separated string `question_ids: "#{q1.id},#{q2.id}"`
+    get consolidated_matrix_report_institute_admin_reports_url,
+        params: { question_ids: "#{q1.id},#{q2.id}", date_range: "all_time" }
+    assert_response :success
+    assert_select "#matrixDataTable th", text: /Question 101/
+    assert_select "#matrixDataTable th", text: /Question 102/
+  end
+end
