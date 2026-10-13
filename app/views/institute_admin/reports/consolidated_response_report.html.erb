@@ -1895,21 +1895,6 @@
     const rangeInput = form ? form.querySelector('input[name="question_date_range"]') : null;
     if (rangeInput) rangeInput.value = range;
 
-    // Sync with main report date filter so questions and response rows align
-    const mainDateSelect = document.getElementById('consolidatedDateRange');
-    if (mainDateSelect && range !== 'all') {
-      mainDateSelect.value = range;
-      toggleCustomDates(range, false);
-      if (range === 'custom') {
-        const customFrom = document.querySelector('input[name="start_date"]');
-        const customTo = document.querySelector('input[name="end_date"]');
-        const qFrom = form ? form.querySelector('input[name="question_from_date"]') : null;
-        const qTo = form ? form.querySelector('input[name="question_to_date"]') : null;
-        if (customFrom && qFrom) customFrom.value = qFrom.value;
-        if (customTo && qTo) customTo.value = qTo.value;
-      }
-    }
-
     const customRow = dropdownMenu.querySelector('.q-custom-date-row');
     if (customRow) {
       if (range === 'custom') {
@@ -2227,28 +2212,13 @@
     }
   }
 
-  function toggleCustomDates(val, syncQuestionPills = true) {
+  function toggleCustomDates(val) {
     const row = document.getElementById('customDateRangeRow');
     if (!row) return;
     if (val === 'custom') {
       row.classList.remove('d-none');
     } else {
       row.classList.add('d-none');
-    }
-
-    if (syncQuestionPills) {
-      const qDropdown = document.querySelector('.q-filter-dropdown-menu');
-      if (qDropdown) {
-        const qRange = val === 'all_time' ? 'all' : val;
-        const targetPill = qDropdown.querySelector(`.q-date-pill[data-date-range="${qRange}"]`);
-        if (targetPill) {
-          qDropdown.querySelectorAll('.q-date-pill').forEach(p => p.classList.remove('active'));
-          targetPill.classList.add('active');
-          const qRangeInput = document.querySelector('input[name="question_date_range"]');
-          if (qRangeInput) qRangeInput.value = qRange;
-          applyQuestionFilters(qDropdown, true);
-        }
-      }
     }
     markFiltersDirty();
   }
