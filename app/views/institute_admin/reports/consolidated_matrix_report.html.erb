@@ -260,7 +260,18 @@
         <!-- 1. Assignments Multi-Select Dropdown -->
         <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="dropdown multiselect-dropdown">
-            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_assignment_ids.present? %>" 
+            <%
+              asg_count = @available_assignments&.size || 0
+              asg_label = if @selected_assignment_ids.blank? || (asg_count > 0 && @selected_assignment_ids.size == asg_count)
+                            'All'
+                          elsif @selected_assignment_ids == ['none']
+                            'None'
+                          else
+                            @selected_assignment_ids.size
+                          end
+              is_asg_active = @selected_assignment_ids.present? && @selected_assignment_ids != ['none'] && @selected_assignment_ids.size < asg_count
+            %>
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if is_asg_active %>" 
                     type="button" 
                     data-bs-toggle="dropdown" 
                     data-bs-display="static"
@@ -269,7 +280,7 @@
               <span class="d-inline-flex align-items-center text-truncate">
                 <i class="bi bi-journal-check me-2 text-primary flex-shrink-0"></i>
                 <span class="dropdown-label text-truncate" id="asgLabel">
-                  Assignments (<%= @selected_assignment_ids.empty? ? 'All' : @selected_assignment_ids.size %>)
+                  Assignments (<%= asg_label %>)
                 </span>
               </span>
             </button>
@@ -289,7 +300,7 @@
                            name="assignment_ids[]" 
                            value="<%= asg.id %>" 
                            id="asg_cb_<%= asg.id %>" 
-                           <%= 'checked' if @selected_assignment_ids.include?(asg.id.to_s) %>
+                           <%= 'checked' if @selected_assignment_ids.blank? || @selected_assignment_ids.include?(asg.id.to_s) %>
                            onchange="updateDropdownCounter('asgLabel', 'Assignments', 'assignment_ids[]')">
                     <label class="form-check-label flex-grow-1 cursor-pointer small" for="asg_cb_<%= asg.id %>" title="<%= asg.title %>">
                       <%= asg.title %>
@@ -413,6 +424,17 @@
                   <% 
                     is_today_q = @today_active_question_ids&.include?(q.id) || q_dates.include?(Date.current.to_s)
                     is_initially_hidden = (active_q_range == 'today' && !is_today_q)
+                    is_q_checked = if @selected_question_ids.present?
+                                     @selected_question_ids.include?(q.id.to_s)
+                                   elsif active_q_range == 'all'
+                                     true
+                                   elsif active_q_range == 'today'
+                                     is_today_q
+                                   elsif active_q_range == 'yesterday'
+                                     @yesterday_active_question_ids&.include?(q.id) || q_dates.include?(Date.yesterday.to_s)
+                                   else
+                                     !is_initially_hidden
+                                   end
                   %>
                   <div class="form-check dropdown-item rounded px-2.5 py-2 mb-1 multiselect-item d-flex align-items-start gap-2.5 <%= 'd-none is-hidden' if is_initially_hidden %>"
                        data-question-id="<%= q.id %>"
@@ -425,7 +447,7 @@
                            name="question_ids[]" 
                            value="<%= q.id %>" 
                            id="q_cb_<%= q.id %>" 
-                           <%= 'checked' if @selected_question_ids.include?(q.id.to_s) %>
+                           <%= 'checked' if is_q_checked %>
                            onchange="updateDropdownCounter('qLabel', 'Questions', 'question_ids[]')">
                     <label class="form-check-label flex-grow-1 cursor-pointer" for="q_cb_<%= q.id %>" title="<%= q.title %>">
                       <div class="d-flex align-items-start justify-content-between gap-2">
@@ -447,7 +469,18 @@
         <!-- 3. Sections Multi-Select Dropdown -->
         <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="dropdown multiselect-dropdown">
-            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_section_ids.present? %>" 
+            <%
+              sec_count = @available_sections&.size || 0
+              sec_label = if @selected_section_ids.blank? || (sec_count > 0 && @selected_section_ids.size == sec_count)
+                            'All'
+                          elsif @selected_section_ids == ['none']
+                            'None'
+                          else
+                            @selected_section_ids.size
+                          end
+              is_sec_active = @selected_section_ids.present? && @selected_section_ids != ['none'] && @selected_section_ids.size < sec_count
+            %>
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if is_sec_active %>" 
                     type="button" 
                     data-bs-toggle="dropdown" 
                     data-bs-display="static"
@@ -456,7 +489,7 @@
               <span class="d-inline-flex align-items-center text-truncate">
                 <i class="bi bi-people me-2 text-info flex-shrink-0"></i>
                 <span class="dropdown-label text-truncate" id="secLabel">
-                  Sections (<%= @selected_section_ids.empty? ? 'All' : @selected_section_ids.size %>)
+                  Sections (<%= sec_label %>)
                 </span>
               </span>
             </button>
@@ -476,7 +509,7 @@
                            name="section_ids[]" 
                            value="<%= sec.id %>" 
                            id="sec_cb_<%= sec.id %>" 
-                           <%= 'checked' if @selected_section_ids.include?(sec.id.to_s) %>
+                           <%= 'checked' if @selected_section_ids.blank? || @selected_section_ids.include?(sec.id.to_s) %>
                            onchange="updateDropdownCounter('secLabel', 'Sections', 'section_ids[]')">
                     <label class="form-check-label flex-grow-1 cursor-pointer small" for="sec_cb_<%= sec.id %>">
                       <%= sec.name %>
@@ -491,7 +524,18 @@
         <!-- 4. Participants Multi-Select Dropdown -->
         <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="dropdown multiselect-dropdown">
-            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_participant_ids.present? %>" 
+            <%
+              part_count = @available_participants&.size || 0
+              part_label = if @selected_participant_ids.blank? || (part_count > 0 && @selected_participant_ids.size == part_count)
+                             'All'
+                           elsif @selected_participant_ids == ['none']
+                             'None'
+                           else
+                             @selected_participant_ids.size
+                           end
+              is_part_active = @selected_participant_ids.present? && @selected_participant_ids != ['none'] && @selected_participant_ids.size < part_count
+            %>
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if is_part_active %>" 
                     type="button" 
                     data-bs-toggle="dropdown" 
                     data-bs-display="static"
@@ -500,7 +544,7 @@
               <span class="d-inline-flex align-items-center text-truncate">
                 <i class="bi bi-person me-2 text-success flex-shrink-0"></i>
                 <span class="dropdown-label text-truncate" id="partLabel">
-                  Participants (<%= @selected_participant_ids.empty? ? 'All' : @selected_participant_ids.size %>)
+                  Participants (<%= part_label %>)
                 </span>
               </span>
             </button>
@@ -520,7 +564,7 @@
                            name="participant_ids[]" 
                            value="<%= p.id %>" 
                            id="part_cb_<%= p.id %>" 
-                           <%= 'checked' if @selected_participant_ids.include?(p.id.to_s) %>
+                           <%= 'checked' if @selected_participant_ids.blank? || @selected_participant_ids.include?(p.id.to_s) %>
                            onchange="updateDropdownCounter('partLabel', 'Participants', 'participant_ids[]')">
                     <label class="form-check-label flex-grow-1 cursor-pointer small" for="part_cb_<%= p.id %>" title="<%= p.email %>">
                       <%= p.full_name %> 
@@ -539,7 +583,18 @@
         <!-- 5. Participant Type Filter Dropdown [NEW] -->
         <div class="col-12 col-sm-6 col-md-4 col-xl">
           <div class="dropdown multiselect-dropdown">
-            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if @selected_participant_types.present? %>" 
+            <%
+              avail_types = @available_participant_types || ['student', 'guardian', 'employee']
+              type_label = if @selected_participant_types.blank? || @selected_participant_types.size == avail_types.size
+                             'All'
+                           elsif @selected_participant_types == ['none']
+                             'None'
+                           else
+                             @selected_participant_types.map(&:titleize).join(', ')
+                           end
+              is_type_active = @selected_participant_types.present? && @selected_participant_types != ['none'] && @selected_participant_types.size < avail_types.size
+            %>
+            <button class="filter-dropdown-btn dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between <%= 'filter-active' if is_type_active %>" 
                     type="button" 
                     data-bs-toggle="dropdown" 
                     data-bs-display="static"
@@ -548,20 +603,24 @@
               <span class="d-inline-flex align-items-center text-truncate">
                 <i class="bi bi-person-badge me-2 text-purple flex-shrink-0" style="color: #9333ea;"></i>
                 <span class="dropdown-label text-truncate" id="typeLabel">
-                  Type (<%= @selected_participant_types.blank? ? 'All' : @selected_participant_types.map(&:titleize).join(', ') %>)
+                  Type (<%= type_label %>)
                 </span>
               </span>
             </button>
             <div class="dropdown-menu dropdown-menu-end p-2 shadow-lg rounded-3 border" style="width: 240px; max-width: min(280px, calc(100vw - 2rem));">
+              <div class="d-flex justify-content-between px-1 mb-2 pb-1 border-bottom">
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, true, 'typeLabel', 'Type', 'participant_types[]')">Select All</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" style="font-size: 0.75rem;" onclick="selectAllDropdownCheckboxes(this, false, 'typeLabel', 'Type', 'participant_types[]')">Clear</button>
+              </div>
               <div class="multiselect-options-list">
-                <% (@available_participant_types || ['student', 'guardian', 'employee']).each do |ptype| %>
+                <% avail_types.each do |ptype| %>
                   <div class="form-check dropdown-item rounded px-2 py-1.5 multiselect-item d-flex align-items-center gap-2">
                     <input class="form-check-input flex-shrink-0" 
                            type="checkbox" 
                            name="participant_types[]" 
                            value="<%= ptype %>" 
                            id="type_cb_<%= ptype %>" 
-                           <%= 'checked' if @selected_participant_types.include?(ptype) %>
+                           <%= 'checked' if @selected_participant_types.blank? || @selected_participant_types.include?(ptype) %>
                            onchange="updateTypeCounter()">
                     <label class="form-check-label flex-grow-1 cursor-pointer small fw-medium text-capitalize" for="type_cb_<%= ptype %>">
                       <% case ptype %>
@@ -2230,7 +2289,13 @@
       const activePill = qDropdown ? qDropdown.querySelector('.q-date-pill.active') : null;
       const activeRange = activePill ? activePill.dataset.dateRange : 'today';
 
-      if (checkedBoxes.length > 0 && checkedBoxes.length !== allBoxes.length) {
+      const visibleItems = qDropdown ? qDropdown.querySelectorAll('.multiselect-item:not(.d-none):not(.is-hidden):not([hidden])') : [];
+      const visibleChecked = qDropdown ? qDropdown.querySelectorAll('.multiselect-item:not(.d-none):not(.is-hidden):not([hidden]) input[name="question_ids[]"]:checked') : [];
+
+      if (checkedBoxes.length === 0) {
+        labelEl.innerText = `${prefix} (0)`;
+        if (btn) btn.classList.add('filter-active');
+      } else if (visibleItems.length > 0 && visibleChecked.length < visibleItems.length) {
         labelEl.innerText = `${prefix} (${checkedBoxes.length})`;
         if (btn) btn.classList.add('filter-active');
       } else {
@@ -2245,7 +2310,7 @@
         const rangeText = rangeTextMap[activeRange] || 'Today';
         labelEl.innerText = `${prefix} (${rangeText})`;
         if (btn) {
-          if (activeRange !== 'all' || checkedBoxes.length > 0) {
+          if (activeRange !== 'all') {
             btn.classList.add('filter-active');
           } else {
             btn.classList.remove('filter-active');
@@ -2255,9 +2320,17 @@
       return;
     }
 
-    if (checkedBoxes.length === 0 || checkedBoxes.length === allBoxes.length) {
+    if (inputName === 'participant_types[]') {
+      updateTypeCounter();
+      return;
+    }
+
+    if (checkedBoxes.length === allBoxes.length) {
       labelEl.innerText = `${prefix} (All)`;
       if (btn) btn.classList.remove('filter-active');
+    } else if (checkedBoxes.length === 0) {
+      labelEl.innerText = `${prefix} (None)`;
+      if (btn) btn.classList.add('filter-active');
     } else {
       labelEl.innerText = `${prefix} (${checkedBoxes.length})`;
       if (btn) btn.classList.add('filter-active');
@@ -2266,14 +2339,18 @@
 
   function updateTypeCounter() {
     const checked = document.querySelectorAll('input[name="participant_types[]"]:checked');
+    const allBoxes = document.querySelectorAll('input[name="participant_types[]"]');
     const labelEl = document.getElementById('typeLabel');
     if (!labelEl) return;
 
     const btn = labelEl.closest('.filter-dropdown-btn');
 
-    if (checked.length === 0 || checked.length === 3) {
+    if (checked.length === allBoxes.length) {
       labelEl.innerText = 'Type (All)';
       if (btn) btn.classList.remove('filter-active');
+    } else if (checked.length === 0) {
+      labelEl.innerText = 'Type (None)';
+      if (btn) btn.classList.add('filter-active');
     } else {
       const types = Array.from(checked).map(c => c.value.charAt(0).toUpperCase() + c.value.slice(1)).join(', ');
       labelEl.innerText = `Type (${types})`;
@@ -2577,7 +2654,8 @@
       'question_ids[]',
       'assignment_ids[]',
       'section_ids[]',
-      'participant_ids[]'
+      'participant_ids[]',
+      'participant_types[]'
     ];
 
     multiselectNames.forEach(inputName => {
@@ -2591,11 +2669,20 @@
       const existingHidden = form.querySelector(`input[name="${singularName}"][data-compact="true"]`);
       if (existingHidden) existingHidden.remove();
 
-      // Solution 1: If all boxes are checked, or none are checked:
+      // Solution 1: If all boxes are checked:
       // Omitting the parameter causes the backend to include all records by default.
       // Disable checkboxes so they are omitted from the GET query string (saving 100% of bytes).
-      if (checkedBoxes.length === 0 || checkedBoxes.length === allBoxes.length) {
+      if (checkedBoxes.length === allBoxes.length) {
         allBoxes.forEach(cb => { cb.disabled = true; });
+      } else if (checkedBoxes.length === 0) {
+        // If 0 boxes are checked, send 'none' to explicitly filter by none
+        allBoxes.forEach(cb => { cb.disabled = true; });
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = singularName;
+        hiddenInput.value = 'none';
+        hiddenInput.setAttribute('data-compact', 'true');
+        form.appendChild(hiddenInput);
       } else {
         // Solution 2: A specific subset is checked!
         // Instead of repeating `name[]=...` dozens or hundreds of times,
