@@ -2249,22 +2249,31 @@ module InstituteAdmin
       aqs.each do |aq|
         q = aq.question
         next unless q
+        asg = aq.assignment
         questions_map[q.id] ||= {
           id: q.id,
           title: q.title,
           question_type: q.question_type,
+          from_day: q.from_day,
+          to_day: q.to_day,
+          day_range_text: q.day_range_text,
           assignment_ids: Set.new,
           assignment_titles: Set.new,
+          assignment_start_dates: Set.new,
+          assignment_total_days: Set.new,
           order: aq.order_number || 999
         }
         questions_map[q.id][:assignment_ids] << aq.assignment_id
-        questions_map[q.id][:assignment_titles] << aq.assignment&.title
+        questions_map[q.id][:assignment_titles] << asg&.title
+        questions_map[q.id][:assignment_start_dates] << asg&.start_date&.to_date if asg&.start_date.present?
+        questions_map[q.id][:assignment_total_days] << (asg&.total_days || 30) if asg.present?
       end
 
       # 2. Questions via AssignmentQuestionSet
       aq_sets = AssignmentQuestionSet.where(assignment_id: assignment_ids)
                                      .includes(question_set: { question_set_items: :question }, assignment: {})
       aq_sets.each do |aqs_item|
+        asg = aqs_item.assignment
         aqs_item.question_set&.question_set_items&.each do |qsi|
           q = qsi.question
           next unless q
@@ -2272,17 +2281,20 @@ module InstituteAdmin
             id: q.id,
             title: q.title,
             question_type: q.question_type,
+            from_day: q.from_day,
+            to_day: q.to_day,
+            day_range_text: q.day_range_text,
             assignment_ids: Set.new,
             assignment_titles: Set.new,
+            assignment_start_dates: Set.new,
+            assignment_total_days: Set.new,
             order: qsi.position || 999
           }
           questions_map[q.id][:assignment_ids] << aqs_item.assignment_id
-          questions_map[q.id][:assignment_titles] << aqs_item.assignment&.title
+          questions_map[q.id][:assignment_titles] << asg&.title
+          questions_map[q.id][:assignment_start_dates] << asg&.start_date&.to_date if asg&.start_date.present?
+          questions_map[q.id][:assignment_total_days] << (asg&.total_days || 30) if asg.present?
         end
-      end
-
-      questions_map.each_value do |q_data|
-        q_data[:assignments_text] = q_data[:assignment_titles].to_a.compact.join(", ")
       end
 
       # Filter matrix questions:
@@ -2311,7 +2323,212 @@ module InstituteAdmin
         questions_map.select! { |q_id, _| answered_q_set.include?(q_id) }
       end
 
+      questions_map.each_value do |q_data|
+        q_data[:assignments_text] = q_data[:assignment_titles].to_a.compact.join(", ")
+        q_data[:date_info] = resolve_question_header_date_info(q_data)
+      end
+
       @matrix_questions = questions_map.values.sort_by { |q| [ q[:order], q[:id] ] }
+    end
+
+    def resolve_question_header_date_info(q_data)
+      q_id = q_data[:id]
+      from_day = q_data[:from_day]
+      to_day = q_data[:to_day]
+      start_dates = q_data[:assignment_start_dates]&.to_a&.compact || []
+      total_days_arr = q_data[:assignment_total_days]&.to_a&.compact || []
+      max_tot = total_days_arr.max || 30
+
+      today_d = Date.current
+      yesterday_d = Date.yesterday
+
+      resp_dates = (@question_dates_map && @question_dates_map[q_id]) || []
+      has_today_resp = @today_active_question_ids&.include?(q_id) || resp_dates.include?(today_d.to_s)
+      has_yesterday_resp = @yesterday_active_question_ids&.include?(q_id) || resp_dates.include?(yesterday_d.to_s)
+
+      # 1. Single start date across associated assignments (single assignment or synchronized cohorts)
+      if start_dates.size == 1
+        start_d = start_dates.first
+        f_day = from_day || 1
+        t_day = to_day || f_day
+
+        # Whole-assignment routine / daily question
+        if f_day == 1 && t_day >= max_tot
+          if @date_range == "today" && has_today_resp
+            return {
+              type: :today,
+              label: "Today",
+              tooltip: "Daily question • Today (#{today_d.strftime('%d %b %Y')})",
+              icon: "bi-lightning-charge-fill",
+              badge_class: "bg-primary-subtle text-primary border border-primary-subtle"
+            }
+          elsif @date_range == "yesterday" && has_yesterday_resp
+            return {
+              type: :yesterday,
+              label: "Yesterday",
+              tooltip: "Daily question • Yesterday (#{yesterday_d.strftime('%d %b %Y')})",
+              icon: "bi-clock-history",
+              badge_class: "bg-secondary-subtle text-secondary border border-secondary-subtle"
+            }
+          else
+            return {
+              type: :daily,
+              label: "Daily",
+              tooltip: "Scheduled daily across all days (Day 1 - #{max_tot})",
+              icon: "bi-arrow-repeat",
+              badge_class: "bg-light text-muted border"
+            }
+          end
+        end
+
+        sched_start = start_d + (f_day - 1).days
+        sched_end = start_d + ([ t_day, max_tot ].min - 1).days
+
+        if sched_start == sched_end
+          if sched_start == today_d
+            return {
+              type: :today,
+              label: "Today",
+              tooltip: "Today (#{sched_start.strftime('%d %b %Y')}) • Day #{f_day}",
+              icon: "bi-lightning-charge-fill",
+              badge_class: "bg-primary-subtle text-primary border border-primary-subtle"
+            }
+          elsif sched_start == yesterday_d
+            return {
+              type: :yesterday,
+              label: "Yesterday",
+              tooltip: "Yesterday (#{sched_start.strftime('%d %b %Y')}) • Day #{f_day}",
+              icon: "bi-clock-history",
+              badge_class: "bg-secondary-subtle text-secondary border border-secondary-subtle"
+            }
+          else
+            return {
+              type: :date,
+              label: sched_start.strftime("%-d %b"),
+              tooltip: "Day #{f_day} • #{sched_start.strftime('%d %b %Y')}",
+              icon: "bi-calendar3",
+              badge_class: "bg-light text-dark border"
+            }
+          end
+        else
+          # Multi-day range (e.g. Day 1 - 3)
+          range_str = if sched_start.month == sched_end.month
+                        "#{sched_start.day} - #{sched_end.strftime('%-d %b')}"
+                      else
+                        "#{sched_start.strftime('%-d %b')} - #{sched_end.strftime('%-d %b')}"
+                      end
+
+          if today_d >= sched_start && today_d <= sched_end && @date_range == "today"
+            return {
+              type: :today,
+              label: "Today",
+              tooltip: "Day #{f_day} - #{t_day} (#{range_str})",
+              icon: "bi-lightning-charge-fill",
+              badge_class: "bg-primary-subtle text-primary border border-primary-subtle"
+            }
+          elsif yesterday_d >= sched_start && yesterday_d <= sched_end && @date_range == "yesterday"
+            return {
+              type: :yesterday,
+              label: "Yesterday",
+              tooltip: "Day #{f_day} - #{t_day} (#{range_str})",
+              icon: "bi-clock-history",
+              badge_class: "bg-secondary-subtle text-secondary border border-secondary-subtle"
+            }
+          else
+            return {
+              type: :date_range,
+              label: range_str,
+              tooltip: "Day #{f_day} - #{t_day} • #{range_str}",
+              icon: "bi-calendar-range",
+              badge_class: "bg-light text-dark border"
+            }
+          end
+        end
+      end
+
+      # 2. Multi-assignment with different start dates, or assignments without start_date:
+      # Check actual response dates in the active dataset
+      if resp_dates.present?
+        if resp_dates.size == 1
+          r_date = (Date.parse(resp_dates.first) rescue nil)
+          if r_date == today_d
+            return {
+              type: :today,
+              label: "Today",
+              tooltip: "Today (#{today_d.strftime('%d %b %Y')})",
+              icon: "bi-lightning-charge-fill",
+              badge_class: "bg-primary-subtle text-primary border border-primary-subtle"
+            }
+          elsif r_date == yesterday_d
+            return {
+              type: :yesterday,
+              label: "Yesterday",
+              tooltip: "Yesterday (#{yesterday_d.strftime('%d %b %Y')})",
+              icon: "bi-clock-history",
+              badge_class: "bg-secondary-subtle text-secondary border border-secondary-subtle"
+            }
+          elsif r_date.present?
+            return {
+              type: :date,
+              label: r_date.strftime("%-d %b"),
+              tooltip: r_date.strftime("%d %b %Y"),
+              icon: "bi-calendar3",
+              badge_class: "bg-light text-dark border"
+            }
+          end
+        elsif has_today_resp && @date_range == "today"
+          return {
+            type: :today,
+            label: "Today",
+            tooltip: "Today (#{today_d.strftime('%d %b %Y')})",
+            icon: "bi-lightning-charge-fill",
+            badge_class: "bg-primary-subtle text-primary border border-primary-subtle"
+          }
+        elsif has_yesterday_resp && @date_range == "yesterday"
+          return {
+            type: :yesterday,
+            label: "Yesterday",
+            tooltip: "Yesterday (#{yesterday_d.strftime('%d %b %Y')})",
+            icon: "bi-clock-history",
+            badge_class: "bg-secondary-subtle text-secondary border border-secondary-subtle"
+          }
+        end
+      end
+
+      # 3. Check active today/yesterday flags
+      if has_today_resp && (@date_range == "today" || from_day.blank?)
+        return {
+          type: :today,
+          label: "Today",
+          tooltip: "Today (#{today_d.strftime('%d %b %Y')})",
+          icon: "bi-lightning-charge-fill",
+          badge_class: "bg-primary-subtle text-primary border border-primary-subtle"
+        }
+      elsif has_yesterday_resp && (@date_range == "yesterday" || from_day.blank?)
+        return {
+          type: :yesterday,
+          label: "Yesterday",
+          tooltip: "Yesterday (#{yesterday_d.strftime('%d %b %Y')})",
+          icon: "bi-clock-history",
+          badge_class: "bg-secondary-subtle text-secondary border border-secondary-subtle"
+        }
+      end
+
+      # 4. Fallback: Day number
+      if from_day.present?
+        f_day = from_day
+        t_day = to_day || f_day
+        label = (f_day == t_day) ? "Day #{f_day}" : "Day #{f_day}-#{t_day}"
+        return {
+          type: :day,
+          label: label,
+          tooltip: "#{label} (start dates vary across selected assignments)",
+          icon: "bi-calendar-check",
+          badge_class: "bg-light text-dark border"
+        }
+      end
+
+      nil
     end
 
     def build_consolidated_matrix_base_query
@@ -2770,7 +2987,8 @@ module InstituteAdmin
         xml << %{    <Cell ss:StyleID="Header"><Data ss:Type="String">#{CGI.escapeHTML(h)}</Data></Cell>\n}
       end
       questions.each_with_index do |q, q_idx|
-        q_label = "Q#{q_idx + 1}: #{q[:title]} (#{q[:question_type].to_s.humanize})"
+        d_str = q[:date_info].present? ? " [#{q[:date_info][:label]}]" : ""
+        q_label = "Q#{q_idx + 1}#{d_str}: #{q[:title]} (#{q[:question_type].to_s.humanize})"
         xml << %{    <Cell ss:StyleID="QuestionHeader"><Data ss:Type="String">#{CGI.escapeHTML(q_label)}</Data></Cell>\n}
       end
       xml << %{   </Row>\n}
@@ -2865,7 +3083,8 @@ module InstituteAdmin
       CSV.generate(headers: true) do |csv|
         headers = [ "#", "Response Date", "Participant Name", "Participant Type", "Email", "Section", "Assignment Title", "Status", "Submitted At" ]
         questions.each_with_index do |q, q_idx|
-          headers << "Q#{q_idx + 1}: #{q[:title]}"
+          d_str = q[:date_info].present? ? " [#{q[:date_info][:label]}]" : ""
+          headers << "Q#{q_idx + 1}#{d_str}: #{q[:title]}"
         end
         csv << headers
 
