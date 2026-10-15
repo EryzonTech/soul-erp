@@ -8,163 +8,245 @@
   <tr id="noRecordsRow">
     <td colspan="<%= 7 + (questions.size.nonzero? || 1) %>" class="text-center py-5">
       <div class="text-muted mb-2"><i class="bi bi-inbox fs-1"></i></div>
-      <h6 class="fw-bold text-dark mb-1">No Matrix Submissions Found</h6>
-      <p class="text-muted small mb-0">No participant responses match the selected filters. Try adjusting your assignment, section, question, or date criteria.</p>
+      <h6 class="fw-bold text-dark mb-1">No Matrix Participants Found</h6>
+      <p class="text-muted small mb-0">No participants match the selected filters. Try adjusting your assignment, section, question, or date criteria.</p>
     </td>
   </tr>
 <% else %>
   <% display_rows.each_with_index do |row, index| %>
     <% 
       row_num = start_idx + index
-      is_today = row[:date].present? && row[:date].to_date == Date.current
+      sub_dates = row[:submission_dates] || []
+      is_today = (row[:date].present? && row[:date].to_date == Date.current) || (sub_dates.present? && sub_dates.include?(Date.current))
+      sub_cnt = row[:submission_count] || 0
+      part_asg_ids = (row[:assignment_ids] || [row[:assignment_id]]).compact.to_set
     %>
-    <tr class="matrix-data-row <%= 'row-today-active' if is_today %>" id="matrix_row_<%= row[:id] || "pend_#{index}" %>">
+    <tr class="matrix-data-row <%= 'row-today-active' if is_today %>" id="matrix_row_<%= row[:id] || "part_#{row[:participant_id] || index}" %>">
       <!-- STICKY ROW CELLS -->
-      <td class="text-center fw-semibold text-secondary sticky-col sticky-col-num bg-white align-top pt-2.5" style="font-size: 0.82rem; background-color: #ffffff !important; width: 54px; min-width: 54px; max-width: 54px; padding-left: 4px !important; padding-right: 4px !important;">
-        <%= row_num %>
+      <td class="text-center sticky-col sticky-col-num bg-white align-top pt-2" style="background-color: #ffffff !important; width: 54px; min-width: 54px; max-width: 54px; padding-left: 2px !important; padding-right: 2px !important;">
+        <div class="d-flex flex-column align-items-center justify-content-start gap-1">
+          <span class="row-num-text fw-semibold text-secondary" style="font-size: 0.82rem;"><%= row_num %></span>
+          <button type="button" 
+                  class="btn btn-row-toggle" 
+                  onclick="toggleMatrixRowExpand(this);" 
+                  title="Expand row"
+                  aria-label="Toggle row expansion">
+            <i class="bi bi-chevron-down row-toggle-icon"></i>
+          </button>
+        </div>
       </td>
 
       <!-- FROZEN PARTICIPANT COLUMN -->
-      <td class="sticky-col sticky-col-part bg-white align-top pt-2.5" style="background-color: #ffffff !important;">
-        <div class="fw-semibold text-dark text-truncate mb-1" style="max-width: 190px;" title="<%= row[:participant_name] %>">
-          <%= row[:participant_name] %>
+      <td class="sticky-col sticky-col-part bg-white align-top pt-2" style="background-color: #ffffff !important;">
+        <div class="matrix-cell-inner">
+          <div class="fw-semibold text-dark text-truncate mb-1" style="max-width: 190px;" title="<%= row[:participant_name] %>">
+            <%= row[:participant_name] %>
+          </div>
+          <div class="d-flex align-items-center gap-1.5 flex-wrap">
+            <% p_type = row[:participant_type].to_s.downcase %>
+            <% if p_type.present? %>
+              <% 
+                badge_class, badge_style = case p_type
+                                           when 'student'
+                                             ['badge-type-student', 'background-color: #eff6ff !important; color: #1d4ed8 !important; border: 1px solid #bfdbfe !important;']
+                                           when 'guardian'
+                                             ['badge-type-guardian', 'background-color: #f3e8ff !important; color: #7e22ce !important; border: 1px solid #e9d5ff !important;']
+                                           when 'employee'
+                                             ['badge-type-employee', 'background-color: #ecfdf5 !important; color: #047857 !important; border: 1px solid #a7f3d0 !important;']
+                                           else
+                                             ['badge-type-other', 'background-color: #f8fafc !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;']
+                                           end
+              %>
+              <span class="badge <%= badge_class %> rounded-pill px-2 py-0.5 text-capitalize flex-shrink-0" style="font-size: 0.68rem; font-weight: 600; line-height: 1.2; <%= badge_style %>">
+                <%= p_type %>
+              </span>
+            <% end %>
+            <% if sub_cnt > 1 %>
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 flex-shrink-0" style="font-size: 0.68rem; font-weight: 600;" title="<%= sub_cnt %> days submitted: <%= sub_dates.map { |d| d.strftime('%b %d') }.join(', ') %>">
+                <i class="bi bi-calendar-check me-1"></i><%= sub_cnt %> days
+              </span>
+            <% elsif row[:date].present? %>
+              <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5 flex-shrink-0" style="font-size: 0.68rem; font-weight: 500;">
+                <i class="bi bi-calendar3 me-1 text-primary"></i><%= row[:date].strftime("%b %d") %>
+              </span>
+            <% end %>
+            <span class="text-muted text-truncate" style="font-size: 0.72rem; max-width: 110px;" title="<%= row[:participant_email] %>">
+              <%= row[:participant_email] %>
+            </span>
+          </div>
         </div>
-        <div class="d-flex align-items-center gap-1.5 flex-wrap">
-          <% p_type = row[:participant_type].to_s.downcase %>
-          <% if p_type.present? %>
+      </td>
+
+      <!-- DATE / ACTIVITY COLUMN (SCROLLABLE) -->
+      <td class="align-top pt-2">
+        <div class="matrix-cell-inner">
+          <% if sub_cnt > 1 && sub_dates.present? %>
             <% 
-              badge_class, badge_style = case p_type
-                                         when 'student'
-                                           ['badge-type-student', 'background-color: #eff6ff !important; color: #1d4ed8 !important; border: 1px solid #bfdbfe !important;']
-                                         when 'guardian'
-                                           ['badge-type-guardian', 'background-color: #f3e8ff !important; color: #7e22ce !important; border: 1px solid #e9d5ff !important;']
-                                         when 'employee'
-                                           ['badge-type-employee', 'background-color: #ecfdf5 !important; color: #047857 !important; border: 1px solid #a7f3d0 !important;']
-                                         else
-                                           ['badge-type-other', 'background-color: #f8fafc !important; color: #475569 !important; border: 1px solid #cbd5e1 !important;']
-                                         end
+              first_sub = sub_dates.last
+              latest_sub = sub_dates.first
             %>
-            <span class="badge <%= badge_class %> rounded-pill px-2 py-0.5 text-capitalize flex-shrink-0" style="font-size: 0.68rem; font-weight: 600; line-height: 1.2; <%= badge_style %>">
-              <%= p_type %>
+            <div class="d-flex flex-column gap-0.5">
+              <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.72rem; width: fit-content;" title="<%= sub_dates.map { |d| d.strftime('%b %d') }.join(', ') %>">
+                <i class="bi bi-calendar-range me-1"></i><%= sub_cnt %> days
+              </span>
+              <span class="small text-muted" style="font-size: 0.72rem;">
+                <%= first_sub.strftime("%b %d") %> – <%= latest_sub.strftime("%b %d") %>
+              </span>
+            </div>
+          <% elsif is_today %>
+            <div class="d-flex flex-column gap-0.5">
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.72rem; width: fit-content;">
+                <i class="bi bi-clock-history me-1"></i>Today
+              </span>
+              <span class="small text-muted" style="font-size: 0.72rem;"><%= row[:date]&.strftime("%b %d") %></span>
+            </div>
+          <% elsif row[:date].present? %>
+            <span class="fw-medium text-dark"><%= row[:date].strftime("%b %d, %Y") %></span>
+          <% else %>
+            <span class="text-muted small">-</span>
+          <% end %>
+        </div>
+      </td>
+
+      <td class="align-top pt-2">
+        <div class="matrix-cell-inner">
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-medium text-truncate" style="max-width: 110px;" title="<%= row[:section_name] %>">
+            <%= row[:section_name] %>
+          </span>
+        </div>
+      </td>
+
+      <td class="align-top pt-2">
+        <div class="matrix-cell-inner">
+          <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle px-2.5 py-1 rounded-pill fw-medium text-wrap text-start" style="max-width: 160px;" title="<%= row[:assignment_title] %>">
+            <%= row[:assignment_title] %>
+          </span>
+        </div>
+      </td>
+
+      <td class="text-center align-top pt-2">
+        <div class="matrix-cell-inner d-flex justify-content-center">
+          <% if row[:status] == 'submitted' %>
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-medium">
+              <i class="bi bi-check-circle-fill me-1"></i>Submitted
+            </span>
+          <% elsif row[:status] == 'partial' %>
+            <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1 fw-medium">
+              <i class="bi bi-dash-circle-fill me-1"></i>Partial
+            </span>
+          <% else %>
+            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-medium">
+              <i class="bi bi-clock-fill me-1"></i>Pending
             </span>
           <% end %>
-          <span class="text-muted text-truncate" style="font-size: 0.72rem; max-width: 110px;" title="<%= row[:participant_email] %>">
-            <%= row[:participant_email] %>
-          </span>
         </div>
       </td>
 
-      <!-- DATE COLUMN (SCROLLABLE) -->
-      <td class="align-top pt-2.5">
-        <% if is_today %>
-          <div class="d-flex flex-column gap-0.5">
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.72rem; width: fit-content;">
-              <i class="bi bi-clock-history me-1"></i>Today
-            </span>
-            <span class="small text-muted" style="font-size: 0.72rem;"><%= row[:date].strftime("%b %d") %></span>
-          </div>
-        <% else %>
-          <span class="fw-medium text-dark"><%= row[:date].present? ? row[:date].strftime("%b %d, %Y") : "-" %></span>
-        <% end %>
-      </td>
-
-      <td class="align-top pt-2.5">
-        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-medium text-truncate" style="max-width: 110px;">
-          <%= row[:section_name] %>
-        </span>
-      </td>
-
-      <td class="align-top pt-2.5">
-        <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle px-2.5 py-1 rounded-pill fw-medium text-wrap text-start" style="max-width: 160px;">
-          <%= row[:assignment_title] %>
-        </span>
-      </td>
-
-      <td class="text-center align-top pt-2.5">
-        <% if row[:status] == 'submitted' %>
-          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-medium">
-            <i class="bi bi-check-circle-fill me-1"></i>Submitted
-          </span>
-        <% else %>
-          <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-medium">
-            <i class="bi bi-clock-fill me-1"></i>Pending
-          </span>
-        <% end %>
-      </td>
-
-      <td class="text-center text-muted small align-top pt-2.5">
-        <%= row[:submitted_at].present? ? row[:submitted_at].strftime("%I:%M %p") : "-" %>
+      <td class="text-center text-muted small align-top pt-2">
+        <div class="matrix-cell-inner text-center">
+          <% if row[:submitted_at].present? %>
+            <%= row[:submitted_at].strftime("%I:%M %p") %>
+          <% elsif row[:date].present? %>
+            <%= row[:date].strftime("%b %d") %>
+          <% else %>
+            -
+          <% end %>
+        </div>
       </td>
 
       <!-- DYNAMIC QUESTION RESPONSE CELLS -->
       <% row_answers = row[:answers] || {} %>
       <% questions.each do |q| %>
         <% ans_info = row_answers[q[:id]] %>
-        <td class="matrix-cell align-top pt-2.5" style="min-width: 220px; max-width: 320px; width: 260px; vertical-align: top; overflow: hidden; word-break: break-word; overflow-wrap: anywhere;">
-          <% if row[:status] == 'pending' %>
-            <span class="text-muted fst-italic small" style="font-size: 0.75rem;">Pending submission</span>
-          <% elsif ans_info.blank? %>
-            <% if q[:assignment_ids].present? && row[:assignment_id].present? && !q[:assignment_ids].include?(row[:assignment_id]) %>
-              <span class="badge bg-light text-muted border border-light-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;" title="Not part of <%= row[:assignment_title] %>">
-                <i class="bi bi-slash-circle me-1 opacity-50"></i>N/A
-              </span>
-            <% else %>
-              <span class="text-muted fst-italic small" title="Not answered / Skipped by participant" style="font-size: 0.75rem;">-</span>
-            <% end %>
-          <% else %>
-            <% raw_ans = ans_info[:answer].to_s %>
-            <% q_type = ans_info[:question_type] || q[:question_type] %>
-
-            <% if q_type == 'rating' %>
-              <div class="d-flex align-items-center gap-1">
-                <span class="text-warning fs-6">
-                  <% rating_val = raw_ans.to_i %>
-                  <% (1..5).each do |star| %>
-                    <i class="bi <%= star <= rating_val ? 'bi-star-fill' : 'bi-star' %>"></i>
-                  <% end %>
-                </span>
-                <span class="badge bg-warning-subtle text-dark border border-warning-subtle font-monospace px-1.5 py-0.5 small" style="font-size: 0.72rem;">
-                  <%= raw_ans %>/5
-                </span>
-              </div>
-            <% elsif q_type == 'checkboxes' %>
-              <div class="d-flex flex-column align-items-start gap-1 w-100" style="max-width: 100%;">
-                <% raw_ans.split(',').map(&:strip).reject(&:blank?).each do |opt| %>
-                  <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-2 small text-wrap text-start w-100" 
-                        style="font-size: 0.72rem; line-height: 1.35; white-space: normal !important; word-break: break-word !important; overflow-wrap: anywhere !important;">
-                    <%= opt %>
-                  </span>
-                <% end %>
-              </div>
-            <% elsif q_type == 'yes_or_no' %>
-              <% is_yes = raw_ans.downcase.in?(['yes', 'true', '1']) %>
-              <span class="badge <%= is_yes ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle' %> rounded-pill px-2 py-0.5 fw-medium" style="font-size: 0.75rem;">
-                <i class="bi <%= is_yes ? 'bi-check-circle-fill' : 'bi-x-circle-fill' %> me-1"></i><%= raw_ans %>
-              </span>
-            <% else %>
-              <%
-                ans_id = "ans_m_#{row[:id] || index}_#{q[:id]}"
-                is_long = raw_ans.length > 120 || raw_ans.count("\n") >= 3
+        <td class="matrix-cell align-top pt-2" style="min-width: 220px; max-width: 320px; width: 260px; vertical-align: top; overflow: hidden; word-break: break-word; overflow-wrap: anywhere;">
+          <div class="matrix-cell-inner">
+            <% if row[:status] == 'pending' %>
+              <span class="text-muted fst-italic small" style="font-size: 0.75rem;">Pending submission</span>
+            <% elsif ans_info.blank? %>
+              <% 
+                q_asg_ids = (q[:assignment_ids] || []).to_set
+                is_not_assigned = part_asg_ids.present? && q_asg_ids.present? && (part_asg_ids & q_asg_ids).empty?
               %>
-              <div class="response-reading-box w-100" style="max-width: 100% !important;">
-                <div class="response-reading-text small text-break <%= 'clamped-text' if is_long %>" 
-                     id="<%= ans_id %>"
-                     title="<%= raw_ans %>"
-                     style="white-space: pre-line !important; word-break: break-word !important; overflow-wrap: anywhere !important;">
-                  <%= raw_ans %>
+              <% if is_not_assigned %>
+                <span class="badge bg-light text-muted border border-light-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;" title="Not assigned to this participant">
+                  <i class="bi bi-slash-circle me-1 opacity-50"></i>N/A
+                </span>
+              <% else %>
+                <span class="text-muted fst-italic small" title="Not answered / Skipped by participant" style="font-size: 0.75rem;">-</span>
+              <% end %>
+            <% else %>
+              <% raw_ans = ans_info[:answer].to_s %>
+              <% q_type = ans_info[:question_type] || q[:question_type] %>
+
+              <% if q_type == 'rating' %>
+                <div class="d-flex align-items-center gap-1">
+                  <span class="text-warning fs-6">
+                    <% rating_val = raw_ans.to_i %>
+                    <% (1..5).each do |star| %>
+                      <i class="bi <%= star <= rating_val ? 'bi-star-fill' : 'bi-star' %>"></i>
+                    <% end %>
+                  </span>
+                  <span class="badge bg-warning-subtle text-dark border border-warning-subtle font-monospace px-1.5 py-0.5 small" style="font-size: 0.72rem;">
+                    <%= raw_ans %>/5
+                  </span>
                 </div>
-                <% if is_long %>
-                  <button type="button" 
-                          class="btn btn-link btn-read-toggle p-0 text-decoration-none fw-semibold text-indigo d-inline-flex align-items-center gap-1 mt-1" 
-                          style="font-size: 0.72rem;"
-                          onclick="toggleResponseReadMore('<%= ans_id %>', this)">
-                    <span class="toggle-label">Read more</span>
-                    <i class="bi bi-chevron-down toggle-icon" style="font-size: 0.65rem;"></i>
-                  </button>
-                <% end %>
-              </div>
+              <% elsif q_type == 'checkboxes' %>
+                <% opts = raw_ans.split(',').map(&:strip).reject(&:blank?) %>
+                <div class="checkboxes-wrapper d-flex flex-wrap align-items-center gap-1 w-100" style="max-width: 100%;">
+                  <% opts.each_with_index do |opt, opt_idx| %>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-2 small text-wrap text-start <%= 'checkbox-extra-opt' if opt_idx >= 3 %>" 
+                          style="font-size: 0.72rem; line-height: 1.35;">
+                      <%= opt %>
+                    </span>
+                  <% end %>
+                  <% if opts.size > 3 %>
+                    <button type="button" 
+                            class="btn btn-link p-0 text-decoration-none fw-semibold text-success d-inline-flex align-items-center gap-0.5 btn-cell-expand" 
+                            style="font-size: 0.7rem;"
+                            onclick="toggleCellCheckboxes(this, event)">
+                      <span class="toggle-badge-count">+<%= opts.size - 3 %> more</span>
+                      <i class="bi bi-chevron-down" style="font-size: 0.65rem;"></i>
+                    </button>
+                  <% end %>
+                </div>
+              <% elsif q_type == 'yes_or_no' %>
+                <% is_yes = raw_ans.downcase.in?(['yes', 'true', '1']) %>
+                <span class="badge <%= is_yes ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle' %> rounded-pill px-2 py-0.5 fw-medium" style="font-size: 0.75rem;">
+                  <i class="bi <%= is_yes ? 'bi-check-circle-fill' : 'bi-x-circle-fill' %> me-1"></i><%= raw_ans %>
+                </span>
+              <% else %>
+                <%
+                  ans_id = "ans_m_#{row[:id] || index}_#{q[:id]}"
+                  is_long = raw_ans.length > 90 || raw_ans.count("\n") >= 2
+                %>
+                <div class="response-reading-box w-100" style="max-width: 100% !important;">
+                  <div class="response-reading-text small text-break <%= 'clamped-text' if is_long %>" 
+                       id="<%= ans_id %>"
+                       title="<%= raw_ans %>"
+                       style="white-space: pre-line !important; word-break: break-word !important; overflow-wrap: anywhere !important;">
+                    <%= raw_ans %>
+                  </div>
+                  <% if is_long %>
+                    <button type="button" 
+                            class="btn btn-link btn-read-toggle p-0 text-decoration-none fw-semibold text-indigo d-inline-flex align-items-center gap-1 mt-1" 
+                            style="font-size: 0.72rem;"
+                            onclick="toggleResponseReadMore('<%= ans_id %>', this)">
+                      <span class="toggle-label">Read more</span>
+                      <i class="bi bi-chevron-down toggle-icon" style="font-size: 0.65rem;"></i>
+                    </button>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <% if ans_info[:history].present? && ans_info[:history].size > 1 %>
+                <div class="mt-1">
+                  <span class="badge bg-light text-secondary border rounded-pill px-1.5 py-0.5" style="font-size: 0.65rem;" title="<%= ans_info[:history].map { |h| "#{h[:date]&.strftime('%b %d')}: #{h[:answer]}" }.join(' | ') %>">
+                    <i class="bi bi-clock-history me-1"></i><%= ans_info[:history].size %> entries (Latest shown)
+                  </span>
+                </div>
+              <% end %>
             <% end %>
-          <% end %>
+          </div>
         </td>
       <% end %>
     </tr>

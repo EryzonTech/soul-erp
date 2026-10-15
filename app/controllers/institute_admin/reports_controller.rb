@@ -167,10 +167,10 @@ module InstituteAdmin
 
       # Load participants for the selected section
       @participants = if @section_id.present?
-                       current_institute.participants.includes(:user).where(section_id: @section_id)
-      else
-                       []
-      end
+                        current_institute.participants.includes(:user).where(section_id: @section_id).joins(:user).order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
+                      else
+                        []
+                      end
 
       # Always fetch reports for CSV/PDF format, or when filter is applied in HTML format
       if params[:format].in?([ "csv", "pdf" ]) || (params[:commit].present? && params[:submission_status].present?)
@@ -215,10 +215,10 @@ module InstituteAdmin
 
       # Load participants if section is selected
       @participants = if @section_id.present?
-                       current_institute.participants.includes(:user).where(section_id: @section_id)
-      else
-                       []
-      end
+                        current_institute.participants.includes(:user).where(section_id: @section_id).joins(:user).order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
+                      else
+                        []
+                      end
 
       # Load assignments if participant is selected
       @assignments = if @participant_id.present?
@@ -510,9 +510,9 @@ module InstituteAdmin
 
       # Load participants for the selected sections (or all if none selected)
       @participants = if @selected_section_ids.present? && !@selected_section_ids.include?("all")
-                        current_institute.participants.includes(:user, :section).where(section_id: @selected_section_ids)
+                        current_institute.participants.includes(:user, :section).where(section_id: @selected_section_ids).joins(:user).order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
                       else
-                        current_institute.participants.includes(:user, :section)
+                        current_institute.participants.includes(:user, :section).joins(:user).order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
                       end
 
       respond_to do |format|
@@ -855,6 +855,7 @@ module InstituteAdmin
       end
 
       unless only_submitted
+        @not_submitted_participants = @not_submitted_participants.order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
         @not_submitted_participants.each do |participant|
           @report_rows << {
             date: nil,
@@ -910,7 +911,7 @@ module InstituteAdmin
       page_num = [ (params[:page] || 1).to_i, 1 ].max
 
       submitted_logs_count = base_query.count
-      not_submitted_query = not_submitted_query.order("participants.id")
+      not_submitted_query = not_submitted_query.order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
       pending_count = not_submitted_query.count
 
       only_submitted = (@selected_statuses == ["submitted"]) || (params[:submission_status] == "submitted" && @selected_statuses.blank?)
@@ -1239,10 +1240,10 @@ module InstituteAdmin
 
       # Get all participants who should have submitted feedback
       all_participants = if @section_id.present? && @section_id != "all"
-                         current_institute.participants.includes(:section).where(section_id: @section_id)
-      else
-                         current_institute.participants.includes(:section)
-      end
+                           current_institute.participants.includes(:section).where(section_id: @section_id).joins(:user).order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
+                         else
+                           current_institute.participants.includes(:section).joins(:user).order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
+                         end
 
       # Get participants who haven't submitted feedback
       submitted_participant_ids = @submitted_feedbacks.pluck(:participant_id).uniq
@@ -1449,7 +1450,7 @@ module InstituteAdmin
           participants_scope = participants_scope.where(participant_type: @selected_participant_types)
         end
       end
-      @available_participants = participants_scope.joins(:user).order("users.first_name ASC, users.last_name ASC")
+      @available_participants = participants_scope.joins(:user).order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
       @selected_participant_ids = parse_multiselect_param(params[:participant_ids])
 
       target_asg_ids = if @selected_assignment_ids.present?
@@ -1580,6 +1581,7 @@ module InstituteAdmin
       @question_dates_map = {}
       @today_active_question_ids = []
       @yesterday_active_question_ids = []
+      @last_7_days_active_question_ids = []
       return if questions.blank?
 
       q_ids = questions.map(&:id)
@@ -1631,8 +1633,7 @@ module InstituteAdmin
         dates_map[qid] << rdate.to_date.to_s if rdate.present?
       end
 
-      # 2. Assignment schedules: ONLY mark Today & Yesterday as active if scheduled for today/yesterday.
-      # Never inject 30..120 calendar days into dates_map to avoid polluting date filters with empty questions.
+      # 2. Assignment schedules: mark Today, Yesterday, and Last 7 Days as active if scheduled in that window.
       target_assignments = if @selected_assignment_ids.present?
                              valid_asg_ids = extract_numeric_ids(@selected_assignment_ids)
                              current_institute.assignments.where(id: valid_asg_ids)
@@ -1642,11 +1643,13 @@ module InstituteAdmin
 
       today_date = Date.current
       yesterday_date = Date.yesterday
+      last_7_start = 6.days.ago.to_date
       today_str = today_date.to_s
       yesterday_str = yesterday_date.to_s
 
       today_active_set = Set.new(dates_map.select { |_qid, dates| dates.include?(today_str) }.keys)
       yesterday_active_set = Set.new(dates_map.select { |_qid, dates| dates.include?(yesterday_str) }.keys)
+      last_7_active_set = Set.new(dates_map.select { |_qid, dates| dates.any? { |d| d >= last_7_start.to_s && d <= today_str } }.keys)
 
       target_assignments.where.not(start_date: nil).find_each do |asg|
         start_d = asg.start_date.to_date
@@ -1663,6 +1666,7 @@ module InstituteAdmin
           sched_end = start_d + (max_day - 1).days
           today_active_set << q.id if today_date >= sched_start && today_date <= sched_end
           yesterday_active_set << q.id if yesterday_date >= sched_start && yesterday_date <= sched_end
+          last_7_active_set << q.id if sched_start <= today_date && sched_end >= last_7_start
         end
 
         # Check questions in AssignmentQuestionSet
@@ -1677,12 +1681,14 @@ module InstituteAdmin
             sched_end = start_d + (max_day - 1).days
             today_active_set << q.id if today_date >= sched_start && today_date <= sched_end
             yesterday_active_set << q.id if yesterday_date >= sched_start && yesterday_date <= sched_end
+            last_7_active_set << q.id if sched_start <= today_date && sched_end >= last_7_start
           end
         end
       end
 
       @today_active_question_ids = today_active_set.to_a
       @yesterday_active_question_ids = yesterday_active_set.to_a
+      @last_7_days_active_question_ids = last_7_active_set.to_a
 
       @question_dates_map = dates_map.transform_values(&:to_a)
     end
@@ -1794,6 +1800,8 @@ module InstituteAdmin
         target_participants = target_participants.where(participant_type: @selected_participant_types)
       end
 
+      target_participants = target_participants.joins(:user).order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
+
       submitted_pairs = Set.new(base_query.distinct.pluck(:participant_id, :assignment_id))
 
       assignment_ids = target_assignments.pluck(:id)
@@ -1870,7 +1878,7 @@ module InstituteAdmin
 
       if @selected_statuses.include?("submitted")
         submitted_responses = base_query.includes(:question, :assignment, participant: [ :user, :section ])
-                                         .order("assignment_responses.response_date DESC, assignment_responses.id DESC")
+                                         .order(Arel.sql("assignment_responses.response_date DESC, LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC, assignment_responses.id DESC"))
         submitted_responses.each do |resp|
           @report_rows << format_consolidated_response_row(resp)
         end
@@ -1921,7 +1929,7 @@ module InstituteAdmin
 
       if page_offset < submitted_count
         responses_for_page = base_query.includes(:question, :assignment, participant: [ :user, :section ])
-                                       .order("assignment_responses.response_date DESC, assignment_responses.id DESC")
+                                       .order(Arel.sql("assignment_responses.response_date DESC, LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC, assignment_responses.id DESC"))
                                        .offset(page_offset)
                                        .limit(items_per_page)
 
@@ -2176,7 +2184,7 @@ module InstituteAdmin
           participants_scope = participants_scope.where(participant_type: @selected_participant_types)
         end
       end
-      @available_participants = participants_scope.joins(:user).order("users.first_name ASC, users.last_name ASC")
+      @available_participants = participants_scope.joins(:user).order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
       @selected_participant_ids = parse_multiselect_param(params[:participant_ids])
 
       target_asg_ids = if @selected_assignment_ids.present?
@@ -2285,13 +2293,17 @@ module InstituteAdmin
         questions_map.select! { |q_id, _| sel_q_set.include?(q_id) }
       elsif base_query.present? && base_query.exists?
         # When no specific questions are selected, automatically hide question columns with 0 responses across all participants in the filtered dataset
-        answered_q_ids = AssignmentResponse.where(
-          "EXISTS (SELECT 1 FROM assignment_response_logs arl WHERE arl.id IN (?) AND (
-            (arl.assignment_id = assignment_responses.assignment_id AND arl.participant_id = assignment_responses.participant_id AND arl.response_date::date = assignment_responses.response_date)
-            OR (arl.assignment_response_ids @> to_jsonb(assignment_responses.id))
-          ))",
-          base_query.select(:id)
-        ).where(
+        answered_scope = AssignmentResponse.where(assignment_id: assignment_ids)
+        if @start_date.present? && @end_date.present?
+          s_d = [@start_date, @end_date].min
+          e_d = [@start_date, @end_date].max
+          answered_scope = answered_scope.where(response_date: s_d..e_d)
+        end
+
+        filtered_participant_ids = base_query.distinct.pluck(:participant_id)
+        answered_scope = answered_scope.where(participant_id: filtered_participant_ids)
+
+        answered_q_ids = answered_scope.where(
           "TRIM(COALESCE(assignment_responses.answer, '')) NOT IN ('', '-') OR (assignment_responses.selected_options IS NOT NULL AND assignment_responses.selected_options::text NOT IN ('', '[]', '{}', 'null', '[\"\"]'))"
         ).distinct.pluck(:question_id)
 
@@ -2396,9 +2408,10 @@ module InstituteAdmin
       base_query
     end
 
-    def build_consolidated_matrix_pending_rows(base_query)
-      return [] unless @selected_statuses.include?("pending")
-      return [] if @selected_assignment_ids.include?("none") || @selected_question_ids.include?("none") || @selected_section_ids.include?("none") || @selected_participant_ids.include?("none") || @selected_participant_types.include?("none")
+    def build_matrix_participants_scope(base_query)
+      if @selected_assignment_ids.include?("none") || @selected_question_ids.include?("none") || @selected_section_ids.include?("none") || @selected_participant_ids.include?("none") || @selected_participant_types.include?("none")
+        return current_institute.participants.none
+      end
 
       target_assignments = if @selected_assignment_ids.present?
                              valid_asg_ids = extract_numeric_ids(@selected_assignment_ids)
@@ -2416,120 +2429,84 @@ module InstituteAdmin
         target_assignments = target_assignments.where(id: asg_ids_with_q.uniq)
       end
 
-      target_participants = if @selected_participant_ids.present?
-                              valid_p_ids = extract_numeric_ids(@selected_participant_ids)
-                              current_institute.participants.includes(:user, :section).where(id: valid_p_ids)
-                            elsif @selected_section_ids.present?
-                              valid_sec_ids = extract_numeric_ids(@selected_section_ids)
-                              current_institute.participants.includes(:user, :section)
-                                               .left_outer_joins(:user)
-                                               .where("COALESCE(participants.section_id, users.section_id) IN (?)", valid_sec_ids)
-                            else
-                              current_institute.participants.includes(:user, :section)
-                            end
+      asg_ids = target_assignments.pluck(:id)
+      individual_p_ids = AssignmentParticipant.where(assignment_id: asg_ids).pluck(:participant_id)
+      direct_p_ids = target_assignments.where.not(participant_id: nil).pluck(:participant_id)
+      all_assigned_p_ids = (individual_p_ids + direct_p_ids).uniq
+
+      section_ids = AssignmentSection.where(assignment_id: asg_ids).pluck(:section_id)
+      section_ids += target_assignments.where.not(section_id: nil).pluck(:section_id)
+      section_ids.uniq!
+
+      target_participants = current_institute.participants.joins(:user).includes(:user, :section)
+
+      if @selected_section_ids.present?
+        valid_sec_ids = extract_numeric_ids(@selected_section_ids)
+        target_participants = target_participants.where("COALESCE(participants.section_id, users.section_id) IN (?)", valid_sec_ids)
+      end
+
+      if @selected_participant_ids.present?
+        valid_p_ids = extract_numeric_ids(@selected_participant_ids)
+        target_participants = target_participants.where(id: valid_p_ids)
+      end
 
       if @selected_participant_types.present?
         target_participants = target_participants.where(participant_type: @selected_participant_types)
       end
 
-      submitted_pairs = Set.new(base_query.distinct.pluck(:participant_id, :assignment_id))
-
-      assignment_ids = target_assignments.pluck(:id)
-      individual_assignments_map = AssignmentParticipant.where(assignment_id: assignment_ids)
-                                                        .pluck(:assignment_id, :participant_id)
-                                                        .group_by(&:first)
-                                                        .transform_values { |pairs| Set.new(pairs.map(&:second)) }
-
-      section_assignments_map = AssignmentSection.where(assignment_id: assignment_ids)
-                                                 .pluck(:assignment_id, :section_id)
-                                                 .group_by(&:first)
-                                                 .transform_values { |pairs| Set.new(pairs.map(&:second)) }
-
-      pending_rows = []
-      search_q = params[:search].to_s.strip.downcase
-
-      target_participants.each do |p|
-        p_name = p.full_name.to_s
-        p_email = p.email.to_s
-        p_sec = p.section&.name.to_s.presence || "N/A"
-        p_sec_id = p.section_id.presence || p.user&.section_id
-
-        target_assignments.each do |asg|
-          asg_title = asg.title.to_s
-          is_assigned = if asg.assignment_type == "individual"
-                          individual_assignments_map[asg.id]&.include?(p.id)
-                        else
-                          p_sec_id.present? && (
-                            (asg.section_id.present? && asg.section_id == p_sec_id) ||
-                            section_assignments_map[asg.id]&.include?(p_sec_id)
-                          )
-                        end
-
-          next unless is_assigned
-          next if submitted_pairs.include?([p.id, asg.id])
-
-          if search_q.present?
-            match = p_name.downcase.include?(search_q) ||
-                    p_email.downcase.include?(search_q) ||
-                    p_sec.downcase.include?(search_q) ||
-                    asg_title.downcase.include?(search_q)
-            next unless match
-          end
-
-          pending_rows << {
-            id: nil,
-            date: nil,
-            participant_id: p.id,
-            participant_name: p_name.presence || "N/A",
-            participant_email: p_email.presence || "N/A",
-            participant_type: p.participant_type,
-            section_name: p_sec,
-            assignment_id: asg.id,
-            assignment_title: asg_title.presence || "Assignment",
-            status: "pending",
-            submitted_at: nil,
-            answers: {}
-          }
-        end
+      if params[:search].present?
+        q_str = "%#{params[:search].strip.downcase}%"
+        target_participants = target_participants.where(
+          "LOWER(users.first_name) LIKE :q OR LOWER(users.last_name) LIKE :q OR LOWER(users.email) LIKE :q OR LOWER(users.phone) LIKE :q OR LOWER(participants.phone_number) LIKE :q",
+          q: q_str
+        )
       end
 
-      pending_rows
+      submitted_p_ids = base_query.distinct.pluck(:participant_id)
+
+      target_participants = target_participants.where(
+        "participants.id IN (?) OR COALESCE(participants.section_id, users.section_id) IN (?)",
+        (all_assigned_p_ids + submitted_p_ids).uniq.presence || [0],
+        section_ids.presence || [0]
+      )
+
+      if @selected_statuses == ["submitted"]
+        target_participants = target_participants.where(id: submitted_p_ids)
+      elsif @selected_statuses == ["pending"]
+        target_participants = target_participants.where.not(id: submitted_p_ids)
+      end
+
+      target_participants.order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
+    end
+
+    def build_consolidated_matrix_pending_rows(base_query)
+      []
     end
 
     def fetch_consolidated_matrix_reports
       set_consolidated_matrix_filters
       base_query = build_consolidated_matrix_base_query
       resolve_matrix_questions(base_query)
-      pending_rows = build_consolidated_matrix_pending_rows(base_query)
 
-      @matrix_rows = []
+      target_asg_ids = if @selected_assignment_ids.present?
+                         extract_numeric_ids(@selected_assignment_ids)
+                       else
+                         @available_assignments.pluck(:id)
+                       end
 
-      if @selected_statuses.include?("submitted")
-        logs = base_query.includes(:assignment, participant: [ :user, :section ])
-                         .order("assignment_response_logs.response_date DESC, assignment_response_logs.id DESC")
-
-        load_matrix_answers_for_logs(logs).each do |formatted_row|
-          @matrix_rows << formatted_row
-        end
-      end
-
-      if @selected_statuses.include?("pending")
-        @matrix_rows.concat(pending_rows)
-      end
-
-      calculate_matrix_kpis(base_query, pending_rows)
+      participants_scope = build_matrix_participants_scope(base_query)
+      @matrix_rows = load_matrix_answers_for_participants(participants_scope.to_a, target_asg_ids)
+      calculate_matrix_kpis(base_query, participants_scope)
     end
 
     def fetch_consolidated_matrix_reports_paginated
       set_consolidated_matrix_filters
       base_query = build_consolidated_matrix_base_query
       resolve_matrix_questions(base_query)
-      pending_rows_list = build_consolidated_matrix_pending_rows(base_query)
 
-      submitted_count = @selected_statuses.include?("submitted") ? base_query.count : 0
-      pending_count = @selected_statuses.include?("pending") ? pending_rows_list.size : 0
+      participants_scope = build_matrix_participants_scope(base_query)
+      @total_matrix_count = participants_scope.count
 
-      @total_matrix_count = submitted_count + pending_count
       page_num = [ (params[:page] || 1).to_i, 1 ].max
       items_per_page = 25
 
@@ -2543,7 +2520,7 @@ module InstituteAdmin
                   Pagy.new(count: @total_matrix_count, page: 1, items: items_per_page)
                 end
         @paginated_matrix_rows = []
-        calculate_matrix_kpis(base_query, pending_rows_list)
+        calculate_matrix_kpis(base_query, participants_scope)
         @matrix_rows = Array.new(@total_matrix_count)
         return
       end
@@ -2555,52 +2532,73 @@ module InstituteAdmin
                 Pagy.new(count: @total_matrix_count, page: 1, items: items_per_page)
               end
       page_offset = @pagy.offset
-      @paginated_matrix_rows = []
 
-      if page_offset < submitted_count
-        page_logs = base_query.includes(:assignment, participant: [ :user, :section ])
-                              .order("assignment_response_logs.response_date DESC, assignment_response_logs.id DESC")
-                              .offset(page_offset)
-                              .limit(items_per_page)
+      target_asg_ids = if @selected_assignment_ids.present?
+                         extract_numeric_ids(@selected_assignment_ids)
+                       else
+                         @available_assignments.pluck(:id)
+                       end
 
-        @paginated_matrix_rows.concat(load_matrix_answers_for_logs(page_logs))
+      page_participants = participants_scope.offset(page_offset).limit(items_per_page).to_a
+      @paginated_matrix_rows = load_matrix_answers_for_participants(page_participants, target_asg_ids)
 
-        if @paginated_matrix_rows.size < items_per_page && pending_count > 0
-          needed = items_per_page - @paginated_matrix_rows.size
-          @paginated_matrix_rows.concat(pending_rows_list.slice(0, needed) || [])
-        end
-      else
-        pending_offset = page_offset - submitted_count
-        @paginated_matrix_rows.concat(pending_rows_list.slice(pending_offset, items_per_page) || [])
-      end
-
-      calculate_matrix_kpis(base_query, pending_rows_list)
+      calculate_matrix_kpis(base_query, participants_scope)
       @matrix_rows = Array.new(@total_matrix_count)
     end
 
-    def load_matrix_answers_for_logs(logs)
-      return [] if logs.blank?
+    def load_matrix_answers_for_participants(participants, target_asg_ids)
+      return [] if participants.blank?
 
-      p_ids = logs.map(&:participant_id).uniq
-      a_ids = logs.map(&:assignment_id).uniq
-      dates = logs.map { |l| l.response_date&.to_date }.compact.uniq
-      all_response_ids = logs.flat_map { |l| Array(l.assignment_response_ids) }.map(&:to_i).reject(&:zero?).uniq
+      p_ids = participants.map(&:id)
 
-      responses = if all_response_ids.present?
-                    # Query both by ID and fallback by participant/assignment/date to ensure 100% response capture
-                    AssignmentResponse.where(id: all_response_ids)
-                                      .or(AssignmentResponse.where(participant_id: p_ids, assignment_id: a_ids, response_date: dates.presence || nil))
+      # 1. Fetch response logs for these participants within date window
+      logs_scope = AssignmentResponseLog.where(participant_id: p_ids, assignment_id: target_asg_ids)
+      if @start_date.present? && @end_date.present?
+        s_d = [@start_date, @end_date].min
+        e_d = [@start_date, @end_date].max
+        logs_scope = logs_scope.where(response_date: s_d.beginning_of_day..e_d.end_of_day)
+      end
+      logs = logs_scope.includes(:assignment).to_a
+      logs_by_p = logs.group_by(&:participant_id)
+      all_log_resp_ids = logs.flat_map { |l| Array(l.assignment_response_ids) }.map(&:to_i).reject(&:zero?).uniq
+
+      # 2. Fetch responses for these participants within date window (or linked to logs)
+      responses_scope = AssignmentResponse.where(participant_id: p_ids, assignment_id: target_asg_ids)
+      if @start_date.present? && @end_date.present?
+        s_d = [@start_date, @end_date].min
+        e_d = [@start_date, @end_date].max
+        responses_scope = responses_scope.where(response_date: s_d..e_d)
+      end
+
+      responses = if all_log_resp_ids.present?
+                    AssignmentResponse.where(id: all_log_resp_ids)
+                                      .or(responses_scope)
                                       .includes(:question)
+                                      .order(:response_date)
                   else
-                    AssignmentResponse.where(participant_id: p_ids, assignment_id: a_ids)
-                                      .where(response_date: dates.presence || nil)
-                                      .includes(:question)
+                    responses_scope.includes(:question).order(:response_date)
                   end
 
-      responses_by_id = responses.index_by(&:id)
-      answers_by_submission = Hash.new { |h, k| h[k] = {} }
+      # 3. Precompute participant assigned assignments map
+      ind_map = AssignmentParticipant.where(assignment_id: target_asg_ids, participant_id: p_ids)
+                                     .pluck(:assignment_id, :participant_id)
+                                     .group_by(&:second)
+                                     .transform_values { |pairs| Set.new(pairs.map(&:first)) }
+
+      sec_ids = participants.map { |p| p.section_id || p.user&.section_id }.compact.uniq
+      sec_map = AssignmentSection.where(assignment_id: target_asg_ids, section_id: sec_ids)
+                                 .pluck(:assignment_id, :section_id)
+                                 .group_by(&:second)
+                                 .transform_values { |pairs| Set.new(pairs.map(&:first)) }
+
+      direct_sec_asgs = Assignment.where(id: target_asg_ids, section_id: sec_ids)
+                                  .pluck(:id, :section_id)
+                                  .group_by(&:second)
+                                  .transform_values { |pairs| Set.new(pairs.map(&:first)) }
+
+      # 4. Group responses by participant and question
+      answers_by_p_q = Hash.new { |h, k| h[k] = {} }
       responses.each do |resp|
-        sub_key = [ resp.participant_id, resp.assignment_id, resp.response_date&.to_date ]
         answer_text = if resp.answer.present?
                         resp.answer
                       elsif resp.selected_options.is_a?(Array)
@@ -2608,58 +2606,77 @@ module InstituteAdmin
                       else
                         resp.selected_options.to_s
                       end
-        answers_by_submission[sub_key][resp.question_id] = {
+
+        q_entry = {
           answer: answer_text.presence || "-",
-          question_type: resp.question&.question_type
+          question_type: resp.question&.question_type,
+          date: resp.response_date,
+          id: resp.id
         }
-      end
 
-      logs.map do |log|
-        sub_date = log.response_date&.to_date
-        sub_key = [ log.participant_id, log.assignment_id, sub_date ]
-        # Baseline responses found for this participant, assignment, and date
-        log_answers = (answers_by_submission[sub_key] || {}).dup
-
-        log_resp_ids = Array(log.assignment_response_ids).map(&:to_i).reject(&:zero?)
-        if log_resp_ids.present?
-          log_resp_ids.each do |resp_id|
-            resp = responses_by_id[resp_id]
-            next unless resp
-            answer_text = if resp.answer.present?
-                            resp.answer
-                          elsif resp.selected_options.is_a?(Array)
-                            resp.selected_options.reject(&:blank?).join(", ")
-                          else
-                            resp.selected_options.to_s
-                          end
-            log_answers[resp.question_id] = {
-              answer: answer_text.presence || "-",
-              question_type: resp.question&.question_type
-            }
-          end
+        existing = answers_by_p_q[resp.participant_id][resp.question_id]
+        if existing.present?
+          history = existing[:history] || [ { answer: existing[:answer], date: existing[:date] } ]
+          history << { answer: q_entry[:answer], date: q_entry[:date] }
+          q_entry[:history] = history
         end
 
+        answers_by_p_q[resp.participant_id][resp.question_id] = q_entry
+      end
+
+      # 5. Build consolidated row per participant
+      participants.map do |p|
+        p_sec_id = p.section_id || p.user&.section_id
+        assigned_asgs = (ind_map[p.id] || Set.new) | (sec_map[p_sec_id] || Set.new) | (direct_sec_asgs[p_sec_id] || Set.new)
+        assigned_asg_ids = assigned_asgs.present? ? assigned_asgs.to_a : target_asg_ids
+
+        p_logs = logs_by_p[p.id] || []
+        sub_dates = p_logs.map { |l| l.response_date&.to_date }.compact.uniq.sort
+        latest_log = p_logs.max_by(&:created_at)
+
+        asg_titles = p_logs.map { |l| l.assignment&.title }.compact.uniq
+        asg_title_str = if asg_titles.present?
+                          asg_titles.join(", ")
+                        elsif assigned_asg_ids.size == 1
+                          Assignment.find_by(id: assigned_asg_ids.first)&.title || "Assignment"
+                        else
+                          "Assignment"
+                        end
+
+        status = sub_dates.any? ? "submitted" : "pending"
+
         {
-          id: log.id,
-          date: log.response_date,
-          participant_id: log.participant_id,
-          participant_name: log.participant&.full_name || "N/A",
-          participant_email: log.participant&.email || "N/A",
-          participant_type: log.participant&.participant_type,
-          section_name: log.participant&.section&.name || "N/A",
-          assignment_id: log.assignment_id,
-          assignment_title: log.assignment&.title || "Assignment",
-          status: "submitted",
-          submitted_at: log.created_at,
-          answers: log_answers
+          id: "p_#{p.id}",
+          participant_id: p.id,
+          participant_name: p.full_name.presence || "N/A",
+          participant_email: p.email.presence || "N/A",
+          participant_type: p.participant_type,
+          section_name: p.section&.name.presence || "N/A",
+          assignment_id: assigned_asg_ids.first,
+          assignment_ids: assigned_asg_ids,
+          assignment_title: asg_title_str,
+          date: latest_log&.response_date || sub_dates.last,
+          submission_dates: sub_dates.reverse,
+          submission_count: sub_dates.size,
+          status: status,
+          submitted_at: latest_log&.created_at,
+          answers: answers_by_p_q[p.id] || {}
         }
       end
     end
 
-    def calculate_matrix_kpis(base_query, pending_rows)
+    def calculate_matrix_kpis(base_query, participants_scope)
       submitted_participant_ids = base_query.distinct.pluck(:participant_id)
-      pending_participant_ids = pending_rows.map { |r| r[:participant_id] }.compact.uniq
-      all_filtered_participant_ids = (submitted_participant_ids + pending_participant_ids).uniq
+      all_p_ids = if participants_scope.is_a?(ActiveRecord::Relation)
+                    participants_scope.pluck(:id)
+                  elsif participants_scope.is_a?(Array)
+                    participants_scope.map { |p| p.respond_to?(:id) ? p.id : (p.is_a?(Hash) ? p[:participant_id] : nil) }.compact.uniq
+                  else
+                    []
+                  end
+
+      pending_participant_ids = all_p_ids - submitted_participant_ids
+      all_filtered_participant_ids = (submitted_participant_ids + all_p_ids).uniq
 
       @filtered_participants_count = all_filtered_participant_ids.size
 
@@ -2677,7 +2694,7 @@ module InstituteAdmin
 
       @total_matrix_questions_count = @matrix_questions.size
       @total_submissions_count = base_query.count
-      @total_pending_count = pending_rows.size
+      @total_pending_count = pending_participant_ids.size
 
       @submitted_participants_count = submitted_participant_ids.size
       total_assigned_slots = @submitted_participants_count + @total_pending_count
@@ -2760,7 +2777,16 @@ module InstituteAdmin
 
       rows.each_with_index do |row, idx|
         status_style = row[:status] == "submitted" ? "BadgeSubmitted" : "BadgePending"
-        date_str = row[:date].present? ? row[:date].strftime("%Y-%m-%d") : "-"
+        date_str =
+          if (row[:submission_count] || 0) > 1 && row[:submission_dates].present?
+            first_d = row[:submission_dates].last
+            last_d = row[:submission_dates].first
+            "#{row[:submission_count]} days (#{first_d.strftime('%Y-%m-%d')} to #{last_d.strftime('%Y-%m-%d')})"
+          elsif row[:date].present?
+            row[:date].strftime("%Y-%m-%d")
+          else
+            "-"
+          end
         time_str = row[:submitted_at].present? ? row[:submitted_at].strftime("%I:%M %p") : "-"
 
         xml << %{   <Row ss:Height="22" ss:StyleID="RowSubmitted">\n}
@@ -2775,11 +2801,14 @@ module InstituteAdmin
         xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(time_str)}</Data></Cell>\n}
 
         row_answers = row[:answers] || {}
+        row_asg_ids = (row[:assignment_ids] || [ row[:assignment_id] ]).compact.to_set
         questions.each do |q|
           q_info = row_answers[q[:id]]
           if q_info.present?
             val = q_info[:answer].to_s
             xml << %{    <Cell><Data ss:Type="String">#{CGI.escapeHTML(val)}</Data></Cell>\n}
+          elsif row_asg_ids.present? && q[:assignment_ids].present? && (q[:assignment_ids].to_set & row_asg_ids).empty?
+            xml << %{    <Cell ss:StyleID="CellEmpty"><Data ss:Type="String">N/A</Data></Cell>\n}
           else
             dash = row[:status] == "submitted" ? "-" : "Pending"
             xml << %{    <Cell ss:StyleID="CellEmpty"><Data ss:Type="String">#{dash}</Data></Cell>\n}
@@ -2842,9 +2871,21 @@ module InstituteAdmin
 
         rows.each_with_index do |row, index|
           row_answers = row[:answers] || {}
+          row_asg_ids = (row[:assignment_ids] || [ row[:assignment_id] ]).compact.to_set
+          date_val =
+            if (row[:submission_count] || 0) > 1 && row[:submission_dates].present?
+              first_d = row[:submission_dates].last
+              last_d = row[:submission_dates].first
+              "#{row[:submission_count]} days (#{first_d.strftime('%Y-%m-%d')} to #{last_d.strftime('%Y-%m-%d')})"
+            elsif row[:date].present?
+              row[:date].strftime("%Y-%m-%d")
+            else
+              "-"
+            end
+
           row_vals = [
             index + 1,
-            row[:date].present? ? row[:date].strftime("%Y-%m-%d") : "-",
+            date_val,
             row[:participant_name],
             row[:participant_type].to_s.titleize,
             row[:participant_email],
@@ -2856,7 +2897,13 @@ module InstituteAdmin
 
           questions.each do |q|
             q_info = row_answers[q[:id]]
-            row_vals << (q_info ? q_info[:answer].to_s : (row[:status] == "submitted" ? "-" : "Pending"))
+            if q_info.present?
+              row_vals << q_info[:answer].to_s
+            elsif row_asg_ids.present? && q[:assignment_ids].present? && (q[:assignment_ids].to_set & row_asg_ids).empty?
+              row_vals << "N/A"
+            else
+              row_vals << (row[:status] == "submitted" ? "-" : "Pending")
+            end
           end
 
           csv << row_vals

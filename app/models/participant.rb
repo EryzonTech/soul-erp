@@ -75,7 +75,7 @@ class Participant < ApplicationRecord
   scope :suspended, -> { where(status: :suspended) }
   scope :with_user, -> { includes(:user) }
   scope :ordered_by_name, -> {
-    joins(:user).order(Arel.sql("LOWER(COALESCE(users.first_name, '')) ASC, LOWER(COALESCE(users.last_name, '')) ASC, LOWER(COALESCE(users.email, '')) ASC"))
+    joins(:user).order(Arel.sql("LOWER(TRIM(COALESCE(NULLIF(TRIM(CONCAT(users.first_name, ' ', users.last_name)), ''), users.email, ''))) ASC"))
   }
 
   def soft_delete!
