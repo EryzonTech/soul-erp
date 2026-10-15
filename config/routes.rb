@@ -287,6 +287,7 @@ Rails.application.routes.draw do
           post :submit
         end
       end
+      resources :responses, only: [ :index, :show ]
       resource :profile, only: [ :show ]
       get "my_student/:student_id", to: "profiles#student_info", as: :student_info
 

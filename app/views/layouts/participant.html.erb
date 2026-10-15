@@ -9,6 +9,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
 
@@ -403,6 +404,18 @@
 
       .content-wrapper {
         padding: 1.5rem;
+      }
+
+      @media (max-width: 767.98px) {
+        .content-wrapper {
+          padding: 0.75rem !important;
+        }
+      }
+
+      @media (min-width: 768px) and (max-width: 991.98px) {
+        .content-wrapper {
+          padding: 1.25rem !important;
+        }
       }
 
       /* Card Styles */
@@ -948,6 +961,11 @@
               <span>Assignments</span>
             <% end %>
 
+            <%= link_to participant_portal_responses_path, class: "nav-link #{'active' if active_link?('responses')}" do %>
+              <i class="bi bi-chat-square-text"></i>
+              <span>My Responses</span>
+            <% end %>
+
             <%= link_to participant_portal_questions_path, class: "nav-link #{'active' if active_link?('questions')}" do %>
               <i class="bi bi-patch-question"></i>
               <span>My Questions</span>
@@ -1161,19 +1179,18 @@
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <%= yield :scripts %>
 
     <script>
       // ── Profile Switcher Dropdown ──────────────────────
       // AbortController lets us cancel all listeners before re-attaching,
       // preventing duplicate handlers when both DOMContentLoaded and turbo:load fire.
-      let _profileSwitcherAbort = null;
+      window._profileSwitcherAbort = window._profileSwitcherAbort || null;
 
       function initProfileSwitcher() {
-        if (_profileSwitcherAbort) _profileSwitcherAbort.abort();
-        _profileSwitcherAbort = new AbortController();
-        const signal = _profileSwitcherAbort.signal;
+        if (window._profileSwitcherAbort) window._profileSwitcherAbort.abort();
+        window._profileSwitcherAbort = new AbortController();
+        const signal = window._profileSwitcherAbort.signal;
 
         const btn      = document.getElementById('profileAvatarBtn');
         const dropdown = document.getElementById('profileDropdown');
@@ -1198,6 +1215,21 @@
 
       document.addEventListener('DOMContentLoaded', initProfileSwitcher);
       document.addEventListener('turbo:load', initProfileSwitcher);
+
+      function initGlobalFlatpickr() {
+        if (typeof flatpickr !== "undefined") {
+          flatpickr(".datepicker", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "M j, Y",
+            allowInput: true
+          });
+        }
+      }
+      document.addEventListener('DOMContentLoaded', initGlobalFlatpickr);
+      document.addEventListener('turbo:load', initGlobalFlatpickr);
+      document.addEventListener('turbo:render', initGlobalFlatpickr);
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   </body>
 </html>

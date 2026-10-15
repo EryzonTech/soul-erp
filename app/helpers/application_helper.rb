@@ -25,6 +25,8 @@ module ApplicationHelper
       controller.controller_name == "registration_settings"
     when "assignments"
       controller.controller_name == "assignments"
+    when "responses"
+      controller.controller_name == "responses"
     when "profile"
       controller.controller_name == "profile"
     when "question_categories", "category_questions", "question_bundles"

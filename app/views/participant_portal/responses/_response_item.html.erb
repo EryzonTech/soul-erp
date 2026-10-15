@@ -1,0 +1,36 @@
+<div class="response-item-card p-3.5 p-md-4 border rounded-3 bg-white mb-3 shadow-2xs">
+  <div class="d-flex align-items-start justify-content-between gap-3 mb-2.5 flex-wrap">
+    <div class="d-flex align-items-start gap-2.5 flex-grow-1" style="min-width: 0;">
+      <span class="badge bg-secondary-subtle text-secondary fw-bold rounded-pill px-2.5 py-1 mt-0.5">
+        #<%= index %>
+      </span>
+      <div style="min-width: 0;">
+        <h6 class="mb-1 fw-bold text-dark text-break" style="font-size: 0.98rem; line-height: 1.4;"><%= response.question.title %></h6>
+        <% if response.question.description.present? %>
+          <p class="text-secondary small mb-0 mt-1" style="line-height: 1.45;"><%= response.question.description %></p>
+        <% end %>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+      <%= question_type_badge(response.question.question_type) %>
+    </div>
+  </div>
+
+  <!-- Recorded Answer Container -->
+  <div class="recorded-answer-box mt-3 p-3.5 rounded-3 bg-light border border-light-subtle">
+    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+      <small class="text-muted fw-bold text-uppercase tracking-wider d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+        <i class="bi bi-check2-circle text-success"></i>Your Recorded Answer:
+      </small>
+      <% if response.submitted_at.present? %>
+        <small class="text-muted" style="font-size: 0.75rem;">
+          <i class="bi bi-clock me-1"></i><%= response.submitted_at.strftime("%I:%M %p") %>
+        </small>
+      <% end %>
+    </div>
+
+    <div class="answer-content pt-1">
+      <%= render_participant_answer(response) %>
+    </div>
+  </div>
+</div>

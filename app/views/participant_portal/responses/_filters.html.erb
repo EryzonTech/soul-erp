@@ -1,0 +1,153 @@
+<% 
+  is_custom_active = params[:range] == "custom" || params[:start_date].present? || params[:end_date].present?
+  current_range = if is_custom_active
+                    "custom"
+                  else
+                    params[:range].presence || "today"
+                  end
+
+  custom_label = if params[:start_date].present? && params[:end_date].present?
+                   "📅 #{Date.parse(params[:start_date]).strftime('%b %d')} - #{Date.parse(params[:end_date]).strftime('%b %d') rescue params[:end_date]}"
+                 elsif params[:start_date].present?
+                   "📅 From #{Date.parse(params[:start_date]).strftime('%b %d') rescue params[:start_date]}"
+                 elsif params[:end_date].present?
+                   "📅 Up to #{Date.parse(params[:end_date]).strftime('%b %d') rescue params[:end_date]}"
+                 else
+                   "Custom Range"
+                 end
+
+  # Filters are considered non-default if assignment, custom date, or non-today range is chosen
+  has_non_default_filters = params[:assignment_id].present? || current_range != "today"
+%>
+
+<div class="filter-card mb-4 shadow-sm">
+  <%= form_with url: participant_portal_responses_path, method: :get, local: true, class: "filter-form", id: "responses_filter_form" do |f| %>
+    <!-- Hidden input to preserve current range -->
+    <%= hidden_field_tag :range, current_range, id: "filter_range_hidden" %>
+
+    <!-- Header / Timeframe Chips Toolbar -->
+    <div class="filter-section-header <%= 'mb-3 pb-3 border-bottom' if @available_assignments.any? %> d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2.5">
+      <div class="d-flex align-items-center gap-2 flex-nowrap overflow-x-auto preset-chips-scroll py-1 w-100 w-md-auto">
+        <span class="filter-group-label text-uppercase text-secondary fw-bold small text-nowrap me-1">
+          <i class="bi bi-clock me-1 text-indigo"></i>Period:
+        </span>
+
+        <% 
+          presets = [
+            ["today", "Today", "bi-calendar-check-fill"],
+            ["7", "Past 7 Days", "bi-calendar-week"],
+            ["30", "Past 30 Days", "bi-calendar-month"],
+            ["90", "Past 90 Days", "bi-calendar-range"],
+            ["all", "All Time", "bi-infinity"]
+          ]
+        %>
+
+        <% presets.each do |val, label, icon| %>
+          <% is_active = (current_range == val && !is_custom_active) %>
+          <%= link_to participant_portal_responses_path(range: val, assignment_id: params[:assignment_id]),
+              class: "filter-chip #{'active' if is_active}",
+              data: { turbo_frame: "_top" } do %>
+            <i class="bi <%= icon %> me-1.5"></i><%= label %>
+          <% end %>
+        <% end %>
+
+        <!-- Custom Date Range Chip Button -->
+        <button type="button" 
+                class="filter-chip <%= 'active' if is_custom_active %>"
+                data-bs-toggle="collapse" 
+                data-bs-target="#custom_date_drawer" 
+                aria-expanded="<%= is_custom_active %>" 
+                aria-controls="custom_date_drawer"
+                id="custom_date_chip_btn">
+          <i class="bi bi-calendar2-range me-1.5"></i>
+          <span><%= custom_label %></span>
+          <i class="bi bi-chevron-down ms-1.5 small opacity-75"></i>
+        </button>
+      </div>
+
+      <% if has_non_default_filters %>
+        <div class="filter-reset-wrapper flex-shrink-0 align-self-end align-self-md-center">
+          <%= link_to participant_portal_responses_path,
+              class: "btn btn-outline-secondary btn-sm rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1.5 reset-pill-btn",
+              title: "Reset to default Today view" do %>
+            <i class="bi bi-arrow-counterclockwise text-danger"></i>
+            <span>Reset to Today</span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Collapsible Custom Date Range Drawer -->
+    <div class="collapse <%= 'show' if is_custom_active %> mb-3" id="custom_date_drawer">
+      <div class="custom-range-box p-3 p-md-3.5 rounded-3 border">
+        <div class="d-flex align-items-center justify-content-between mb-2.5">
+          <span class="small fw-bold text-dark d-flex align-items-center gap-1.5">
+            <i class="bi bi-sliders2 text-indigo"></i>Filter by Specific Dates
+          </span>
+          <% if is_custom_active %>
+            <%= link_to "Clear Custom Dates", participant_portal_responses_path(range: "today", assignment_id: params[:assignment_id]), class: "text-indigo small text-decoration-none fw-semibold" %>
+          <% end %>
+        </div>
+
+        <div class="row g-2.5 align-items-center">
+          <div class="col-12 col-sm-6 col-md-4">
+            <label class="form-label small text-secondary mb-1 fw-semibold">Start Date (From)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-calendar3"></i></span>
+              <%= text_field_tag :start_date,
+                  params[:start_date],
+                  placeholder: "YYYY-MM-DD",
+                  class: "form-control datepicker bg-white border-start-0 py-2",
+                  autocomplete: "off",
+                  id: "filter_start_date" %>
+            </div>
+          </div>
+
+          <div class="col-12 col-sm-6 col-md-4">
+            <label class="form-label small text-secondary mb-1 fw-semibold">End Date (To)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-calendar3"></i></span>
+              <%= text_field_tag :end_date,
+                  params[:end_date],
+                  placeholder: "YYYY-MM-DD",
+                  class: "form-control datepicker bg-white border-start-0 py-2",
+                  autocomplete: "off",
+                  id: "filter_end_date" %>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4 d-flex align-items-end pt-1 pt-md-4">
+            <button type="submit" class="btn btn-indigo btn-sm rounded-pill px-4 py-2 w-100 shadow-sm d-flex align-items-center justify-content-center gap-1.5 fw-semibold" style="height: 42px;">
+              <i class="bi bi-funnel-fill"></i>
+              <span>Apply Custom Range</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assignment Filter Controls Row -->
+    <% if @available_assignments.any? %>
+      <div class="row g-2.5 align-items-center">
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="input-group control-input-group">
+            <span class="input-group-text bg-white border-end-0 text-muted px-3">
+              <i class="bi bi-journal-text text-indigo"></i>
+            </span>
+            <%= select_tag :assignment_id,
+                options_from_collection_for_select(
+                  @available_assignments,
+                  :id,
+                  :title,
+                  params[:assignment_id]
+                ),
+                prompt: "All Assignments (#{pluralize(@available_assignments.size, 'Assignment')})",
+                class: "form-select border-start-0 py-2",
+                style: "height: 44px;",
+                onchange: "this.form.submit();" %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>

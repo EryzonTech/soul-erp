@@ -11,6 +11,9 @@
         </div>
       </div>
       <div class="d-flex align-items-center flex-wrap gap-2">
+        <%= link_to participant_portal_responses_path, class: "btn-outline-custom", title: "View Response History" do %>
+          <i class="bi bi-chat-square-text me-1"></i> My Responses
+        <% end %>
         <%= link_to participant_portal_questions_path, class: "btn-outline-custom", title: "Manage My Questions" do %>
           <i class="bi bi-patch-question me-1"></i> My Questions
         <% end %>
@@ -67,6 +70,11 @@
                     <span class="status-badge status-completed">
                       <i class="bi bi-check-circle-fill me-1"></i>Completed
                     </span>
+                    <%= link_to participant_portal_responses_path(assignment_id: assignment.id),
+                        class: "btn action-btn btn-view ms-1",
+                        title: "View My Response" do %>
+                      <i class="bi bi-eye"></i>
+                    <% end %>
                   <% else %>
                     <%= link_to take_assignment_participant_portal_assignment_path(assignment, date: Date.current),
                         class: "btn-start",
@@ -275,6 +283,11 @@
                       <% end %>
 
                       <% if assignment.assignment_response_logs.where(participant: current_participant).exists? %>
+                        <%= link_to participant_portal_responses_path(assignment_id: assignment.id),
+                            class: "btn-table-action",
+                            title: "View your responses for this assignment" do %>
+                          <i class="bi bi-chat-square-text me-1"></i>Responses
+                        <% end %>
                         <%= link_to participant_portal_assignment_path(assignment), class: "btn-table-action" do %>
                           <i class="bi bi-eye me-1"></i>View
                         <% end %>
