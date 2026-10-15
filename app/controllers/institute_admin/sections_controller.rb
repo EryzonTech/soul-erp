@@ -147,6 +147,7 @@ module InstituteAdmin
             participant_type: p.participant_type
           }
         }
+        result.sort_by! { |p| p[:full_name].to_s.downcase }
 
         render json: result
       rescue => e

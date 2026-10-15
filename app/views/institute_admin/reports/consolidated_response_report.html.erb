@@ -350,6 +350,7 @@
             <div class="dropdown-menu dropdown-menu-start p-0 shadow-lg rounded-3 border q-filter-dropdown-menu" 
                  data-today="<%= Date.current.to_s %>" 
                  data-yesterday="<%= Date.yesterday.to_s %>" 
+                 data-last-7-start="<%= 6.days.ago.to_date.to_s %>" 
                  style="width: 440px; max-width: min(460px, calc(100vw - 1.5rem));">
               <!-- Search bar -->
               <div class="p-3 pb-2">
@@ -404,7 +405,18 @@
                   today_matching_count = (@available_questions || []).count { |q| 
                     @today_active_question_ids&.include?(q.id) || ((@question_dates_map && @question_dates_map[q.id]) || []).include?(Date.current.to_s) 
                   }
-                  initial_visible_count = (active_q_range == 'today') ? today_matching_count : (@available_questions || []).size
+                  yesterday_matching_count = (@available_questions || []).count { |q| 
+                    @yesterday_active_question_ids&.include?(q.id) || ((@question_dates_map && @question_dates_map[q.id]) || []).include?(Date.yesterday.to_s) 
+                  }
+                  last_7_matching_count = (@available_questions || []).count { |q| 
+                    @last_7_days_active_question_ids&.include?(q.id) || ((@question_dates_map && @question_dates_map[q.id]) || []).any? { |d| d >= 6.days.ago.to_date.to_s && d <= Date.current.to_s } 
+                  }
+                  initial_visible_count = case active_q_range
+                                          when 'today' then today_matching_count
+                                          when 'yesterday' then yesterday_matching_count
+                                          when 'last_7_days' then last_7_matching_count
+                                          else (@available_questions || []).size
+                                          end
                 %>
                 <!-- Action Bar: Select All / Clear & Visible Count (Fully Wrapped Border) -->
                 <div class="d-flex justify-content-between align-items-center px-3 py-2.5 mb-2 bg-light-subtle border rounded-2 q-action-bar">
@@ -425,7 +437,14 @@
                   <% q_dates = (@question_dates_map && @question_dates_map[q.id]) || [] %>
                   <% 
                     is_today_q = @today_active_question_ids&.include?(q.id) || q_dates.include?(Date.current.to_s)
-                    is_initially_hidden = (active_q_range == 'today' && !is_today_q)
+                    is_yesterday_q = @yesterday_active_question_ids&.include?(q.id) || q_dates.include?(Date.yesterday.to_s)
+                    is_last_7_q = @last_7_days_active_question_ids&.include?(q.id) || q_dates.any? { |d| d >= 6.days.ago.to_date.to_s && d <= Date.current.to_s }
+                    is_initially_hidden = case active_q_range
+                                          when 'today' then !is_today_q
+                                          when 'yesterday' then !is_yesterday_q
+                                          when 'last_7_days' then !is_last_7_q
+                                          else false
+                                          end
                     is_q_checked = if @selected_question_ids.present?
                                      @selected_question_ids.include?(q.id.to_s)
                                    elsif active_q_range == 'all'
@@ -433,7 +452,9 @@
                                    elsif active_q_range == 'today'
                                      is_today_q
                                    elsif active_q_range == 'yesterday'
-                                     @yesterday_active_question_ids&.include?(q.id) || q_dates.include?(Date.yesterday.to_s)
+                                     is_yesterday_q
+                                   elsif active_q_range == 'last_7_days'
+                                     is_last_7_q
                                    else
                                      !is_initially_hidden
                                    end
@@ -441,8 +462,9 @@
                   <div class="form-check dropdown-item rounded px-2.5 py-2 mb-1 multiselect-item d-flex align-items-start gap-2.5 <%= 'd-none is-hidden' if is_initially_hidden %>"
                        data-question-id="<%= q.id %>"
                        data-dates="<%= q_dates.join(',') %>"
-                       data-today-active="<%= @today_active_question_ids&.include?(q.id) ? 'true' : 'false' %>"
-                       data-yesterday-active="<%= @yesterday_active_question_ids&.include?(q.id) ? 'true' : 'false' %>"
+                       data-today-active="<%= is_today_q ? 'true' : 'false' %>"
+                       data-yesterday-active="<%= is_yesterday_q ? 'true' : 'false' %>"
+                       data-last-7-active="<%= is_last_7_q ? 'true' : 'false' %>"
                        <%= 'hidden' if is_initially_hidden %>>
                     <input class="form-check-input mt-1 flex-shrink-0" 
                            type="checkbox" 
@@ -454,9 +476,9 @@
                     <label class="form-check-label flex-grow-1 cursor-pointer" for="q_cb_<%= q.id %>" title="<%= q.title %>">
                       <div class="d-flex align-items-start justify-content-between gap-2">
                         <span class="text-wrap flex-grow-1" style="font-size: 0.82rem; line-height: 1.45;"><%= q.title %></span>
-                        <% if @today_active_question_ids&.include?(q.id) %>
+                        <% if is_today_q %>
                           <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 ms-1 flex-shrink-0" style="font-size: 0.62rem;">Today</span>
-                        <% elsif @yesterday_active_question_ids&.include?(q.id) %>
+                        <% elsif is_yesterday_q %>
                           <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5 ms-1 flex-shrink-0" style="font-size: 0.62rem;">Yesterday</span>
                         <% end %>
                       </div>
@@ -692,13 +714,10 @@
 
         <!-- 7. Date Range Filter (Defaults to Today) -->
         <div class="col-12 col-sm-6 col-md-4 col-xl">
-          <div class="input-group filter-input-group">
-            <span class="input-group-text bg-white border-end-0 ps-3 pe-2">
-              <i class="bi bi-calendar-range text-secondary flex-shrink-0"></i>
-            </span>
+          <div class="filter-select-wrapper position-relative">
             <select name="date_range" 
                     id="consolidatedDateRange" 
-                    class="form-select border-start-0 ps-1 pe-4 text-truncate filter-select <%= 'filter-active-indigo' if @date_range.present? %>" 
+                    class="form-select filter-select <%= 'filter-active-indigo' if @date_range.present? %>" 
                     onchange="toggleCustomDates(this.value);">
               <option value="today" <%= 'selected' if @date_range == 'today' %>>Today (Default)</option>
               <option value="yesterday" <%= 'selected' if @date_range == 'yesterday' %>>Yesterday</option>
@@ -707,6 +726,7 @@
               <option value="all_time" <%= 'selected' if @date_range == 'all_time' %>>All Time</option>
               <option value="custom" <%= 'selected' if @date_range == 'custom' %>>Custom Range</option>
             </select>
+            <i class="bi bi-calendar-range filter-select-icon"></i>
           </div>
         </div>
       </div>
@@ -1451,8 +1471,47 @@
     transform: rotate(180deg);
   }
 
+  /* Unified Filter Select Styling */
+  .filter-select-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
+  .filter-select-wrapper .filter-select-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 0.85rem;
+    pointer-events: none;
+    z-index: 3;
+    transition: color 0.2s ease;
+  }
+
   .filter-select {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    padding: 0.5rem 2rem 0.5rem 2.25rem !important;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #1e293b !important;
+    transition: all 0.2s ease;
+    height: 38px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     cursor: pointer;
+    width: 100%;
+  }
+
+  .filter-select:hover {
+    border-color: #94a3b8 !important;
+  }
+
+  .filter-select:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+    outline: none;
   }
 
   .filter-select.filter-active-indigo {
@@ -1460,6 +1519,10 @@
     background-color: #eef2ff !important;
     color: #4338ca !important;
     font-weight: 600 !important;
+  }
+
+  .filter-select.filter-active-indigo ~ .filter-select-icon {
+    color: #6366f1 !important;
   }
 
   /* Search input with icon spacing */
@@ -2134,6 +2197,8 @@
         matchesDate = dates.includes(todayStr) || (item.dataset.todayActive === 'true');
       } else if (range === 'yesterday') {
         matchesDate = dates.includes(yesterdayStr) || (item.dataset.yesterdayActive === 'true');
+      } else if (range === 'last_7_days') {
+        matchesDate = (item.dataset.last7Active === 'true') || dates.some(d => d >= startDate && d <= endDate);
       } else if (range !== 'all') {
         if (dates.length === 0) {
           matchesDate = false;
@@ -2346,12 +2411,24 @@
 
   function toggleCustomDates(val) {
     const row = document.getElementById('customDateRangeRow');
-    if (!row) return;
-    if (val === 'custom') {
-      row.classList.remove('d-none');
-    } else {
-      row.classList.add('d-none');
+    if (row) {
+      if (val === 'custom') {
+        row.classList.remove('d-none');
+      } else {
+        row.classList.add('d-none');
+      }
     }
+
+    // Automatically sync Question Filter pill and checkboxes when main date range is changed
+    const qMenu = document.querySelector('.q-filter-dropdown-menu');
+    if (qMenu) {
+      const targetRange = (val === 'all_time') ? 'all' : val;
+      const pill = qMenu.querySelector(`.q-date-pill[data-date-range="${targetRange}"]`);
+      if (pill) {
+        selectQuestionDatePill(pill, targetRange);
+      }
+    }
+
     markFiltersDirty();
   }
 

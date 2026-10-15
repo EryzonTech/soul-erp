@@ -781,4 +781,158 @@ class InstituteAdmin::ReportsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#matrixDataTable th", text: /Question 101/
     assert_select "#matrixDataTable th", text: /Question 102/
   end
+
+  test "consolidated matrix report and response report filter correctly with last_7_days" do
+    assignment = Assignment.create!(
+      title: "Last 7 Days Test Assignment",
+      start_date: 30.days.ago,
+      end_date: 30.days.from_now,
+      institute: @institute,
+      skip_association_validation: true
+    )
+    q_recent = Question.create!(title: "Recent Question", question_type: "short_answer", institute: @institute)
+    q_old = Question.create!(title: "Old Question", question_type: "short_answer", institute: @institute)
+    AssignmentQuestion.create!(assignment: assignment, question: q_recent, order_number: 1)
+    AssignmentQuestion.create!(assignment: assignment, question: q_old, order_number: 2)
+
+    # Recent submission (3 days ago - within last 7 days)
+    resp_recent = AssignmentResponse.create!(
+      assignment: assignment,
+      participant: @participant,
+      question: q_recent,
+      answer: "Recent Answer Inside Window",
+      response_date: 3.days.ago.to_date
+    )
+    AssignmentResponseLog.create!(
+      institute: @institute,
+      participant: @participant,
+      assignment: assignment,
+      response_date: 3.days.ago.to_date,
+      assignment_response_ids: [ resp_recent.id ]
+    )
+
+    # Old submission (15 days ago - outside last 7 days)
+    resp_old = AssignmentResponse.create!(
+      assignment: assignment,
+      participant: @participant,
+      question: q_old,
+      answer: "Old Answer Outside Window",
+      response_date: 15.days.ago.to_date
+    )
+    AssignmentResponseLog.create!(
+      institute: @institute,
+      participant: @participant,
+      assignment: assignment,
+      response_date: 15.days.ago.to_date,
+      assignment_response_ids: [ resp_old.id ]
+    )
+
+    # Test matrix report with last_7_days
+    get consolidated_matrix_report_institute_admin_reports_url,
+        params: { date_range: "last_7_days", question_date_range: "last_7_days" }
+    assert_response :success
+    assert_includes response.body, "Recent Answer Inside Window"
+    assert_not_includes response.body, "Old Answer Outside Window"
+
+    # Test response report with last_7_days
+    get consolidated_response_report_institute_admin_reports_url,
+        params: { view: "detailed", date_range: "last_7_days", question_date_range: "last_7_days" }
+    assert_response :success
+    assert_includes response.body, "Recent Answer Inside Window"
+    assert_not_includes response.body, "Old Answer Outside Window"
+  end
+
+  test "participants in filter dropdown and report rows are ordered alphabetically case-insensitively" do
+    u_z = User.create!(first_name: "Zack", last_name: "Adams", email: "zack_test@example.com", password: "password123", role: :participant, institute: @institute, section: @section)
+    p_z = Participant.create!(user: u_z, institute: @institute, section_id: @section.id)
+
+    u_a = User.create!(first_name: "adam", last_name: "brown", email: "adam_test@example.com", password: "password123", role: :participant, institute: @institute, section: @section)
+    p_a = Participant.create!(user: u_a, institute: @institute, section_id: @section.id)
+
+    u_c = User.create!(first_name: "Charlie", last_name: "Davis", email: "charlie_test@example.com", password: "password123", role: :participant, institute: @institute, section: @section)
+    p_c = Participant.create!(user: u_c, institute: @institute, section_id: @section.id)
+
+    get consolidated_matrix_report_institute_admin_reports_url
+    assert_response :success
+
+    adam_idx = response.body.index("adam brown")
+    charlie_idx = response.body.index("Charlie Davis")
+    zack_idx = response.body.index("Zack Adams")
+
+    assert adam_idx, "Expected adam brown to appear in response body"
+    assert charlie_idx, "Expected Charlie Davis to appear in response body"
+    assert zack_idx, "Expected Zack Adams to appear in response body"
+
+    assert adam_idx < charlie_idx, "Expected 'adam brown' (pos #{adam_idx}) to appear before 'Charlie Davis' (pos #{charlie_idx})"
+    assert charlie_idx < zack_idx, "Expected 'Charlie Davis' (pos #{charlie_idx}) to appear before 'Zack Adams' (pos #{zack_idx})"
+  end
+
+  test "consolidated_matrix_report combines multi-day submissions for a participant into a single row" do
+    assignment = Assignment.create!(
+      title: "Multi-Day Tracking Assignment",
+      institute: @institute,
+      assignment_type: "individual",
+      start_date: 7.days.ago.to_date,
+      end_date: Date.current,
+      skip_association_validation: true
+    )
+    q1 = Question.create!(title: "Day 1 Reflection", question_type: "short_answer", institute: @institute)
+    q2 = Question.create!(title: "Day 3 Action Plan", question_type: "short_answer", institute: @institute)
+    AssignmentQuestion.create!(assignment: assignment, question: q1, order_number: 1)
+    AssignmentQuestion.create!(assignment: assignment, question: q2, order_number: 2)
+
+    user = User.create!(first_name: "Consolidated", last_name: "Participant", email: "consolidated@example.com", password: "password123", role: :participant, institute: @institute, section: @section)
+    part = Participant.create!(user: user, institute: @institute, section_id: @section.id)
+    AssignmentParticipant.create!(assignment: assignment, participant: part)
+
+    date1 = 4.days.ago.to_date
+    date2 = 2.days.ago.to_date
+
+    r1 = AssignmentResponse.create!(assignment: assignment, participant: part, question: q1, answer: "My Day 1 Insight", response_date: date1)
+    AssignmentResponseLog.create!(institute: @institute, participant: part, assignment: assignment, response_date: date1, assignment_response_ids: [ r1.id ])
+
+    r2 = AssignmentResponse.create!(assignment: assignment, participant: part, question: q2, answer: "My Day 3 Achievement", response_date: date2)
+    AssignmentResponseLog.create!(institute: @institute, participant: part, assignment: assignment, response_date: date2, assignment_response_ids: [ r2.id ])
+
+    # Fetch report for last 7 days
+    get consolidated_matrix_report_institute_admin_reports_url, params: {
+      assignment_ids: [ assignment.id ],
+      date_range: "last_7_days"
+    }
+    assert_response :success
+
+    paginated_rows = @controller.instance_variable_get(:@paginated_matrix_rows)
+    part_rows = paginated_rows.select { |r| r[:participant_id] == part.id }
+
+    # Exactly 1 row for this participant
+    assert_equal 1, part_rows.size, "Expected exactly 1 consolidated row for participant, but found #{part_rows.size}"
+    row = part_rows.first
+
+    # Row contains combined submissions count and dates
+    assert_equal 2, row[:submission_count]
+    assert_equal [ date2, date1 ], row[:submission_dates]
+
+    # Row answers contain answers across all submission days
+    assert_equal "My Day 1 Insight", row[:answers][q1.id][:answer]
+    assert_equal "My Day 3 Achievement", row[:answers][q2.id][:answer]
+
+    # HTML output assertions
+    assert_includes response.body, "Consolidated Participant"
+    assert_includes response.body, "My Day 1 Insight"
+    assert_includes response.body, "My Day 3 Achievement"
+    assert_includes response.body, "2 days"
+
+    # CSV export also outputs single row with both answers
+    get consolidated_matrix_report_institute_admin_reports_url(format: :csv), params: {
+      assignment_ids: [ assignment.id ],
+      date_range: "last_7_days"
+    }
+    assert_response :success
+    csv_body = response.body
+    # Only 1 occurrence of participant email in CSV rows
+    assert_equal 1, csv_body.scan("consolidated@example.com").count
+    assert_includes csv_body, "My Day 1 Insight"
+    assert_includes csv_body, "My Day 3 Achievement"
+    assert_includes csv_body, "2 days"
+  end
 end
