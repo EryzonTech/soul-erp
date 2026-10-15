@@ -1,0 +1,148 @@
+<% 
+  log_date = log.response_date.to_date
+  is_today = log_date == Date.current
+  is_yesterday = log_date == Date.yesterday
+
+  badge_class = if is_today
+                  "badge-today"
+                elsif is_yesterday
+                  "badge-yesterday"
+                else
+                  "badge-standard"
+                end
+
+  category = log.assignment.question_category
+  show_category = category.present? && category.name.to_s.strip.downcase != log.assignment.title.to_s.strip.downcase
+%>
+
+<div class="submission-card mb-4 shadow-sm" id="submission_log_<%= log.id %>">
+  <!-- Card Header Row (Date, Time & Action Buttons) -->
+  <div class="submission-card-header d-flex align-items-center justify-content-between flex-wrap gap-2.5 mb-3">
+    <!-- Date & Time Info -->
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="submission-pill <%= badge_class %>">
+        <i class="bi bi-calendar-event me-1.5"></i><%= relative_submission_date(log_date) %>
+      </span>
+
+      <span class="submission-date-text fw-bold text-dark small text-nowrap">
+        <%= log_date.strftime("%a, %b %d, %Y") %>
+      </span>
+
+      <span class="text-muted opacity-30 d-none d-sm-inline">•</span>
+
+      <span class="submission-time-text text-secondary small text-nowrap">
+        <i class="bi bi-clock me-1 text-muted"></i><%= log.created_at.strftime("%I:%M %p") %>
+      </span>
+    </div>
+
+    <!-- Desktop Action Buttons (Top Right) -->
+    <div class="d-none d-md-flex align-items-center gap-2 flex-shrink-0">
+      <button class="btn btn-view-answers btn-sm rounded-pill px-3.5 py-1.5 d-inline-flex align-items-center gap-1.5 fw-semibold"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapse_log_<%= log.id %>"
+              aria-expanded="false"
+              aria-controls="collapse_log_<%= log.id %>"
+              id="btn_toggle_<%= log.id %>">
+        <span>View Answers</span>
+        <i class="bi bi-chevron-down accordion-arrow"></i>
+      </button>
+
+      <%= link_to participant_portal_response_path(log),
+          class: "btn btn-icon-action btn-sm rounded-circle d-flex align-items-center justify-content-center",
+          title: "Full Submission Details" do %>
+        <i class="bi bi-box-arrow-up-right"></i>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Assignment Title & Description Body -->
+  <div class="submission-card-body mb-3.5">
+    <h5 class="submission-title fw-bold text-dark mb-2">
+      <%= link_to log.assignment.title, participant_portal_response_path(log), class: "text-dark text-decoration-none hover-primary" %>
+    </h5>
+
+    <% if log.assignment.description.present? %>
+      <p class="submission-desc text-secondary small mb-0">
+        <%= log.assignment.description %>
+      </p>
+    <% end %>
+  </div>
+
+  <!-- Bottom Meta Badges Row -->
+  <div class="submission-card-footer d-flex align-items-center gap-2 flex-wrap pt-1">
+    <span class="pill-badge pill-emerald">
+      <i class="bi bi-check2-circle me-1"></i><%= pluralize(log.assignment_response_ids.size, "Question") %> Recorded
+    </span>
+
+    <% if show_category %>
+      <span class="pill-badge pill-indigo">
+        <i class="bi bi-folder2-open me-1"></i><%= category.name %>
+      </span>
+    <% end %>
+
+    <span class="pill-badge pill-slate">
+      <i class="bi bi-calendar3 me-1 text-muted"></i><%= log.assignment.start_date.strftime("%b %d") %> – <%= log.assignment.end_date.strftime("%b %d, %Y") %>
+    </span>
+  </div>
+
+  <!-- Mobile-Only Action Button (Full-width touch button on mobile) -->
+  <div class="d-md-none mt-3.5 pt-3 border-top d-flex gap-2">
+    <button class="btn btn-view-answers btn-sm rounded-pill py-2.5 px-3 flex-grow-1 d-flex align-items-center justify-content-center gap-2 fw-semibold"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapse_log_<%= log.id %>"
+            aria-expanded="false"
+            aria-controls="collapse_log_<%= log.id %>">
+      <span>View <%= pluralize(log.assignment_response_ids.size, "Answer") %></span>
+      <i class="bi bi-chevron-down accordion-arrow"></i>
+    </button>
+
+    <%= link_to participant_portal_response_path(log),
+        class: "btn btn-outline-secondary btn-sm rounded-pill px-3 d-flex align-items-center justify-content-center",
+        title: "Full Details" do %>
+      <i class="bi bi-box-arrow-up-right"></i>
+    <% end %>
+  </div>
+
+  <!-- Collapsible Answers Container -->
+  <div class="collapse" id="collapse_log_<%= log.id %>">
+    <div class="card-expanded-body mt-3.5 pt-3.5 border-top">
+      <% 
+        responses = log.responses.includes(question: [:options, :question_category]).order("questions.position ASC, questions.id ASC")
+        grouped = responses.group_by { |r| r.question.question_category&.name || "General Questions" }
+      %>
+
+      <% if responses.any? %>
+        <% q_counter = 0 %>
+        <% grouped.each do |bundle_name, bundle_responses| %>
+          <% if grouped.size > 1 %>
+            <div class="bundle-divider d-flex align-items-center gap-2 mb-3 mt-1">
+              <span class="badge bg-white text-indigo border border-indigo-subtle rounded-pill px-3 py-1.5 fw-bold shadow-2xs">
+                <i class="bi bi-folder2 me-1.5"></i><%= bundle_name %>
+              </span>
+              <div class="flex-grow-1 border-bottom"></div>
+            </div>
+          <% end %>
+
+          <div class="responses-list mb-3">
+            <% bundle_responses.each do |resp| %>
+              <% q_counter += 1 %>
+              <%= render partial: "response_item", locals: { response: resp, index: q_counter } %>
+            <% end %>
+          </div>
+        <% end %>
+
+        <div class="d-flex justify-content-end pt-2">
+          <%= link_to participant_portal_response_path(log), class: "btn btn-outline-primary btn-sm rounded-pill px-3.5 py-1.5" do %>
+            <i class="bi bi-arrows-fullscreen me-1.5"></i>Open Dedicated Detail Page
+          <% end %>
+        </div>
+      <% else %>
+        <div class="p-3 text-center text-muted small bg-light rounded-3 border">
+          <i class="bi bi-info-circle me-1"></i>No individual question responses found for this submission log.
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

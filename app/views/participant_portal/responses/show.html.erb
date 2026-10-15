@@ -1,0 +1,147 @@
+<% content_for :styles do %>
+  <style>
+    .response-show-header {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .header-icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(129, 140, 248, 0.12));
+      color: #6366f1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .submission-overview-card {
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .bundle-section-card {
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .response-item-card {
+      border-color: rgba(226, 232, 240, 0.7) !important;
+      transition: all 0.2s ease;
+    }
+    .response-text-bubble {
+      background-color: #f8fafc;
+      border-left: 3px solid #6366f1 !important;
+      line-height: 1.5;
+    }
+    .border-indigo-subtle { border-color: rgba(99, 102, 241, 0.2) !important; }
+    .bg-indigo-subtle { background-color: rgba(99, 102, 241, 0.1) !important; }
+    .text-indigo { color: #6366f1 !important; }
+  </style>
+<% end %>
+
+<div class="container-fluid px-2 px-md-4 py-3 py-md-4">
+  <!-- BREADCRUMB & HEADER -->
+  <div class="response-show-header">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="header-icon-box">
+          <i class="bi bi-file-earmark-check"></i>
+        </div>
+        <div>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1 small">
+              <li class="breadcrumb-item"><%= link_to "Home", participant_portal_root_path %></li>
+              <li class="breadcrumb-item"><%= link_to "My Responses", participant_portal_responses_path %></li>
+              <li class="breadcrumb-item active" aria-current="page">Submission #<%= @submission_log.id %></li>
+            </ol>
+          </nav>
+          <h4 class="mb-0 fw-bold text-dark"><%= @assignment.title %></h4>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <%= link_to participant_portal_assignment_path(@assignment, date: @submission_log.response_date.to_date),
+            class: "btn btn-outline-secondary btn-sm d-flex align-items-center gap-1.5" do %>
+          <i class="bi bi-journal-text"></i>
+          <span>Assignment Details</span>
+        <% end %>
+
+        <%= link_to participant_portal_responses_path,
+            class: "btn btn-primary btn-sm d-flex align-items-center gap-1.5" do %>
+          <i class="bi bi-arrow-left"></i>
+          <span>Back to Responses</span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBMISSION OVERVIEW BANNER -->
+  <div class="submission-overview-card">
+    <div class="row g-3 align-items-center">
+      <div class="col-12 col-md-4">
+        <span class="text-muted small fw-semibold d-block">Submission Date</span>
+        <div class="d-flex align-items-center gap-2 mt-1">
+          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold">
+            <i class="bi bi-check-circle-fill me-1"></i>Completed
+          </span>
+          <strong class="text-dark"><%= @submission_log.response_date.strftime("%B %d, %Y") %></strong>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <span class="text-muted small fw-semibold d-block">Recorded Timestamp</span>
+        <div class="text-secondary mt-1">
+          <i class="bi bi-clock me-1 text-primary"></i>
+          <%= @submission_log.created_at.strftime("%I:%M %p (%Z)") %>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <span class="text-muted small fw-semibold d-block">Questions Answered</span>
+        <div class="text-secondary mt-1">
+          <i class="bi bi-list-check me-1 text-success"></i>
+          <strong><%= @responses.size %></strong> <%= "question".pluralize(@responses.size) %> recorded
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS & ANSWERS LIST -->
+  <% if @grouped_responses.any? %>
+    <% q_number = 0 %>
+    <% @grouped_responses.each do |bundle_name, responses| %>
+      <div class="bundle-section-card">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+          <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle rounded-pill px-3 py-1.5 fw-bold fs-6">
+            <i class="bi bi-folder2-open me-1.5"></i><%= bundle_name %>
+          </span>
+          <span class="text-muted small"><%= pluralize(responses.size, 'Question') %></span>
+        </div>
+
+        <div class="responses-list">
+          <% responses.each do |resp| %>
+            <% q_number += 1 %>
+            <%= render partial: "response_item", locals: { response: resp, index: q_number } %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="p-4 text-center bg-white rounded-4 border text-muted">
+      <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
+      No recorded answers found for this submission log.
+    </div>
+  <% end %>
+</div>

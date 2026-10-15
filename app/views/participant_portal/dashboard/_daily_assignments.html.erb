@@ -9,9 +9,18 @@
               <p class="assignment-description"><%= assignment.description %></p>
             </div>
             <% if assignment.answered_by_on_date?(current_participant, selected_date) %>
-              <span class="badge status-completed">
-                <i class="bi bi-check-circle-fill me-1"></i>Completed
-              </span>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge status-completed">
+                  <i class="bi bi-check-circle-fill me-1"></i>Completed
+                </span>
+                <%= link_to participant_portal_responses_path(assignment_id: assignment.id),
+                    class: "btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 py-1 px-2.5",
+                    style: "font-size: 0.8rem; border-radius: 8px;",
+                    title: "View submitted responses" do %>
+                  <i class="bi bi-eye"></i>
+                  <span class="d-none d-sm-inline">View Response</span>
+                <% end %>
+              </div>
             <% else %>
               <% if selected_date <= Date.current %>
                 <%= link_to take_assignment_participant_portal_assignment_path(assignment, date: selected_date),

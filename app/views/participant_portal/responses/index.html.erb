@@ -1,0 +1,558 @@
+<% content_for :styles do %>
+  <style>
+    .responses-page-container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+    }
+
+    .responses-page-header {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      border: 1px solid #e2e8f0;
+      padding: 1.75rem 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .header-icon-box {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(129, 140, 248, 0.15));
+      color: #6366f1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    /* KPI Cards */
+    .kpi-touch-scroll {
+      -webkit-overflow-scrolling: touch !important;
+      touch-action: pan-x pan-y !important;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+    }
+    .kpi-col-item {
+      scroll-snap-align: start;
+    }
+    .kpi-card {
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+      padding: 1.35rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 1.15rem;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+    .kpi-icon-box {
+      width: 50px;
+      height: 50px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      flex-shrink: 0;
+    }
+    .kpi-label {
+      font-size: 0.78rem;
+      color: #64748b;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+    .kpi-value {
+      font-size: 1.65rem;
+      font-weight: 800;
+      line-height: 1.1;
+      color: #0f172a;
+    }
+
+    /* Filter Card */
+    .filter-card {
+      background: #ffffff;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 2rem;
+    }
+    .preset-chips-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      padding-bottom: 4px;
+    }
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1.1rem;
+      border-radius: 50rem;
+      font-size: 0.84rem;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      color: #475569;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    .filter-chip:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    .filter-chip.active {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+      color: #ffffff !important;
+      border-color: #4f46e5 !important;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+    }
+
+    .reset-pill-btn {
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-color: #cbd5e1;
+      transition: all 0.2s ease;
+    }
+    .reset-pill-btn:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #b91c1c;
+    }
+
+    .custom-range-box {
+      background: #f8fafc;
+      border-radius: 16px;
+      border: 1px dashed #cbd5e1;
+    }
+
+    .btn-indigo {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #ffffff;
+      border: none;
+      transition: all 0.2s ease;
+    }
+    .btn-indigo:hover {
+      background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+      color: #ffffff;
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+    }
+
+    /* Submission Cards */
+    .submission-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 20px !important;
+      padding: 1.5rem 1.75rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-bottom: 1.75rem !important;
+    }
+    .submission-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.07), 0 4px 10px -2px rgba(0, 0, 0, 0.03) !important;
+      border-color: #cbd5e1 !important;
+    }
+
+    .submission-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 50rem;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .submission-pill.badge-today {
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+    }
+    .submission-pill.badge-yesterday {
+      background: #eef2ff;
+      color: #4f46e5;
+      border: 1px solid #c7d2fe;
+    }
+    .submission-pill.badge-standard {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+    }
+
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 50rem;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .pill-badge.pill-emerald {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+    .pill-badge.pill-indigo {
+      background: #eef2ff;
+      color: #4338ca;
+      border: 1px solid #c7d2fe;
+    }
+    .pill-badge.pill-slate {
+      background: #f8fafc;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+    }
+
+    .submission-title {
+      font-size: 1.22rem;
+      letter-spacing: -0.015em;
+      line-height: 1.4;
+    }
+    .hover-primary:hover {
+      color: #4f46e5 !important;
+    }
+
+    .submission-desc {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      color: #64748b;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .btn-view-answers {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #4f46e5;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0.45rem 1rem;
+      border-radius: 50rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-view-answers:hover {
+      background: #eef2ff;
+      border-color: #c7d2fe;
+      color: #4338ca;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+    }
+    .btn-view-answers[aria-expanded="true"] {
+      background: #4f46e5;
+      border-color: #4f46e5;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+    .btn-view-answers .accordion-arrow {
+      transition: transform 0.25s ease;
+    }
+    .btn-view-answers[aria-expanded="true"] .accordion-arrow {
+      transform: rotate(180deg);
+    }
+
+    .btn-icon-action {
+      width: 36px;
+      height: 36px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #64748b;
+      transition: all 0.2s ease;
+    }
+    .btn-icon-action:hover {
+      background: #6366f1;
+      border-color: #6366f1;
+      color: #ffffff;
+    }
+
+    .section-indicator-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #6366f1;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    }
+
+    /* Response Items */
+    .response-item-card {
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 16px !important;
+      transition: all 0.2s ease;
+    }
+    .response-item-card:hover {
+      border-color: #cbd5e1 !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+    }
+    .response-text-bubble {
+      background-color: #ffffff;
+      border-left: 3px solid #6366f1 !important;
+      line-height: 1.55;
+    }
+
+    /* Empty State */
+    .empty-state-card {
+      background: #ffffff;
+      border-radius: 20px;
+      border: 1px dashed #cbd5e1;
+      padding: 4.5rem 1.75rem;
+      text-align: center;
+    }
+    .empty-state-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: #6366f1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .border-indigo-subtle { border-color: rgba(99, 102, 241, 0.25) !important; }
+    .bg-indigo-subtle { background-color: rgba(99, 102, 241, 0.1) !important; }
+    .text-indigo { color: #4f46e5 !important; }
+
+    @media (max-width: 767.98px) {
+      .responses-page-header {
+        padding: 1.15rem 1rem !important;
+        border-radius: 16px !important;
+        margin-bottom: 1.15rem !important;
+      }
+      .header-icon-box {
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 12px !important;
+        font-size: 1.25rem !important;
+      }
+      .responses-page-header h4 {
+        font-size: 1.15rem !important;
+      }
+
+      .filter-card {
+        padding: 1rem 0.95rem !important;
+        border-radius: 16px !important;
+        margin-bottom: 1.15rem !important;
+      }
+      .filter-chip {
+        padding: 0.35rem 0.75rem !important;
+        font-size: 0.8rem !important;
+      }
+
+      .kpi-carousel-wrapper {
+        margin-bottom: 1.15rem !important;
+      }
+      .kpi-col-item {
+        width: 68% !important;
+        flex: 0 0 68% !important;
+        max-width: 68% !important;
+      }
+      .kpi-card {
+        padding: 0.85rem 0.95rem !important;
+        border-radius: 14px !important;
+        gap: 0.85rem !important;
+      }
+      .kpi-icon-box {
+        width: 42px !important;
+        height: 42px !important;
+        border-radius: 12px !important;
+        font-size: 1.15rem !important;
+      }
+      .kpi-label {
+        font-size: 0.72rem !important;
+      }
+      .kpi-value {
+        font-size: 1.35rem !important;
+      }
+
+      .submission-card {
+        padding: 1rem 1rem !important;
+        border-radius: 16px !important;
+        margin-bottom: 1rem !important;
+      }
+      .submission-title {
+        font-size: 1.05rem !important;
+        line-height: 1.4 !important;
+      }
+      .submission-desc {
+        font-size: 0.84rem !important;
+      }
+      .submission-pill {
+        padding: 0.25rem 0.65rem !important;
+        font-size: 0.72rem !important;
+      }
+      .submission-date-text,
+      .submission-time-text {
+        font-size: 0.78rem !important;
+      }
+      .pill-badge {
+        padding: 0.3rem 0.65rem !important;
+        font-size: 0.75rem !important;
+      }
+
+      .response-item-card {
+        padding: 0.85rem 0.85rem !important;
+        border-radius: 12px !important;
+        margin-bottom: 0.75rem !important;
+      }
+      .recorded-answer-box {
+        padding: 0.75rem 0.8rem !important;
+        margin-top: 0.65rem !important;
+        border-radius: 10px !important;
+      }
+      .card-expanded-body {
+        margin-top: 1rem !important;
+        padding-top: 1rem !important;
+      }
+      .empty-state-card {
+        padding: 2.5rem 1.25rem !important;
+        border-radius: 16px !important;
+      }
+    }
+  </style>
+<% end %>
+
+<div class="responses-page-container pb-4">
+  <!-- BREADCRUMBS & TOP HEADER -->
+  <div class="responses-page-header shadow-sm">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="header-icon-box shadow-2xs">
+          <i class="bi bi-chat-square-text-fill"></i>
+        </div>
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <h4 class="mb-0 fw-bold text-dark">My Responses</h4>
+            <% if viewing_as_student? %>
+              <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 small">
+                <i class="bi bi-eye me-1"></i>Viewing as <%= current_participant.user&.first_name || "Student" %>
+              </span>
+            <% end %>
+          </div>
+          <p class="text-secondary small mb-0">Browse submitted answers and review historical progress across assignments</p>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-2 w-100 w-md-auto justify-content-end">
+        <%= link_to participant_portal_assignments_path, class: "btn btn-outline-secondary btn-sm rounded-pill px-3.5 py-2 d-flex align-items-center gap-1.5" do %>
+          <i class="bi bi-clipboard-check"></i>
+          <span>Assignments</span>
+        <% end %>
+
+        <%= link_to participant_portal_analytics_path, class: "btn btn-outline-primary btn-sm rounded-pill px-3.5 py-2 d-flex align-items-center gap-1.5" do %>
+          <i class="bi bi-graph-up-arrow"></i>
+          <span>Analytics</span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY KPIS -->
+  <%= render "kpis" %>
+
+  <!-- RESPONSIVE FILTER BAR WITH CUSTOM DATE PICKER -->
+  <%= render "filters" %>
+
+  <!-- SUBMISSIONS FEED -->
+  <div class="submissions-feed-wrapper">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3.5 px-1">
+      <div class="d-flex align-items-center gap-2.5">
+        <div class="section-indicator-dot"></div>
+        <h5 class="mb-0 fw-bold text-dark fs-5">Submission History</h5>
+        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 small fw-bold">
+          <%= @pagy.count %> <%= "Record".pluralize(@pagy.count) %>
+        </span>
+      </div>
+
+      <% active_range = params[:range].presence || "today" %>
+      <div class="text-secondary small">
+        <% if active_range == "today" %>
+          <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle rounded-pill px-3 py-1 fw-semibold">
+            <i class="bi bi-calendar-check me-1.5"></i>Showing Today's Responses
+          </span>
+        <% elsif active_range == "custom" || params[:start_date].present? %>
+          <span class="text-muted fw-semibold">Showing Custom Date Range</span>
+        <% elsif active_range == "all" %>
+          <span class="text-muted fw-semibold">Showing All Time Submissions</span>
+        <% else %>
+          <span class="text-muted fw-semibold">Showing Past <%= active_range %> Days</span>
+        <% end %>
+      </div>
+    </div>
+
+    <% if @submission_logs.any? %>
+      <div class="submission-cards-list">
+        <% @submission_logs.each do |log| %>
+          <%= render partial: "submission_card", locals: { log: log } %>
+        <% end %>
+      </div>
+
+      <!-- Pagination -->
+      <% if @pagy.pages > 1 %>
+        <div class="d-flex justify-content-center mt-4 pt-2">
+          <%== pagy_bootstrap_nav(@pagy) %>
+        </div>
+      <% end %>
+    <% else %>
+      <!-- Context-Aware Empty State -->
+      <div class="empty-state-card shadow-sm">
+        <div class="empty-state-icon shadow-2xs">
+          <% if active_range == "today" %>
+            <i class="bi bi-calendar2-day"></i>
+          <% else %>
+            <i class="bi bi-inbox"></i>
+          <% end %>
+        </div>
+
+        <% if active_range == "today" %>
+          <h5 class="fw-bold text-dark mb-1.5">No responses recorded for Today</h5>
+          <p class="text-secondary small mb-4" style="max-width: 460px; margin: 0 auto; line-height: 1.55;">
+            You have not submitted any assignments yet today (<%= Date.current.strftime("%B %d, %Y") %>). Complete today's assignment or review your earlier submissions.
+          </p>
+          <div class="d-flex align-items-center justify-content-center flex-wrap gap-2.5">
+            <%= link_to participant_portal_assignments_path, class: "btn btn-indigo btn-sm rounded-pill px-4 py-2 fw-semibold shadow-xs" do %>
+              <i class="bi bi-play-circle-fill me-1.5"></i>Take Today's Assignment
+            <% end %>
+            <%= link_to participant_portal_responses_path(range: "7"), class: "btn btn-outline-secondary btn-sm rounded-pill px-3.5 py-2" do %>
+              <i class="bi bi-calendar-week me-1.5"></i>View Past 7 Days
+            <% end %>
+            <%= link_to participant_portal_responses_path(range: "all"), class: "btn btn-outline-secondary btn-sm rounded-pill px-3.5 py-2" do %>
+              <i class="bi bi-infinity me-1.5"></i>View All Time
+            <% end %>
+          </div>
+        <% else %>
+          <h5 class="fw-bold text-dark mb-1.5">No matching submissions found</h5>
+          <p class="text-secondary small mb-4" style="max-width: 460px; margin: 0 auto; line-height: 1.55;">
+            No submissions matched your selected filters. Try broadening your date range or selecting a different assignment.
+          </p>
+          <div class="d-flex align-items-center justify-content-center flex-wrap gap-2.5">
+            <%= link_to participant_portal_responses_path(range: "today"), class: "btn btn-outline-secondary btn-sm rounded-pill px-3.5 py-2" do %>
+              <i class="bi bi-arrow-counterclockwise me-1.5"></i>Back to Today
+            <% end %>
+            <%= link_to participant_portal_responses_path(range: "all"), class: "btn btn-indigo btn-sm rounded-pill px-4 py-2" do %>
+              <i class="bi bi-infinity me-1.5"></i>View All Submissions
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

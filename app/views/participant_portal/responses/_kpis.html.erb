@@ -1,0 +1,57 @@
+<div class="kpi-carousel-wrapper mb-4">
+  <div class="row g-3 flex-nowrap flex-md-wrap overflow-x-auto pb-2 pb-md-0 kpi-touch-scroll">
+    <!-- Total Answers -->
+    <div class="col-8 col-sm-6 col-md-3 kpi-col-item">
+      <div class="kpi-card h-100 p-3.5">
+        <div class="kpi-icon-box bg-indigo-subtle text-indigo shadow-2xs">
+          <i class="bi bi-chat-square-text-fill"></i>
+        </div>
+        <div class="kpi-details">
+          <span class="kpi-label">Total Answers</span>
+          <h3 class="kpi-value text-dark mb-0"><%= number_with_delimiter(@stats[:total_answers]) %></h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Completed Submissions -->
+    <div class="col-8 col-sm-6 col-md-3 kpi-col-item">
+      <div class="kpi-card h-100 p-3.5">
+        <div class="kpi-icon-box bg-success-subtle text-success shadow-2xs">
+          <i class="bi bi-calendar2-check-fill"></i>
+        </div>
+        <div class="kpi-details">
+          <span class="kpi-label">Submissions</span>
+          <h3 class="kpi-value text-dark mb-0"><%= number_with_delimiter(@stats[:total_days]) %></h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Streak -->
+    <div class="col-8 col-sm-6 col-md-3 kpi-col-item">
+      <div class="kpi-card h-100 p-3.5">
+        <div class="kpi-icon-box bg-warning-subtle text-warning shadow-2xs">
+          <i class="bi bi-fire"></i>
+        </div>
+        <div class="kpi-details">
+          <span class="kpi-label">Active Streak</span>
+          <h3 class="kpi-value text-dark mb-0">
+            <%= @stats[:streak] %> <span class="fs-6 text-muted fw-normal"><%= "day".pluralize(@stats[:streak]) %></span>
+          </h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Distinct Assignments -->
+    <div class="col-8 col-sm-6 col-md-3 kpi-col-item">
+      <div class="kpi-card h-100 p-3.5">
+        <div class="kpi-icon-box bg-info-subtle text-info shadow-2xs">
+          <i class="bi bi-journal-bookmark-fill"></i>
+        </div>
+        <div class="kpi-details">
+          <span class="kpi-label">Assignments</span>
+          <h3 class="kpi-value text-dark mb-0"><%= @stats[:assignments_count] %></h3>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

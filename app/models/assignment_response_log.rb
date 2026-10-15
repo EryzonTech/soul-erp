@@ -16,4 +16,8 @@ class AssignmentResponseLog < ApplicationRecord
       assignment_response_ids: Array(response_ids)
     )
   end
+
+  def responses
+    AssignmentResponse.where(id: assignment_response_ids)
+  end
 end

@@ -9,10 +9,15 @@
         <h4 class="header-title"><%= @assignment.title %></h4>
         <p class="header-subtitle">Read-only assignment structure and responses preview</p>
       </div>
+    <div class="d-flex align-items-center gap-2">
+      <%= link_to participant_portal_responses_path(assignment_id: @assignment.id), class: "btn btn-outline-primary btn-sm d-flex align-items-center gap-1.5", title: "View all submitted responses for this assignment" do %>
+        <i class="bi bi-chat-square-text"></i>
+        <span class="d-none d-sm-inline">All Responses</span>
+      <% end %>
+      <a href="<%= participant_portal_assignments_path %>" class="btn-back" title="Back to Assignments">
+        <i class="bi bi-arrow-left"></i>
+      </a>
     </div>
-    <a href="<%= participant_portal_assignments_path %>" class="btn-back" title="Back to Assignments">
-      <i class="bi bi-arrow-left"></i>
-    </a>
   </div>
 
   <!-- Assignment Details & Date Selector Card -->

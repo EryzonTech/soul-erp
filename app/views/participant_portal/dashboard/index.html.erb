@@ -35,15 +35,20 @@
     </div>
     
     <div class="col-md-4 mb-3 mb-md-0">
-      <div class="stat-card stat-card-green h-100">
-        <div class="stat-icon-wrapper">
-          <i class="bi bi-check-circle"></i>
+      <%= link_to participant_portal_responses_path, class: "text-decoration-none d-block h-100", title: "View all submitted responses" do %>
+        <div class="stat-card stat-card-green h-100">
+          <div class="stat-icon-wrapper">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div class="stat-content">
+            <h6 class="stat-label d-flex align-items-center justify-content-between">
+              <span>Completed Assignments</span>
+              <i class="bi bi-arrow-right-short fs-5 text-muted opacity-75"></i>
+            </h6>
+            <h2 class="stat-value"><%= current_participant.assignment_response_logs.count %></h2>
+          </div>
         </div>
-        <div class="stat-content">
-          <h6 class="stat-label">Completed Assignments</h6>
-          <h2 class="stat-value"><%= current_participant.assignment_response_logs.count %></h2>
-        </div>
-      </div>
+      <% end %>
     </div>
     
     <div class="col-md-4">
