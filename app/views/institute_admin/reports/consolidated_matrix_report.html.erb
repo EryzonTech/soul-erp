@@ -824,21 +824,31 @@
 
             <!-- DYNAMIC QUESTION HEADERS -->
             <% @matrix_questions.each_with_index do |q, q_idx| %>
-              <% has_today_resp = @today_active_question_ids&.include?(q[:id]) %>
+              <% 
+                d_info = q[:date_info]
+                is_today = d_info&.dig(:type) == :today || @today_active_question_ids&.include?(q[:id])
+                is_yesterday = d_info&.dig(:type) == :yesterday || @yesterday_active_question_ids&.include?(q[:id])
+              %>
               <th style="min-width: 220px; max-width: 320px; width: 260px;" 
-                  class="question-header-th <%= 'active-today-header' if has_today_resp %>" 
+                  class="question-header-th <%= 'active-today-header' if is_today %> <%= 'active-yesterday-header' if is_yesterday && !is_today %>" 
                   title="<%= q[:title] %> (<%= q[:assignments_text] %>)">
                 <div class="d-flex flex-column gap-1">
-                  <div class="d-flex align-items-center justify-content-between gap-1">
-                    <span class="badge <%= has_today_resp ? 'bg-primary text-white' : 'bg-indigo-subtle text-indigo' %> fw-bold" style="font-size: 0.7rem;">
+                  <div class="d-flex align-items-center justify-content-between gap-1 flex-nowrap">
+                    <span class="badge <%= is_today ? 'bg-primary text-white' : 'bg-indigo-subtle text-indigo' %> fw-bold flex-shrink-0" style="font-size: 0.7rem;">
                       Q<%= q_idx + 1 %>
                     </span>
-                    <% if has_today_resp %>
-                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-1.5 py-0.5 fw-semibold" style="font-size: 0.64rem;">
+                    <% if d_info.present? %>
+                      <span class="badge <%= d_info[:badge_class] %> rounded-pill px-1.5 py-0.5 fw-semibold text-nowrap flex-shrink-0" 
+                            style="font-size: 0.64rem;" 
+                            title="<%= d_info[:tooltip] %>">
+                        <i class="bi <%= d_info[:icon] %> me-0.5"></i><%= d_info[:label] %>
+                      </span>
+                    <% elsif is_today %>
+                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-1.5 py-0.5 fw-semibold text-nowrap flex-shrink-0" style="font-size: 0.64rem;">
                         <i class="bi bi-lightning-charge-fill me-0.5"></i>Today
                       </span>
                     <% end %>
-                    <span class="badge bg-light text-muted border text-capitalize" style="font-size: 0.65rem;">
+                    <span class="badge bg-light text-muted border text-capitalize text-truncate flex-shrink-0" style="font-size: 0.65rem; max-width: 105px;" title="<%= q[:question_type].to_s.humanize %>">
                       <%= q[:question_type].to_s.humanize %>
                     </span>
                   </div>
@@ -1000,6 +1010,11 @@
   .question-header-th.active-today-header {
     background-color: #f0f9ff !important;
     border-top: 3px solid #0284c7 !important;
+  }
+
+  .question-header-th.active-yesterday-header {
+    background-color: #f8fafc !important;
+    border-top: 3px solid #64748b !important;
   }
 
   /* 2. HORIZONTAL FROZEN COLUMNS (Sticky on Left) */
