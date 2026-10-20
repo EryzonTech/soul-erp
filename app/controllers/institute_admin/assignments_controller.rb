@@ -101,8 +101,8 @@ module InstituteAdmin
           )
 
           start_date = data[:start_date].present? ? Date.parse(data[:start_date]) : Date.current
-          duration = inst_category.duration_days
-          end_date = data[:end_date].present? ? Date.parse(data[:end_date]) : (start_date + duration.days)
+          duration = (inst_category.duration_days.to_i > 0) ? inst_category.duration_days.to_i : 30
+          end_date = data[:end_date].present? ? Date.parse(data[:end_date]) : (start_date + (duration - 1).days)
           assignment_type = data[:assignment_type].presence || "individual"
           title = data[:title].presence || category.name
           description = data[:description].presence || category.description
