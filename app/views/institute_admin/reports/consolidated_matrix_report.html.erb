@@ -831,7 +831,19 @@
               %>
               <th style="min-width: 220px; max-width: 320px; width: 260px;" 
                   class="question-header-th <%= 'active-today-header' if is_today %> <%= 'active-yesterday-header' if is_yesterday && !is_today %>" 
-                  title="<%= q[:title] %> (<%= q[:assignments_text] %>)">
+                  title="<%= q[:title] %> (<%= q[:assignments_text] %>)"
+                  role="button"
+                  tabindex="0"
+                  onclick="showMatrixQuestionModal(this);"
+                  onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); showMatrixQuestionModal(this); }"
+                  data-question-num="Q<%= q_idx + 1 %>"
+                  data-question-title="<%= h(q[:title]) %>"
+                  data-question-type="<%= q[:question_type].to_s.humanize %>"
+                  data-assignment-name="<%= h(q[:assignments_text].presence || '') %>"
+                  data-date-label="<%= d_info&.dig(:label) || (is_today ? 'Today' : '') %>"
+                  data-date-badge="<%= d_info&.dig(:badge_class) || (is_today ? 'bg-primary-subtle text-primary border border-primary-subtle' : '') %>"
+                  data-date-icon="<%= d_info&.dig(:icon) || (is_today ? 'bi-lightning-charge-fill' : '') %>"
+                  data-day-range="<%= q[:day_range_text] %>">
                 <div class="d-flex flex-column gap-1">
                   <div class="d-flex align-items-center justify-content-between gap-1 flex-nowrap">
                     <span class="badge <%= is_today ? 'bg-primary text-white' : 'bg-indigo-subtle text-indigo' %> fw-bold flex-shrink-0" style="font-size: 0.7rem;">
@@ -852,8 +864,9 @@
                       <%= q[:question_type].to_s.humanize %>
                     </span>
                   </div>
-                  <div class="fw-semibold text-dark text-truncate small" style="max-width: 250px;" title="<%= q[:title] %>">
-                    <%= q[:title] %>
+                  <div class="fw-semibold text-dark text-truncate small d-flex align-items-center justify-content-between gap-1" style="max-width: 250px;">
+                    <span class="text-truncate" title="<%= q[:title] %>"><%= q[:title] %></span>
+                    <i class="bi bi-arrows-angle-expand text-muted opacity-50 flex-shrink-0" style="font-size: 0.65rem;" title="Tap or click to view full question"></i>
                   </div>
                   <% if (@matrix_assignments_count || @total_filtered_assignments) > 1 && q[:assignments_text].present? %>
                     <span class="text-muted text-truncate" style="font-size: 0.68rem;" title="<%= q[:assignments_text] %>">
@@ -898,6 +911,48 @@
     </div>
     <!-- Infinite Scroll Sentinel Target -->
     <div id="infiniteScrollSentinel" style="height: 10px; width: 100%;"></div>
+  </div>
+</div>
+
+<!-- QUESTION DETAIL MODAL (TOUCH / MOBILE / CLICK) -->
+<div class="modal fade" id="matrixQuestionDetailModal" tabindex="-1" aria-labelledby="modalQuestionNum" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header bg-light-subtle border-bottom px-3.5 py-3 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2 flex-wrap" id="modalQuestionBadges">
+          <span class="badge bg-primary text-white fw-bold px-2.5 py-1" id="modalQuestionNum" style="font-size: 0.85rem;">Q1</span>
+          <span class="badge rounded-pill px-2.5 py-1 fw-semibold d-none" id="modalQuestionDateBadge"></span>
+          <span class="badge bg-light text-dark border px-2.5 py-1 small" id="modalQuestionType"></span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="hideMatrixQuestionModal();"></button>
+      </div>
+
+      <div class="modal-body p-3.5 p-md-4">
+        <div class="text-muted small mb-2.5 d-flex align-items-center gap-1.5 d-none" id="modalQuestionAssignmentBox">
+          <i class="bi bi-journal-bookmark-fill text-primary"></i>
+          <span class="fw-semibold text-secondary" id="modalQuestionAssignment"></span>
+        </div>
+
+        <div class="p-3 bg-light rounded-3 border">
+          <div class="text-muted text-uppercase fw-bold mb-1.5 d-flex align-items-center gap-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">
+            <i class="bi bi-chat-left-text text-primary"></i> Question Text
+          </div>
+          <p class="fw-semibold text-dark mb-0 fs-6 lh-base text-break" id="modalQuestionFullText" style="white-space: pre-wrap; word-break: break-word;"></p>
+        </div>
+
+        <div class="mt-2.5 d-none text-muted small" id="modalQuestionScheduleRangeBox">
+          <i class="bi bi-calendar-range me-1 text-primary"></i>
+          <span id="modalQuestionScheduleRange"></span>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-light-subtle border-top px-3.5 py-2.5 d-flex justify-content-between align-items-center">
+        <span class="text-muted" style="font-size: 0.75rem;">
+          <i class="bi bi-hand-index-thumb me-1"></i>Tap anywhere outside to close
+        </span>
+        <button type="button" class="btn btn-secondary rounded-3 px-3 py-1 btn-sm" data-bs-dismiss="modal" onclick="hideMatrixQuestionModal();">Close</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1005,6 +1060,18 @@
     color: #0f172a !important;
     border-top: 2px solid #0284c7 !important;
     border-bottom: 2px solid #cbd5e1 !important;
+    cursor: pointer !important;
+    user-select: none;
+    -webkit-tap-highlight-color: rgba(2, 132, 199, 0.15);
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .question-header-th:hover {
+    background-color: #f1f5f9 !important;
+  }
+
+  .question-header-th:active {
+    background-color: #e2e8f0 !important;
   }
 
   .question-header-th.active-today-header {
@@ -1012,9 +1079,37 @@
     border-top: 3px solid #0284c7 !important;
   }
 
+  .question-header-th.active-today-header:hover,
+  .question-header-th.active-today-header:active {
+    background-color: #e0f2fe !important;
+  }
+
   .question-header-th.active-yesterday-header {
     background-color: #f8fafc !important;
     border-top: 3px solid #64748b !important;
+  }
+
+  /* Question Details Modal for Mobile & Tablet */
+  @media (max-width: 576px) {
+    #matrixQuestionDetailModal .modal-dialog {
+      margin: 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 100%;
+    }
+    #matrixQuestionDetailModal .modal-content {
+      border-bottom-left-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+      max-height: 85vh;
+      animation: slideUpBottomSheet 0.25s ease-out;
+    }
+  }
+
+  @keyframes slideUpBottomSheet {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
   }
 
   /* 2. HORIZONTAL FROZEN COLUMNS (Sticky on Left) */
@@ -2984,7 +3079,105 @@
     initFilterFormOptimization();
   });
 
+  // =========================================================
+  // QUESTION DETAIL MODAL (TOUCH / MOBILE / CLICK)
+  // =========================================================
+  function showMatrixQuestionModal(headerEl) {
+    const modalEl = document.getElementById('matrixQuestionDetailModal');
+    if (!modalEl || !headerEl) return;
+
+    const num = headerEl.dataset.questionNum || '';
+    const title = headerEl.dataset.questionTitle || '';
+    const type = headerEl.dataset.questionType || '';
+    const asg = headerEl.dataset.assignmentName || '';
+    const dateLabel = headerEl.dataset.dateLabel || '';
+    const dateBadgeClass = headerEl.dataset.dateBadge || '';
+    const dateIcon = headerEl.dataset.dateIcon || '';
+    const dayRange = headerEl.dataset.dayRange || '';
+
+    const numEl = document.getElementById('modalQuestionNum');
+    if (numEl) numEl.textContent = num;
+
+    const textEl = document.getElementById('modalQuestionFullText');
+    if (textEl) textEl.textContent = title;
+
+    const typeEl = document.getElementById('modalQuestionType');
+    if (typeEl) typeEl.textContent = type;
+
+    const asgBox = document.getElementById('modalQuestionAssignmentBox');
+    const asgText = document.getElementById('modalQuestionAssignment');
+    if (asgBox && asgText) {
+      if (asg) {
+        asgText.textContent = asg;
+        asgBox.classList.remove('d-none');
+      } else {
+        asgBox.classList.add('d-none');
+      }
+    }
+
+    const dateBadge = document.getElementById('modalQuestionDateBadge');
+    if (dateBadge) {
+      if (dateLabel) {
+        dateBadge.className = `badge rounded-pill px-2.5 py-1 fw-semibold ${dateBadgeClass}`;
+        dateBadge.innerHTML = dateIcon ? `<i class="bi ${dateIcon} me-1"></i>${dateLabel}` : dateLabel;
+        dateBadge.classList.remove('d-none');
+      } else {
+        dateBadge.classList.add('d-none');
+      }
+    }
+
+    const rangeBox = document.getElementById('modalQuestionScheduleRangeBox');
+    const rangeText = document.getElementById('modalQuestionScheduleRange');
+    if (rangeBox && rangeText) {
+      if (dayRange && dayRange !== 'All Days') {
+        rangeText.textContent = `Schedule: ${dayRange}`;
+        rangeBox.classList.remove('d-none');
+      } else {
+        rangeBox.classList.add('d-none');
+      }
+    }
+
+    if (window.bootstrap && window.bootstrap.Modal) {
+      try {
+        const bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        bsModal.show();
+        return;
+      } catch (e) {
+        console.warn('Bootstrap modal fallback', e);
+      }
+    }
+
+    modalEl.classList.add('show');
+    modalEl.style.display = 'block';
+    document.body.classList.add('modal-open');
+    let backdrop = document.getElementById('customQuestionModalBackdrop');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.id = 'customQuestionModalBackdrop';
+      backdrop.className = 'modal-backdrop fade show';
+      document.body.appendChild(backdrop);
+      backdrop.onclick = hideMatrixQuestionModal;
+    }
+  }
+
+  function hideMatrixQuestionModal() {
+    const modalEl = document.getElementById('matrixQuestionDetailModal');
+    if (!modalEl) return;
+    if (window.bootstrap && window.bootstrap.Modal) {
+      try {
+        const bsModal = bootstrap.Modal.getInstance(modalEl);
+        if (bsModal) bsModal.hide();
+      } catch (e) { /* ignore */ }
+    }
+    modalEl.classList.remove('show');
+    modalEl.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    const backdrop = document.getElementById('customQuestionModalBackdrop');
+    if (backdrop) backdrop.remove();
+  }
+
   document.addEventListener('turbo:before-cache', function() {
+    hideMatrixQuestionModal();
     if (exportPollTimer) {
       clearTimeout(exportPollTimer);
       exportPollTimer = null;
