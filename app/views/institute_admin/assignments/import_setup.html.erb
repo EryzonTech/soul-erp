@@ -144,7 +144,7 @@
         <% 
           duration = (cat.duration_days.to_i > 0) ? cat.duration_days.to_i : 30
           default_start = Date.current
-          default_end = default_start + duration.days
+          default_end = default_start + (duration - 1).days
           bundled_items = cat.question_bundles.flat_map(&:question_bundle_items).select(&:question_id)
           bundled_questions_count = bundled_items.map(&:question_id).uniq.size
         %>
@@ -1459,7 +1459,7 @@
         const formatted = `${year}-${month}-${day}`;
         endDateInput.value = formatted;
         if (endDateInput._flatpickr) {
-          endDateInput._flatpickr.setDate(formatted, true);
+          endDateInput._flatpickr.setDate(formatted, false);
         }
       }
     }
@@ -1517,7 +1517,40 @@
 
   function setupFlatpickrInstances() {
     if (typeof flatpickr !== "undefined") {
-      flatpickr(".datepicker", {
+      document.querySelectorAll(".category-assignment-card").forEach(card => {
+        const catId = card.id.replace("category_card_", "");
+        const startInput = card.querySelector(`input[name="assignments[${catId}][start_date]"]`);
+        const endInput = card.querySelector(`input[name="assignments[${catId}][end_date]"]`);
+
+        if (startInput && !startInput._flatpickr) {
+          flatpickr(startInput, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            allowInput: true,
+            onChange: function(selectedDates, dateStr) {
+              startInput.value = dateStr;
+              const duration = parseInt(card.dataset.categoryDuration) || 30;
+              autoUpdateEndDate(catId, duration);
+            }
+          });
+        }
+
+        if (endInput && !endInput._flatpickr) {
+          flatpickr(endInput, {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            allowInput: true,
+            onChange: function(selectedDates, dateStr) {
+              endInput.value = dateStr;
+              updateSelectedDaysCount(catId);
+            }
+          });
+        }
+      });
+
+      flatpickr(".datepicker:not(.flatpickr-input)", {
         dateFormat: "Y-m-d",
         altInput: true,
         altFormat: "d/m/Y",
